@@ -206,14 +206,14 @@ namespace FaceIDApp.UserControls
                 foreach (var log in logs)
                 {
                     var rowIdx = _dgvLog.Rows.Add(
-                        log.CreatedAt.ToString("dd/MM/yyyy HH:mm:ss"),
+                        log.LogTime.ToString("dd/MM/yyyy HH:mm:ss"),
                         log.EmployeeId.HasValue ? log.EmployeeId.ToString() : "?",
-                        log.AttendanceRecordId.HasValue ? log.AttendanceRecordId.ToString() : "—",
-                        log.Action,
+                        log.AttendanceId.HasValue ? log.AttendanceId.ToString() : "—",
+                        log.LogType,
                         log.Method,
                         log.Confidence.HasValue ? $"{log.Confidence:P1}" : "—",
                         log.Result ?? "—",
-                        log.FailureReason ?? "");
+                        log.FailReason ?? "");
 
                     // Màu theo kết quả
                     var resultCell = _dgvLog.Rows[rowIdx].Cells["LogResult"];

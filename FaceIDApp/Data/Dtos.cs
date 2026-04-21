@@ -359,33 +359,4 @@ namespace FaceIDApp.Data
         public string PerformedByName { get; set; }
     }
 
-    internal class AuditLogDto
-    {
-        public long Id { get; set; }
-        public int? UserId { get; set; }
-        public string Action { get; set; }
-        public string TableName { get; set; }
-        public int? RecordId { get; set; }
-        public string OldValues { get; set; }
-        public string NewValues { get; set; }
-        public string IpAddress { get; set; }
-        public DateTime CreatedAt { get; set; }
-
-        // JOIN
-        public string Username { get; set; }
-    }
-
-    internal class EmployeeShiftScheduleDto
-    {
-        public long Id { get; set; }
-        public int EmployeeId { get; set; }
-        public DateTime ScheduleDate { get; set; }
-        public int ShiftId { get; set; }
-        public bool IsOverride { get; set; }
-        public string Note { get; set; }
-
-        // JOIN
-        public string EmployeeName { get; set; }
-        public string ShiftName { get; set; }
-    }
 }

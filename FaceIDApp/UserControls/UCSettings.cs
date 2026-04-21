@@ -140,7 +140,7 @@ namespace FaceIDApp.UserControls
                     var rowIdx = dgvUsers.Rows.Add(
                         u.Id, u.Username, u.Role,
                         u.EmployeeId.HasValue ? u.EmployeeId.ToString() : "—",
-                        u.LastLoginAt?.ToString("dd/MM/yyyy HH:mm") ?? "—",
+                        u.LastLogin?.ToString("dd/MM/yyyy HH:mm") ?? "—",
                         u.IsActive ? "✅ Hoạt động" : "🔒 Bị khóa",
                         u.FailedLoginCount);
                     if (!u.IsActive)
@@ -167,14 +167,9 @@ namespace FaceIDApp.UserControls
                     empId = int.Parse(cboUserEmployee.SelectedItem.ToString().Split(':')[0].Trim());
 
                 string hash = BCrypt.Net.BCrypt.HashPassword(txtNewPassword.Text);
-                await AppDatabase.Repository.CreateUserAsync(new UserDto
-                {
-                    Username = txtNewUsername.Text.Trim(),
-                    PasswordHash = hash,
-                    Role = cboNewRole.SelectedItem?.ToString() ?? "Employee",
-                    EmployeeId = empId,
-                    IsActive = true
-                });
+                string username = txtNewUsername.Text.Trim();
+                string role = cboNewRole.SelectedItem?.ToString() ?? "Employee";
+                await AppDatabase.Repository.CreateUserAsync(username, hash, empId, role);
                 txtNewUsername.Text = "";
                 txtNewPassword.Text = "";
                 MessageBox.Show("✅ Tạo tài khoản thành công!", "Thành công", MessageBoxButtons.OK, MessageBoxIcon.Information);
@@ -192,7 +187,7 @@ namespace FaceIDApp.UserControls
             if (string.IsNullOrWhiteSpace(newPwd)) return;
             try
             {
-                await AppDatabase.Repository.ResetPasswordAsync(uid, BCrypt.Net.BCrypt.HashPassword(newPwd));
+                await AppDatabase.Repository.ResetUserPasswordAsync(uid, BCrypt.Net.BCrypt.HashPassword(newPwd));
                 MessageBox.Show("✅ Reset mật khẩu thành công!", "Thành công", MessageBoxButtons.OK, MessageBoxIcon.Information);
             }
             catch (Exception ex) { MessageBox.Show(ex.Message, "Lỗi"); }
@@ -203,9 +198,12 @@ namespace FaceIDApp.UserControls
             if (dgvUsers.SelectedRows.Count == 0) { MessageBox.Show("Chọn tài khoản trước!"); return; }
             var uid = (int)dgvUsers.SelectedRows[0].Cells["UId"].Value;
             var isActive = dgvUsers.SelectedRows[0].Cells["UActive"].Value?.ToString().Contains("Hoạt động") == true;
+            var role = dgvUsers.SelectedRows[0].Cells["URole"].Value?.ToString() ?? "Employee";
+            var empIdStr = dgvUsers.SelectedRows[0].Cells["UEmpId"].Value?.ToString();
+            int? empId = int.TryParse(empIdStr, out var eid) ? eid : (int?)null;
             try
             {
-                await AppDatabase.Repository.ToggleUserActiveAsync(uid, !isActive);
+                await AppDatabase.Repository.UpdateUserAsync(uid, role, !isActive, empId);
                 MessageBox.Show(isActive ? "Đã khóa tài khoản." : "Đã kích hoạt tài khoản.", "Thành công");
                 await LoadUsersAsync();
             }

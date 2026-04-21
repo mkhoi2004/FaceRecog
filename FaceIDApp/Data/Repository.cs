@@ -1438,6 +1438,57 @@ ORDER BY al.log_time DESC", conn))
         }
 
         // =============================================
+        // ATTENDANCE LOGS QUERY (date range overload)
+        // =============================================
+        public async Task<List<AttendanceLogDto>> GetAttendanceLogsAsync(DateTime from, DateTime to, int limit = 500)
+        {
+            var list = new List<AttendanceLogDto>();
+            using (var conn = CreateConnection())
+            {
+                await conn.OpenAsync();
+                using (var cmd = new NpgsqlCommand(@"
+SELECT al.id, al.attendance_id, al.employee_id, al.device_id, al.log_time,
+       al.log_type, al.method, al.matched_face_id, al.confidence, al.face_distance,
+       al.image_path, al.result, al.fail_reason,
+       e.full_name, e.code, d.name AS device_name
+FROM attendance_logs al
+LEFT JOIN employees e ON al.employee_id = e.id
+LEFT JOIN attendance_devices d ON al.device_id = d.id
+WHERE al.log_time::date BETWEEN @from AND @to
+ORDER BY al.log_time DESC
+LIMIT @limit", conn))
+                {
+                    cmd.Parameters.AddWithValue("from", from.Date);
+                    cmd.Parameters.AddWithValue("to", to.Date);
+                    cmd.Parameters.AddWithValue("limit", limit);
+                    using (var r = await cmd.ExecuteReaderAsync())
+                    {
+                        while (await r.ReadAsync())
+                            list.Add(new AttendanceLogDto
+                            {
+                                Id = r.GetInt64(0),
+                                AttendanceId = r.IsDBNull(1) ? (long?)null : r.GetInt64(1),
+                                EmployeeId = r.IsDBNull(2) ? (int?)null : r.GetInt32(2),
+                                DeviceId = r.IsDBNull(3) ? (int?)null : r.GetInt32(3),
+                                LogTime = r.GetDateTime(4),
+                                LogType = r.GetString(5), Method = r.GetString(6),
+                                MatchedFaceId = r.IsDBNull(7) ? (int?)null : r.GetInt32(7),
+                                Confidence = r.IsDBNull(8) ? (float?)null : r.GetFloat(8),
+                                FaceDistance = r.IsDBNull(9) ? (float?)null : r.GetFloat(9),
+                                ImagePath = r.IsDBNull(10) ? null : r.GetString(10),
+                                Result = r.GetString(11),
+                                FailReason = r.IsDBNull(12) ? null : r.GetString(12),
+                                EmployeeName = r.IsDBNull(13) ? null : r.GetString(13),
+                                EmployeeCode = r.IsDBNull(14) ? null : r.GetString(14),
+                                DeviceName = r.IsDBNull(15) ? null : r.GetString(15)
+                            });
+                    }
+                }
+            }
+            return list;
+        }
+
+        // =============================================
         // CONNECTION TEST
         // =============================================
         public async Task<bool> TestConnectionAsync()
