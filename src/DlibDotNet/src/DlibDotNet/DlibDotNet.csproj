@@ -13,6 +13,8 @@
     <PackageLicenseUrl></PackageLicenseUrl>
   
     <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
+  
+    <Platforms>AnyCPU;x64</Platforms>
   </PropertyGroup>
 
 
