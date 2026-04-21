@@ -448,7 +448,7 @@ namespace FaceIDApp.UserControls
                 AllowUserToAddRows = false, AllowUserToDeleteRows = false,
                 RowHeadersVisible = false, SelectionMode = DataGridViewSelectionMode.FullRowSelect,
                 AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill,
-                ColumnHeadersHeight = 38, RowTemplate = { Height = 32 },
+                ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.DisableResizing, ColumnHeadersHeight = 38, RowTemplate = { Height = 32 },
                 Font = new Font("Segoe UI", 9.5F),
                 GridColor = Color.FromArgb(226, 232, 240)
             };
@@ -504,7 +504,7 @@ namespace FaceIDApp.UserControls
                 AllowUserToAddRows = false, AllowUserToDeleteRows = false, ReadOnly = true,
                 RowHeadersVisible = false, SelectionMode = DataGridViewSelectionMode.FullRowSelect,
                 AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill,
-                ColumnHeadersHeight = 35, RowTemplate = { Height = 30 },
+                ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.DisableResizing, ColumnHeadersHeight = 35, RowTemplate = { Height = 30 },
                 Font = new Font("Segoe UI", 9F), GridColor = Color.FromArgb(226, 232, 240)
             };
             dgvShiftSched.EnableHeadersVisualStyles = false;

@@ -551,7 +551,7 @@ namespace FaceIDApp.UserControls
                 AllowUserToAddRows = false, AllowUserToDeleteRows = false, ReadOnly = true,
                 RowHeadersVisible = false, SelectionMode = DataGridViewSelectionMode.FullRowSelect,
                 AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill,
-                ColumnHeadersHeight = 32, RowTemplate = { Height = 28 },
+                ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.DisableResizing, ColumnHeadersHeight = 32, RowTemplate = { Height = 28 },
                 Font = new Font("Segoe UI", 9F),
                 BackgroundColor = Color.White, BorderStyle = BorderStyle.None,
                 GridColor = Color.FromArgb(226, 232, 240)

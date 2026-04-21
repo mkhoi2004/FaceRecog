@@ -39,7 +39,7 @@ namespace FaceIDApp.UserControls
             dgvTodayAttendance.ColumnHeadersDefaultCellStyle.BackColor = Color.FromArgb(41, 128, 185);
             dgvTodayAttendance.ColumnHeadersDefaultCellStyle.ForeColor = Color.White;
             dgvTodayAttendance.ColumnHeadersDefaultCellStyle.Font = new Font("Segoe UI", 10F, FontStyle.Bold);
-            dgvTodayAttendance.ColumnHeadersHeight = 35;
+            dgvTodayAttendance.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.DisableResizing; dgvTodayAttendance.ColumnHeadersHeight = 35;
             dgvTodayAttendance.DefaultCellStyle.Font = new Font("Segoe UI", 9.5F);
             dgvTodayAttendance.DefaultCellStyle.SelectionBackColor = Color.FromArgb(52, 152, 219);
             dgvTodayAttendance.RowTemplate.Height = 30;

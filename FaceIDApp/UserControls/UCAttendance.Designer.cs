@@ -70,10 +70,10 @@ namespace FaceIDApp.UserControls
             this.pnlHeader.Controls.Add(this.lblTitle);
             this.pnlHeader.Dock = System.Windows.Forms.DockStyle.Top;
             this.pnlHeader.Location = new System.Drawing.Point(0, 0);
-            this.pnlHeader.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
+            this.pnlHeader.Margin = new System.Windows.Forms.Padding(3, 3, 3, 3);
             this.pnlHeader.Name = "pnlHeader";
-            this.pnlHeader.Padding = new System.Windows.Forms.Padding(30, 31, 30, 31);
-            this.pnlHeader.Size = new System.Drawing.Size(1350, 123);
+            this.pnlHeader.Padding = new System.Windows.Forms.Padding(20, 20, 20, 20);
+            this.pnlHeader.Size = new System.Drawing.Size(891, 81);
             this.pnlHeader.TabIndex = 0;
             // 
             // lblDateTime
@@ -81,10 +81,10 @@ namespace FaceIDApp.UserControls
             this.lblDateTime.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.lblDateTime.Font = new System.Drawing.Font("Segoe UI", 14F, System.Drawing.FontStyle.Bold);
             this.lblDateTime.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(231)))), ((int)(((byte)(76)))), ((int)(((byte)(60)))));
-            this.lblDateTime.Location = new System.Drawing.Point(825, 31);
-            this.lblDateTime.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
+            this.lblDateTime.Location = new System.Drawing.Point(544, 20);
+            this.lblDateTime.Margin = new System.Windows.Forms.Padding(3, 0, 3, 0);
             this.lblDateTime.Name = "lblDateTime";
-            this.lblDateTime.Size = new System.Drawing.Size(495, 49);
+            this.lblDateTime.Size = new System.Drawing.Size(327, 32);
             this.lblDateTime.TabIndex = 1;
             this.lblDateTime.Text = "08:30:45 - 28/01/2026";
             this.lblDateTime.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
@@ -94,10 +94,10 @@ namespace FaceIDApp.UserControls
             this.lblTitle.AutoSize = true;
             this.lblTitle.Font = new System.Drawing.Font("Segoe UI", 18F, System.Drawing.FontStyle.Bold);
             this.lblTitle.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(41)))), ((int)(((byte)(128)))), ((int)(((byte)(185)))));
-            this.lblTitle.Location = new System.Drawing.Point(30, 31);
-            this.lblTitle.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
+            this.lblTitle.Location = new System.Drawing.Point(20, 20);
+            this.lblTitle.Margin = new System.Windows.Forms.Padding(3, 0, 3, 0);
             this.lblTitle.Name = "lblTitle";
-            this.lblTitle.Size = new System.Drawing.Size(400, 48);
+            this.lblTitle.Size = new System.Drawing.Size(264, 32);
             this.lblTitle.TabIndex = 0;
             this.lblTitle.Text = "📷 Chấm công Face ID";
             // 
@@ -107,11 +107,11 @@ namespace FaceIDApp.UserControls
             this.pnlMain.Controls.Add(this.pnlInfo);
             this.pnlMain.Controls.Add(this.pnlCamera);
             this.pnlMain.Dock = System.Windows.Forms.DockStyle.Top;
-            this.pnlMain.Location = new System.Drawing.Point(0, 123);
-            this.pnlMain.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
+            this.pnlMain.Location = new System.Drawing.Point(0, 81);
+            this.pnlMain.Margin = new System.Windows.Forms.Padding(3, 3, 3, 3);
             this.pnlMain.Name = "pnlMain";
-            this.pnlMain.Padding = new System.Windows.Forms.Padding(22, 23, 22, 23);
-            this.pnlMain.Size = new System.Drawing.Size(1350, 538);
+            this.pnlMain.Padding = new System.Windows.Forms.Padding(15, 15, 15, 15);
+            this.pnlMain.Size = new System.Drawing.Size(891, 355);
             this.pnlMain.TabIndex = 1;
             // 
             // pnlInfo
@@ -120,11 +120,11 @@ namespace FaceIDApp.UserControls
             this.pnlInfo.Controls.Add(this.pnlActions);
             this.pnlInfo.Controls.Add(this.pnlEmployeeInfo);
             this.pnlInfo.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.pnlInfo.Location = new System.Drawing.Point(652, 23);
-            this.pnlInfo.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
+            this.pnlInfo.Location = new System.Drawing.Point(430, 15);
+            this.pnlInfo.Margin = new System.Windows.Forms.Padding(3, 3, 3, 3);
             this.pnlInfo.Name = "pnlInfo";
-            this.pnlInfo.Padding = new System.Windows.Forms.Padding(22, 23, 22, 23);
-            this.pnlInfo.Size = new System.Drawing.Size(676, 492);
+            this.pnlInfo.Padding = new System.Windows.Forms.Padding(15, 15, 15, 15);
+            this.pnlInfo.Size = new System.Drawing.Size(446, 325);
             this.pnlInfo.TabIndex = 1;
             // 
             // pnlActions
@@ -132,10 +132,10 @@ namespace FaceIDApp.UserControls
             this.pnlActions.Controls.Add(this.btnCheckOut);
             this.pnlActions.Controls.Add(this.btnCheckIn);
             this.pnlActions.Dock = System.Windows.Forms.DockStyle.Bottom;
-            this.pnlActions.Location = new System.Drawing.Point(22, 361);
-            this.pnlActions.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
+            this.pnlActions.Location = new System.Drawing.Point(15, 238);
+            this.pnlActions.Margin = new System.Windows.Forms.Padding(3, 3, 3, 3);
             this.pnlActions.Name = "pnlActions";
-            this.pnlActions.Size = new System.Drawing.Size(632, 108);
+            this.pnlActions.Size = new System.Drawing.Size(417, 71);
             this.pnlActions.TabIndex = 1;
             // 
             // btnCheckOut
@@ -146,10 +146,10 @@ namespace FaceIDApp.UserControls
             this.btnCheckOut.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this.btnCheckOut.Font = new System.Drawing.Font("Segoe UI", 12F, System.Drawing.FontStyle.Bold);
             this.btnCheckOut.ForeColor = System.Drawing.Color.White;
-            this.btnCheckOut.Location = new System.Drawing.Point(322, 15);
-            this.btnCheckOut.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
+            this.btnCheckOut.Location = new System.Drawing.Point(213, 10);
+            this.btnCheckOut.Margin = new System.Windows.Forms.Padding(3, 3, 3, 3);
             this.btnCheckOut.Name = "btnCheckOut";
-            this.btnCheckOut.Size = new System.Drawing.Size(285, 77);
+            this.btnCheckOut.Size = new System.Drawing.Size(188, 51);
             this.btnCheckOut.TabIndex = 1;
             this.btnCheckOut.Text = "🚪 CHECK-OUT";
             this.btnCheckOut.UseVisualStyleBackColor = false;
@@ -162,10 +162,10 @@ namespace FaceIDApp.UserControls
             this.btnCheckIn.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this.btnCheckIn.Font = new System.Drawing.Font("Segoe UI", 12F, System.Drawing.FontStyle.Bold);
             this.btnCheckIn.ForeColor = System.Drawing.Color.White;
-            this.btnCheckIn.Location = new System.Drawing.Point(15, 15);
-            this.btnCheckIn.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
+            this.btnCheckIn.Location = new System.Drawing.Point(10, 10);
+            this.btnCheckIn.Margin = new System.Windows.Forms.Padding(3, 3, 3, 3);
             this.btnCheckIn.Name = "btnCheckIn";
-            this.btnCheckIn.Size = new System.Drawing.Size(285, 77);
+            this.btnCheckIn.Size = new System.Drawing.Size(188, 51);
             this.btnCheckIn.TabIndex = 0;
             this.btnCheckIn.Text = "✅ CHECK-IN";
             this.btnCheckIn.UseVisualStyleBackColor = false;
@@ -180,20 +180,20 @@ namespace FaceIDApp.UserControls
             this.pnlEmployeeInfo.Controls.Add(this.lblEmployeeName);
             this.pnlEmployeeInfo.Controls.Add(this.picEmployeePhoto);
             this.pnlEmployeeInfo.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.pnlEmployeeInfo.Location = new System.Drawing.Point(22, 23);
-            this.pnlEmployeeInfo.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
+            this.pnlEmployeeInfo.Location = new System.Drawing.Point(15, 15);
+            this.pnlEmployeeInfo.Margin = new System.Windows.Forms.Padding(3, 3, 3, 3);
             this.pnlEmployeeInfo.Name = "pnlEmployeeInfo";
-            this.pnlEmployeeInfo.Size = new System.Drawing.Size(632, 446);
+            this.pnlEmployeeInfo.Size = new System.Drawing.Size(417, 294);
             this.pnlEmployeeInfo.TabIndex = 0;
             // 
             // lblCheckInTime
             // 
             this.lblCheckInTime.Font = new System.Drawing.Font("Segoe UI", 11F);
             this.lblCheckInTime.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(46)))), ((int)(((byte)(204)))), ((int)(((byte)(113)))));
-            this.lblCheckInTime.Location = new System.Drawing.Point(219, 246);
-            this.lblCheckInTime.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
+            this.lblCheckInTime.Location = new System.Drawing.Point(145, 162);
+            this.lblCheckInTime.Margin = new System.Windows.Forms.Padding(3, 0, 3, 0);
             this.lblCheckInTime.Name = "lblCheckInTime";
-            this.lblCheckInTime.Size = new System.Drawing.Size(375, 38);
+            this.lblCheckInTime.Size = new System.Drawing.Size(248, 25);
             this.lblCheckInTime.TabIndex = 6;
             this.lblCheckInTime.Text = "⏰ Giờ vào: --:--:--";
             // 
@@ -201,10 +201,10 @@ namespace FaceIDApp.UserControls
             // 
             this.lblStatus.Font = new System.Drawing.Font("Segoe UI", 12F, System.Drawing.FontStyle.Bold);
             this.lblStatus.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(127)))), ((int)(((byte)(140)))), ((int)(((byte)(141)))));
-            this.lblStatus.Location = new System.Drawing.Point(219, 200);
-            this.lblStatus.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
+            this.lblStatus.Location = new System.Drawing.Point(145, 132);
+            this.lblStatus.Margin = new System.Windows.Forms.Padding(3, 0, 3, 0);
             this.lblStatus.Name = "lblStatus";
-            this.lblStatus.Size = new System.Drawing.Size(375, 38);
+            this.lblStatus.Size = new System.Drawing.Size(248, 25);
             this.lblStatus.TabIndex = 5;
             this.lblStatus.Text = "⏳ Trạng thái: Chờ nhận diện";
             // 
@@ -213,10 +213,10 @@ namespace FaceIDApp.UserControls
             this.lblPosition.AutoSize = true;
             this.lblPosition.Font = new System.Drawing.Font("Segoe UI", 11F);
             this.lblPosition.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(52)))), ((int)(((byte)(73)))), ((int)(((byte)(94)))));
-            this.lblPosition.Location = new System.Drawing.Point(219, 154);
-            this.lblPosition.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
+            this.lblPosition.Location = new System.Drawing.Point(145, 102);
+            this.lblPosition.Margin = new System.Windows.Forms.Padding(3, 0, 3, 0);
             this.lblPosition.Name = "lblPosition";
-            this.lblPosition.Size = new System.Drawing.Size(138, 30);
+            this.lblPosition.Size = new System.Drawing.Size(91, 20);
             this.lblPosition.TabIndex = 4;
             this.lblPosition.Text = "💼 Chức vụ: ";
             // 
@@ -225,10 +225,10 @@ namespace FaceIDApp.UserControls
             this.lblDepartment.AutoSize = true;
             this.lblDepartment.Font = new System.Drawing.Font("Segoe UI", 11F);
             this.lblDepartment.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(52)))), ((int)(((byte)(73)))), ((int)(((byte)(94)))));
-            this.lblDepartment.Location = new System.Drawing.Point(219, 108);
-            this.lblDepartment.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
+            this.lblDepartment.Location = new System.Drawing.Point(145, 71);
+            this.lblDepartment.Margin = new System.Windows.Forms.Padding(3, 0, 3, 0);
             this.lblDepartment.Name = "lblDepartment";
-            this.lblDepartment.Size = new System.Drawing.Size(164, 30);
+            this.lblDepartment.Size = new System.Drawing.Size(108, 20);
             this.lblDepartment.TabIndex = 3;
             this.lblDepartment.Text = "🏢 Phòng ban: ";
             // 
@@ -237,10 +237,10 @@ namespace FaceIDApp.UserControls
             this.lblEmployeeCode.AutoSize = true;
             this.lblEmployeeCode.Font = new System.Drawing.Font("Segoe UI", 11F);
             this.lblEmployeeCode.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(127)))), ((int)(((byte)(140)))), ((int)(((byte)(141)))));
-            this.lblEmployeeCode.Location = new System.Drawing.Point(219, 62);
-            this.lblEmployeeCode.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
+            this.lblEmployeeCode.Location = new System.Drawing.Point(145, 41);
+            this.lblEmployeeCode.Margin = new System.Windows.Forms.Padding(3, 0, 3, 0);
             this.lblEmployeeCode.Name = "lblEmployeeCode";
-            this.lblEmployeeCode.Size = new System.Drawing.Size(118, 30);
+            this.lblEmployeeCode.Size = new System.Drawing.Size(78, 20);
             this.lblEmployeeCode.TabIndex = 2;
             this.lblEmployeeCode.Text = "Mã NV: ---";
             // 
@@ -249,10 +249,10 @@ namespace FaceIDApp.UserControls
             this.lblEmployeeName.AutoSize = true;
             this.lblEmployeeName.Font = new System.Drawing.Font("Segoe UI", 14F, System.Drawing.FontStyle.Bold);
             this.lblEmployeeName.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(44)))), ((int)(((byte)(62)))), ((int)(((byte)(80)))));
-            this.lblEmployeeName.Location = new System.Drawing.Point(218, 15);
-            this.lblEmployeeName.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
+            this.lblEmployeeName.Location = new System.Drawing.Point(144, 10);
+            this.lblEmployeeName.Margin = new System.Windows.Forms.Padding(3, 0, 3, 0);
             this.lblEmployeeName.Name = "lblEmployeeName";
-            this.lblEmployeeName.Size = new System.Drawing.Size(232, 38);
+            this.lblEmployeeName.Size = new System.Drawing.Size(153, 25);
             this.lblEmployeeName.TabIndex = 1;
             this.lblEmployeeName.Text = "Chờ nhận diện...";
             // 
@@ -260,10 +260,10 @@ namespace FaceIDApp.UserControls
             // 
             this.picEmployeePhoto.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(236)))), ((int)(((byte)(240)))), ((int)(((byte)(241)))));
             this.picEmployeePhoto.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-            this.picEmployeePhoto.Location = new System.Drawing.Point(15, 15);
-            this.picEmployeePhoto.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
+            this.picEmployeePhoto.Location = new System.Drawing.Point(10, 10);
+            this.picEmployeePhoto.Margin = new System.Windows.Forms.Padding(3, 3, 3, 3);
             this.picEmployeePhoto.Name = "picEmployeePhoto";
-            this.picEmployeePhoto.Size = new System.Drawing.Size(179, 214);
+            this.picEmployeePhoto.Size = new System.Drawing.Size(118, 141);
             this.picEmployeePhoto.SizeMode = System.Windows.Forms.PictureBoxSizeMode.Zoom;
             this.picEmployeePhoto.TabIndex = 0;
             this.picEmployeePhoto.TabStop = false;
@@ -274,21 +274,21 @@ namespace FaceIDApp.UserControls
             this.pnlCamera.Controls.Add(this.picCamera);
             this.pnlCamera.Controls.Add(this.pnlCameraControls);
             this.pnlCamera.Dock = System.Windows.Forms.DockStyle.Left;
-            this.pnlCamera.Location = new System.Drawing.Point(22, 23);
-            this.pnlCamera.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
+            this.pnlCamera.Location = new System.Drawing.Point(15, 15);
+            this.pnlCamera.Margin = new System.Windows.Forms.Padding(3, 3, 3, 3);
             this.pnlCamera.Name = "pnlCamera";
-            this.pnlCamera.Padding = new System.Windows.Forms.Padding(15, 15, 15, 15);
-            this.pnlCamera.Size = new System.Drawing.Size(630, 492);
+            this.pnlCamera.Padding = new System.Windows.Forms.Padding(10, 10, 10, 10);
+            this.pnlCamera.Size = new System.Drawing.Size(416, 325);
             this.pnlCamera.TabIndex = 0;
             // 
             // picCamera
             // 
             this.picCamera.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(44)))), ((int)(((byte)(62)))), ((int)(((byte)(80)))));
             this.picCamera.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.picCamera.Location = new System.Drawing.Point(15, 15);
-            this.picCamera.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
+            this.picCamera.Location = new System.Drawing.Point(10, 10);
+            this.picCamera.Margin = new System.Windows.Forms.Padding(3, 3, 3, 3);
             this.picCamera.Name = "picCamera";
-            this.picCamera.Size = new System.Drawing.Size(600, 385);
+            this.picCamera.Size = new System.Drawing.Size(396, 254);
             this.picCamera.SizeMode = System.Windows.Forms.PictureBoxSizeMode.Zoom;
             this.picCamera.TabIndex = 0;
             this.picCamera.TabStop = false;
@@ -299,11 +299,11 @@ namespace FaceIDApp.UserControls
             this.pnlCameraControls.Controls.Add(this.btnStopCamera);
             this.pnlCameraControls.Controls.Add(this.btnStartCamera);
             this.pnlCameraControls.Dock = System.Windows.Forms.DockStyle.Bottom;
-            this.pnlCameraControls.Location = new System.Drawing.Point(15, 400);
-            this.pnlCameraControls.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
+            this.pnlCameraControls.Location = new System.Drawing.Point(10, 264);
+            this.pnlCameraControls.Margin = new System.Windows.Forms.Padding(3, 3, 3, 3);
             this.pnlCameraControls.Name = "pnlCameraControls";
-            this.pnlCameraControls.Padding = new System.Windows.Forms.Padding(8, 8, 8, 8);
-            this.pnlCameraControls.Size = new System.Drawing.Size(600, 77);
+            this.pnlCameraControls.Padding = new System.Windows.Forms.Padding(5, 5, 5, 5);
+            this.pnlCameraControls.Size = new System.Drawing.Size(396, 51);
             this.pnlCameraControls.TabIndex = 1;
             // 
             // btnCapture
@@ -314,10 +314,10 @@ namespace FaceIDApp.UserControls
             this.btnCapture.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this.btnCapture.Font = new System.Drawing.Font("Segoe UI", 9.5F, System.Drawing.FontStyle.Bold);
             this.btnCapture.ForeColor = System.Drawing.Color.White;
-            this.btnCapture.Location = new System.Drawing.Point(402, 12);
-            this.btnCapture.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
+            this.btnCapture.Location = new System.Drawing.Point(265, 8);
+            this.btnCapture.Margin = new System.Windows.Forms.Padding(3, 3, 3, 3);
             this.btnCapture.Name = "btnCapture";
-            this.btnCapture.Size = new System.Drawing.Size(180, 54);
+            this.btnCapture.Size = new System.Drawing.Size(119, 36);
             this.btnCapture.TabIndex = 2;
             this.btnCapture.Text = "📸 Chụp ảnh";
             this.btnCapture.UseVisualStyleBackColor = false;
@@ -330,10 +330,10 @@ namespace FaceIDApp.UserControls
             this.btnStopCamera.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this.btnStopCamera.Font = new System.Drawing.Font("Segoe UI", 9.5F, System.Drawing.FontStyle.Bold);
             this.btnStopCamera.ForeColor = System.Drawing.Color.White;
-            this.btnStopCamera.Location = new System.Drawing.Point(207, 12);
-            this.btnStopCamera.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
+            this.btnStopCamera.Location = new System.Drawing.Point(137, 8);
+            this.btnStopCamera.Margin = new System.Windows.Forms.Padding(3, 3, 3, 3);
             this.btnStopCamera.Name = "btnStopCamera";
-            this.btnStopCamera.Size = new System.Drawing.Size(180, 54);
+            this.btnStopCamera.Size = new System.Drawing.Size(119, 36);
             this.btnStopCamera.TabIndex = 1;
             this.btnStopCamera.Text = "⏹ Tắt Camera";
             this.btnStopCamera.UseVisualStyleBackColor = false;
@@ -346,10 +346,10 @@ namespace FaceIDApp.UserControls
             this.btnStartCamera.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this.btnStartCamera.Font = new System.Drawing.Font("Segoe UI", 9.5F, System.Drawing.FontStyle.Bold);
             this.btnStartCamera.ForeColor = System.Drawing.Color.White;
-            this.btnStartCamera.Location = new System.Drawing.Point(12, 12);
-            this.btnStartCamera.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
+            this.btnStartCamera.Location = new System.Drawing.Point(8, 8);
+            this.btnStartCamera.Margin = new System.Windows.Forms.Padding(3, 3, 3, 3);
             this.btnStartCamera.Name = "btnStartCamera";
-            this.btnStartCamera.Size = new System.Drawing.Size(180, 54);
+            this.btnStartCamera.Size = new System.Drawing.Size(119, 36);
             this.btnStartCamera.TabIndex = 0;
             this.btnStartCamera.Text = "▶ Bật Camera";
             this.btnStartCamera.UseVisualStyleBackColor = false;
@@ -360,11 +360,11 @@ namespace FaceIDApp.UserControls
             this.pnlTodayList.Controls.Add(this.dgvTodayAttendance);
             this.pnlTodayList.Controls.Add(this.lblTodayListTitle);
             this.pnlTodayList.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.pnlTodayList.Location = new System.Drawing.Point(0, 661);
-            this.pnlTodayList.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
+            this.pnlTodayList.Location = new System.Drawing.Point(0, 436);
+            this.pnlTodayList.Margin = new System.Windows.Forms.Padding(3, 3, 3, 3);
             this.pnlTodayList.Name = "pnlTodayList";
-            this.pnlTodayList.Padding = new System.Windows.Forms.Padding(30, 31, 30, 31);
-            this.pnlTodayList.Size = new System.Drawing.Size(1350, 262);
+            this.pnlTodayList.Padding = new System.Windows.Forms.Padding(20, 20, 20, 20);
+            this.pnlTodayList.Size = new System.Drawing.Size(891, 173);
             this.pnlTodayList.TabIndex = 2;
             // 
             // dgvTodayAttendance
@@ -376,7 +376,7 @@ namespace FaceIDApp.UserControls
             this.dgvTodayAttendance.BorderStyle = System.Windows.Forms.BorderStyle.None;
             this.dgvTodayAttendance.CellBorderStyle = System.Windows.Forms.DataGridViewCellBorderStyle.SingleHorizontal;
             this.dgvTodayAttendance.ColumnHeadersBorderStyle = System.Windows.Forms.DataGridViewHeaderBorderStyle.None;
-            this.dgvTodayAttendance.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
+            this.dgvTodayAttendance.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.DisableResizing;
             this.dgvTodayAttendance.Columns.AddRange(new System.Windows.Forms.DataGridViewColumn[] {
             this.colSTT,
             this.colMaNV,
@@ -389,14 +389,14 @@ namespace FaceIDApp.UserControls
             this.dgvTodayAttendance.Dock = System.Windows.Forms.DockStyle.Fill;
             this.dgvTodayAttendance.EnableHeadersVisualStyles = false;
             this.dgvTodayAttendance.GridColor = System.Drawing.Color.FromArgb(((int)(((byte)(236)))), ((int)(((byte)(240)))), ((int)(((byte)(241)))));
-            this.dgvTodayAttendance.Location = new System.Drawing.Point(30, 78);
-            this.dgvTodayAttendance.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
+            this.dgvTodayAttendance.Location = new System.Drawing.Point(20, 51);
+            this.dgvTodayAttendance.Margin = new System.Windows.Forms.Padding(3, 3, 3, 3);
             this.dgvTodayAttendance.Name = "dgvTodayAttendance";
             this.dgvTodayAttendance.ReadOnly = true;
             this.dgvTodayAttendance.RowHeadersVisible = false;
             this.dgvTodayAttendance.RowHeadersWidth = 62;
             this.dgvTodayAttendance.SelectionMode = System.Windows.Forms.DataGridViewSelectionMode.FullRowSelect;
-            this.dgvTodayAttendance.Size = new System.Drawing.Size(1290, 153);
+            this.dgvTodayAttendance.Size = new System.Drawing.Size(851, 101);
             this.dgvTodayAttendance.TabIndex = 1;
             // 
             // colSTT
@@ -464,25 +464,25 @@ namespace FaceIDApp.UserControls
             this.lblTodayListTitle.Dock = System.Windows.Forms.DockStyle.Top;
             this.lblTodayListTitle.Font = new System.Drawing.Font("Segoe UI", 12F, System.Drawing.FontStyle.Bold);
             this.lblTodayListTitle.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(52)))), ((int)(((byte)(73)))), ((int)(((byte)(94)))));
-            this.lblTodayListTitle.Location = new System.Drawing.Point(30, 31);
-            this.lblTodayListTitle.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
+            this.lblTodayListTitle.Location = new System.Drawing.Point(20, 20);
+            this.lblTodayListTitle.Margin = new System.Windows.Forms.Padding(3, 0, 3, 0);
             this.lblTodayListTitle.Name = "lblTodayListTitle";
-            this.lblTodayListTitle.Padding = new System.Windows.Forms.Padding(0, 0, 0, 15);
-            this.lblTodayListTitle.Size = new System.Drawing.Size(410, 47);
+            this.lblTodayListTitle.Padding = new System.Windows.Forms.Padding(0, 0, 0, 10);
+            this.lblTodayListTitle.Size = new System.Drawing.Size(271, 31);
             this.lblTodayListTitle.TabIndex = 0;
             this.lblTodayListTitle.Text = "📋 Danh sách chấm công hôm nay";
             // 
             // UCAttendance
             // 
-            this.AutoScaleDimensions = new System.Drawing.SizeF(9F, 20F);
+            this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.None;
             this.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(236)))), ((int)(((byte)(240)))), ((int)(((byte)(241)))));
             this.Controls.Add(this.pnlTodayList);
             this.Controls.Add(this.pnlMain);
             this.Controls.Add(this.pnlHeader);
-            this.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
+            this.Margin = new System.Windows.Forms.Padding(3, 3, 3, 3);
             this.Name = "UCAttendance";
-            this.Size = new System.Drawing.Size(1350, 923);
+            this.Size = new System.Drawing.Size(891, 609);
             this.pnlHeader.ResumeLayout(false);
             this.pnlHeader.PerformLayout();
             this.pnlMain.ResumeLayout(false);

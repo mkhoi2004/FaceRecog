@@ -229,7 +229,7 @@ namespace FaceIDApp.UserControls
                 AllowUserToAddRows = false, AllowUserToDeleteRows = false, ReadOnly = true,
                 RowHeadersVisible = false, SelectionMode = DataGridViewSelectionMode.FullRowSelect,
                 AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill,
-                ColumnHeadersHeight = 30, RowTemplate = { Height = 26 },
+                ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.DisableResizing, ColumnHeadersHeight = 30, RowTemplate = { Height = 26 },
                 Font = new Font("Segoe UI", 9F),
                 BackgroundColor = Color.White, BorderStyle = BorderStyle.None,
                 GridColor = Color.FromArgb(226, 232, 240)

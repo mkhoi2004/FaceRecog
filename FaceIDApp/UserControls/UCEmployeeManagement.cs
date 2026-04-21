@@ -164,7 +164,7 @@ namespace FaceIDApp.UserControls
                 AllowUserToAddRows = false, AllowUserToDeleteRows = false, ReadOnly = true,
                 RowHeadersVisible = false, SelectionMode = DataGridViewSelectionMode.FullRowSelect,
                 AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill,
-                ColumnHeadersHeight = 32, RowTemplate = { Height = 28 },
+                ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.DisableResizing, ColumnHeadersHeight = 32, RowTemplate = { Height = 28 },
                 Font = new Font("Segoe UI", 9F),
                 BackgroundColor = Color.White, BorderStyle = BorderStyle.None,
                 GridColor = Color.FromArgb(226, 232, 240)
@@ -215,7 +215,7 @@ namespace FaceIDApp.UserControls
             dgvEmployees.ColumnHeadersDefaultCellStyle.BackColor = Color.FromArgb(41, 128, 185);
             dgvEmployees.ColumnHeadersDefaultCellStyle.ForeColor = Color.White;
             dgvEmployees.ColumnHeadersDefaultCellStyle.Font = new Font("Segoe UI", 9.5F, FontStyle.Bold);
-            dgvEmployees.ColumnHeadersHeight = 35;
+            dgvEmployees.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.DisableResizing; dgvEmployees.ColumnHeadersHeight = 35;
             dgvEmployees.DefaultCellStyle.Font = new Font("Segoe UI", 9F);
             dgvEmployees.DefaultCellStyle.SelectionBackColor = Color.FromArgb(52, 152, 219);
             dgvEmployees.RowTemplate.Height = 30;
