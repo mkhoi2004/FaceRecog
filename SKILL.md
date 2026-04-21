@@ -240,141 +240,61 @@ FaceIDAttendance/                        ← Root solution
 
 ## §4 — DATABASE & SCHEMA
 
-### 4.1 Entity Relationship Diagram
+### 4.1 Entity Relationship Diagram (v3.0)
+
+> **LƯU Ý:** Bản đồ bên dưới là bản thu gọn. File `Database/face_attendance_v3.sql` mới là **Single Source of Truth**. KHÔNG tự ý tạo bảng thiếu tham chiếu.
 
 ```
-┌─────────────┐       ┌──────────────────┐       ┌───────────────┐
-│  DEPARTMENT │1     N│     EMPLOYEE     │1     N│   FACE_DATA   │
-│─────────────│───────│──────────────────│───────│───────────────│
-│ id (PK)     │       │ id (PK)          │       │ id (PK)       │
-│ name        │       │ name             │       │ employee_id   │
-│ description │       │ department_id(FK)│       │ encoding TEXT │
-└─────────────┘       │ shift_id (FK)    │       │ created_at    │
-                       │ email           │       └───────────────┘
-┌─────────────┐       │ phone           │       (tối đa 5 face/người)
-│  WORK_SHIFT │1     N│ is_active       │
-│─────────────│───────│ created_at      │
-│ id (PK)     │       └────────┬─────────┘
-│ name        │                │1
-│ start_time  │           ┌────┴──────────────────────────────┐
-│ end_time    │           │N                                  │N
-│ late_after  │    ┌──────────────────┐         ┌─────────────────────┐
-└─────────────┘    │ ATTENDANCE_RECORD│1       N│   LEAVE_REQUEST     │
-                    │──────────────────│         │─────────────────────│
-                    │ id (PK)          │         │ id (PK)             │
-                    │ employee_id (FK) │         │ employee_id (FK)    │
-                    │ work_date        │         │ start_date          │
-                    │ check_in         │         │ end_date            │
-                    │ check_out        │         │ reason              │
-                    │ status           │         │ status              │
-                    │ is_late          │         │ approved_by         │
-                    │ note             │         │ created_at          │
-                    └────────┬─────────┘         └─────────────────────┘
-                             │1
-                             │N
-                    ┌────────────────────┐
-                    │  ATTENDANCE_LOG    │
-                    │────────────────────│
-                    │ id (PK)            │
-                    │ record_id (FK)     │
-                    │ action             │
-                    │ old_value (JSONB)  │
-                    │ new_value (JSONB)  │
-                    │ changed_by         │
-                    │ changed_at         │
-                    └────────────────────┘
+[A] DANH MỤC
+  departments  ──< employees >── positions
+                       │
+              ┌────────┼──────────────────┐
+              │        │                  │
+           face_data  users    employee_shift_schedule
+              │
+     face_registration_logs 
+
+[B] CHẤM CÔNG & LỊCH LÀM Việc
+  employees ──< attendance_records >── work_shifts
+                       │
+                attendance_logs >── attendance_devices
+
+  employees ──< leave_requests
+
+[C] HỆ THỐNG
+  audit_logs, system_settings, holidays, work_calendars
 ```
 
-### 4.2 Schema chi tiết từng bảng
+### 4.2 Các bảng trọng yếu (Core Tables)
 
-**`employee`**
-```sql
-CREATE TABLE employee (
-    id              SERIAL PRIMARY KEY,
-    name            VARCHAR(100) NOT NULL,
-    email           VARCHAR(150) UNIQUE,
-    phone           VARCHAR(20),
-    department_id   INTEGER REFERENCES department(id),
-    shift_id        INTEGER REFERENCES work_shift(id),
-    is_active       BOOLEAN DEFAULT TRUE,
-    created_at      TIMESTAMP DEFAULT NOW()
-);
-```
+Xem định nghĩa chính xác và Constraints tại `FaceIDApp/Database/face_attendance_v3.sql`. Các bảng dưới đây là xương sống của mọi tính năng:
 
-**`face_data`**
-```sql
-CREATE TABLE face_data (
-    id              SERIAL PRIMARY KEY,
-    employee_id     INTEGER NOT NULL REFERENCES employee(id) ON DELETE CASCADE,
-    encoding        TEXT NOT NULL,    -- 128 số double, phân cách bằng ';'
-    created_at      TIMESTAMP DEFAULT NOW()
-);
--- Giới hạn tối đa 5 face/người được enforce ở Service layer
-```
+**1. `employees`** — Lưu thông tin nhân sự cơ bản
+- Các khóa ngoại: `department_id`, `position_id`, `default_shift_id`, `manager_id`.
+- Trạng thái nhận diện (`is_face_registered`, `face_registered_at`) được duy trì tự động qua Trigger từ `face_data`.
+- Chứa logic nghỉ phép: `annual_leave_days`, `used_leave_days`.
 
-**`attendance_record`**
-```sql
-CREATE TABLE attendance_record (
-    id              SERIAL PRIMARY KEY,
-    employee_id     INTEGER NOT NULL REFERENCES employee(id),
-    work_date       DATE NOT NULL DEFAULT CURRENT_DATE,
-    check_in        TIMESTAMP,
-    check_out       TIMESTAMP,
-    status          VARCHAR(20) DEFAULT 'present',
-    -- values: 'present' | 'absent' | 'late' | 'leave' | 'holiday'
-    is_late         BOOLEAN DEFAULT FALSE,
-    note            TEXT,
-    UNIQUE(employee_id, work_date)    -- 1 record/người/ngày
-);
-```
+**2. `face_data`** — Nơi giao tiếp với AI (Dlib/OpenCV)
+- `encoding` (TEXT): Vector 128-D được phân tách bằng dấu chấm phẩy `;`.
+- `image_path` / `thumbnail_path`: Đường dẫn vật lý của file ảnh gốc/nhỏ.
+- Hỗ trợ đánh giá chất lượng (QC) bởi HR: `is_verified`, `quality_score`.
 
-**`attendance_log`** — Audit trail, KHÔNG XÓA, KHÔNG SỬA
-```sql
-CREATE TABLE attendance_log (
-    id              SERIAL PRIMARY KEY,
-    record_id       INTEGER REFERENCES attendance_record(id),
-    action          VARCHAR(20),     -- 'check_in' | 'check_out' | 'manual_edit'
-    old_value       JSONB,
-    new_value       JSONB,
-    changed_by      VARCHAR(100),
-    changed_at      TIMESTAMP DEFAULT NOW()
-);
-```
+**3. `attendance_records`** — Chấm công tổng hợp (1 nhân viên = 1 record / ngày)
+- Mọi lần điểm danh trong ngày đều đẩy vào đây (check_in / check_out).
+- Lưu kết quả tính toán tự động: `status` (Present/Late/EarlyLeave/Absent/Leave), `late_minutes`, `early_minutes`, `working_minutes`.
+- Chặn sửa đổi trái phép bằng flag `is_manual_edit` + `manual_edit_reason`.
 
-**`leave_request`**
-```sql
-CREATE TABLE leave_request (
-    id              SERIAL PRIMARY KEY,
-    employee_id     INTEGER NOT NULL REFERENCES employee(id),
-    start_date      DATE NOT NULL,
-    end_date        DATE NOT NULL,
-    reason          TEXT,
-    status          VARCHAR(20) DEFAULT 'pending',
-    -- values: 'pending' | 'approved' | 'rejected'
-    approved_by     VARCHAR(100),
-    created_at      TIMESTAMP DEFAULT NOW()
-);
-```
+**4. `attendance_logs`** — Audit truy vết mọi lần quẹt mặt/thẻ
+- Append-only database (KHÔNG XÓA, KHÔNG SỬA).
+- Ghi lại thiết bị quét, confidence AI, JSON raw payload từ camera, hình chụp khoảnh khắc đó.
 
-**`work_shift`**
-```sql
-CREATE TABLE work_shift (
-    id              SERIAL PRIMARY KEY,
-    name            VARCHAR(50) NOT NULL,
-    start_time      TIME NOT NULL,
-    end_time        TIME NOT NULL,
-    late_after      INTEGER DEFAULT 15   -- phút sau start_time mới tính đi muộn
-);
-```
+**5. `leave_requests`** — Đơn từ nghỉ phép
+- Trạng thái: Pending, Approved, Rejected, Cancelled.
+- Có Trigger tự động cộng/trừ lại số phép `used_leave_days` vào bảng `employees`.
 
-**`department`**
-```sql
-CREATE TABLE department (
-    id              SERIAL PRIMARY KEY,
-    name            VARCHAR(100) NOT NULL,
-    description     TEXT
-);
-```
+**6. `face_registration_logs`** & **`audit_logs`** — Hệ thống Audit chi tiết
+- `face_registration_logs`: Mọi thao tác Register/Delete face đều push vào đây lưu log.
+- `audit_logs`: Theo dõi hành động Admin/HR thao tác trên form phần mềm (INSERT/UPDATE/DELETE).
 
 ### 4.3 Face Encoding Protocol
 
@@ -722,7 +642,19 @@ public static class AppColors
 | Badge / status | Segoe UI | 8pt | Bold |
 | Timestamp | Segoe UI Mono | 9pt | Regular |
 
-### 6.3 Drawing với GDI+ (Card rounded corner)
+### 6.3 DataGridView Standard (GridStyleHelper)
+
+Toàn bộ hệ thống phải sử dụng form chuẩn cho DataGridView để đảm bảo UI đồng nhất (header tối màu, flat list).
+
+```csharp
+// Đặt trong constructor của UserControl, ngay sau InitializeComponent()
+GridStyleHelper.ApplyStandard(dgvMyGrid);
+
+// Đối với các cột trạng thái (Status), thêm event CellFormatting để nhận màu:
+dgvMyGrid.CellFormatting += GridStyleHelper.StatusCellFormatting("ColumnName");
+```
+
+### 6.4 Drawing với GDI+ (Card rounded corner)
 
 ```csharp
 // ❌ KHÔNG dùng WinForms built-in borders — trông xấu, cứng

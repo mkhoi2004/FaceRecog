@@ -37,6 +37,8 @@ namespace FaceIDApp
         private Label lblUserInfo;
         private Label lblClock;
         private Timer clockTimer;
+        private Label _lblLeaveBadge;
+        private Button _btnLeaveMenu;
 
         public MainForm(UserDto currentUser)
         {
@@ -46,6 +48,12 @@ namespace FaceIDApp
             BuildHeader();
             InitializeUserControls();
             ShowDashboard();
+            LoadPendingBadgeAsync();
+
+            // Refresh badge mỗi 5 phút
+            var badgeTimer = new Timer { Interval = 300000 };
+            badgeTimer.Tick += (s, e) => LoadPendingBadgeAsync();
+            badgeTimer.Start();
         }
 
         public MainForm() : this(null) { }
@@ -105,6 +113,7 @@ namespace FaceIDApp
                 AddSectionLabel("QUẢN LÝ", y); y += 28;
                 AddMenuButton("🏢", "Danh mục", y, () => ShowUC(ucCatalog, "Quản lý danh mục")); y += 44;
                 AddMenuButton("📋", "Nghỉ phép", y, () => ShowUC(ucLeaveManagement, "Quản lý nghỉ phép & Ngày lễ")); y += 44;
+                _btnLeaveMenu = _menuButtons[_menuButtons.Count - 1];
                 AddMenuButton("📊", "Báo cáo", y, () => ShowUC(ucAttendanceReport, "Báo cáo chấm công")); y += 44;
 
                 AddSectionLabel("HỆ THỐNG", y); y += 28;
@@ -265,6 +274,36 @@ namespace FaceIDApp
             lblHeaderTitle.Text = $"  {title}";
             pnlMain.Controls.Clear();
             pnlMain.Controls.Add(uc);
+        }
+
+        private async void LoadPendingBadgeAsync()
+        {
+            try
+            {
+                if (_currentUser?.Role != "Admin") return;
+                var count = await AppDatabase.Repository.GetPendingLeaveCountAsync();
+                if (_lblLeaveBadge == null && _btnLeaveMenu != null)
+                {
+                    _lblLeaveBadge = new Label
+                    {
+                        AutoSize = false,
+                        Size = new Size(22, 22),
+                        TextAlign = System.Drawing.ContentAlignment.MiddleCenter,
+                        Font = new Font("Segoe UI", 8F, FontStyle.Bold),
+                        ForeColor = Color.White,
+                        BackColor = Color.FromArgb(239, 68, 68)
+                    };
+                    _lblLeaveBadge.Location = new Point(_btnLeaveMenu.Right - 30, _btnLeaveMenu.Top + 2);
+                    pnlSidebar.Controls.Add(_lblLeaveBadge);
+                    _lblLeaveBadge.BringToFront();
+                }
+                if (_lblLeaveBadge != null)
+                {
+                    _lblLeaveBadge.Text = count > 99 ? "99+" : count.ToString();
+                    _lblLeaveBadge.Visible = count > 0;
+                }
+            }
+            catch { }
         }
     }
 }

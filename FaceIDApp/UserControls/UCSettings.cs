@@ -37,6 +37,7 @@ namespace FaceIDApp.UserControls
         public UCSettings()
         {
             InitializeComponent();
+            ConfigureTabHeaderStyle();
             BuildTabUsers();
             BuildTabSystem();
             BuildTabConfig();
@@ -48,6 +49,14 @@ namespace FaceIDApp.UserControls
 
             // Async load
             LoadUsersAsync();
+        }
+
+        private void ConfigureTabHeaderStyle()
+        {
+            tabMain.Appearance = TabAppearance.FlatButtons;
+            tabMain.SizeMode = TabSizeMode.Fixed;
+            tabMain.ItemSize = new Size(170, 34);
+            tabMain.Padding = new Point(18, 6);
         }
 
         // ─────────────────────────────────────────────────────────────────────
@@ -72,8 +81,10 @@ namespace FaceIDApp.UserControls
             // Form thêm
             var pnlForm = MakePanel(DockStyle.Top, 90);
             pnlForm.Padding = new Padding(5, 5, 5, 5);
-            txtNewUsername = MakeTxt(); txtNewUsername.Location = new Point(80, 10); txtNewUsername.Size = new Size(140, 26); txtNewUsername.PlaceholderText = "Tên đăng nhập";
-            txtNewPassword = MakeTxt(); txtNewPassword.Location = new Point(240, 10); txtNewPassword.Size = new Size(120, 26); txtNewPassword.UseSystemPasswordChar = true; txtNewPassword.PlaceholderText = "Mật khẩu";
+            txtNewUsername = MakeTxt(); txtNewUsername.Location = new Point(80, 10); txtNewUsername.Size = new Size(140, 26);
+            SetWatermark(txtNewUsername, "Tên đăng nhập");
+            txtNewPassword = MakeTxt(); txtNewPassword.Location = new Point(240, 10); txtNewPassword.Size = new Size(120, 26); txtNewPassword.UseSystemPasswordChar = true;
+            SetWatermark(txtNewPassword, "Mật khẩu");
             cboNewRole = new ComboBox { Location = new Point(380, 10), Size = new Size(100, 26), DropDownStyle = ComboBoxStyle.DropDownList, Font = new Font("Segoe UI", 9.5F) };
             cboNewRole.Items.AddRange(new[] { "Admin", "Manager", "Employee" });
             cboNewRole.SelectedIndex = 2;
@@ -166,7 +177,7 @@ namespace FaceIDApp.UserControls
                 if (cboUserEmployee.SelectedIndex > 0)
                     empId = int.Parse(cboUserEmployee.SelectedItem.ToString().Split(':')[0].Trim());
 
-                string hash = BCrypt.Net.BCrypt.HashPassword(txtNewPassword.Text);
+                string hash = AuthPasswordHasher.Hash(txtNewPassword.Text);
                 string username = txtNewUsername.Text.Trim();
                 string role = cboNewRole.SelectedItem?.ToString() ?? "Employee";
                 await AppDatabase.Repository.CreateUserAsync(username, hash, empId, role);
@@ -187,7 +198,7 @@ namespace FaceIDApp.UserControls
             if (string.IsNullOrWhiteSpace(newPwd)) return;
             try
             {
-                await AppDatabase.Repository.ResetUserPasswordAsync(uid, BCrypt.Net.BCrypt.HashPassword(newPwd));
+                await AppDatabase.Repository.ResetUserPasswordAsync(uid, AuthPasswordHasher.Hash(newPwd));
                 MessageBox.Show("✅ Reset mật khẩu thành công!", "Thành công", MessageBoxButtons.OK, MessageBoxIcon.Information);
             }
             catch (Exception ex) { MessageBox.Show(ex.Message, "Lỗi"); }
@@ -254,7 +265,7 @@ namespace FaceIDApp.UserControls
         private async System.Threading.Tasks.Task LoadSystemInfoAsync()
         {
             lblAppVersion.Text  = "FaceIDApp v1.0 (.NET 4.8 / WinForms)";
-            lblDbServer.Text    = AppDatabase.ConnectionString?.Split(';').FirstOrDefault(p => p.Trim().StartsWith("Host")) ?? "—";
+            lblDbServer.Text    = AppDatabase.Config?.ApplicationConnectionString?.Split(';')[0] ?? "—";
             lblCurrentUser.Text = AppSession.CurrentUser != null
                 ? $"{AppSession.CurrentUser.Username} ({AppSession.CurrentUser.Role})"
                 : "—";
@@ -357,18 +368,30 @@ namespace FaceIDApp.UserControls
         // ─────────────────────────────────────────────────────────────────────
         // TAB: AUDIT LOG
         // ─────────────────────────────────────────────────────────────────────
+        private DateTimePicker dtpAuditFrom, dtpAuditTo;
+        private ComboBox cboAuditAction;
+
         private void BuildTabAudit()
         {
             var pnl = new Panel { Dock = DockStyle.Fill };
 
-            var toolbar = MakePanel(DockStyle.Top, 50);
+            var toolbar = MakePanel(DockStyle.Top, 85);
             btnRefreshAudit = MakeBtn("🔄 Tải nhật ký", Color.FromArgb(59, 130, 246));
             btnRefreshAudit.Location = new Point(5, 8);
             cboAuditTable = new ComboBox { Location = new Point(165, 12), Size = new Size(150, 26), DropDownStyle = ComboBoxStyle.DropDownList, Font = new Font("Segoe UI", 9.5F) };
             cboAuditTable.Items.AddRange(new[] { "(Tất cả bảng)", "employees", "attendance_records", "leave_requests", "users", "work_shifts", "departments" });
             cboAuditTable.SelectedIndex = 0;
-            var lblLimit = new Label { Text = "Hiển thị tối đa 500 bản ghi gần nhất", ForeColor = Color.FromArgb(107, 114, 128), Font = new Font("Segoe UI", 9F), Location = new Point(330, 16), AutoSize = true };
-            toolbar.Controls.AddRange(new Control[] { btnRefreshAudit, cboAuditTable, lblLimit });
+            cboAuditAction = new ComboBox { Location = new Point(325, 12), Size = new Size(110, 26), DropDownStyle = ComboBoxStyle.DropDownList, Font = new Font("Segoe UI", 9.5F) };
+            cboAuditAction.Items.AddRange(new[] { "(Tất cả)", "INSERT", "UPDATE", "DELETE" });
+            cboAuditAction.SelectedIndex = 0;
+
+            // Date range
+            var lblFrom = new Label { Text = "Từ:", Font = new Font("Segoe UI", 9F), Location = new Point(5, 52), AutoSize = true };
+            dtpAuditFrom = new DateTimePicker { Location = new Point(35, 48), Size = new Size(145, 26), Format = DateTimePickerFormat.Short, Value = DateTime.Today.AddDays(-30), Font = new Font("Segoe UI", 9F) };
+            var lblTo = new Label { Text = "Đến:", Font = new Font("Segoe UI", 9F), Location = new Point(190, 52), AutoSize = true };
+            dtpAuditTo = new DateTimePicker { Location = new Point(225, 48), Size = new Size(145, 26), Format = DateTimePickerFormat.Short, Value = DateTime.Today, Font = new Font("Segoe UI", 9F) };
+            var lblLimit = new Label { Text = "Hiển thị tối đa 500 bản ghi", ForeColor = Color.FromArgb(107, 114, 128), Font = new Font("Segoe UI", 9F), Location = new Point(445, 14), AutoSize = true };
+            toolbar.Controls.AddRange(new Control[] { btnRefreshAudit, cboAuditTable, cboAuditAction, lblFrom, dtpAuditFrom, lblTo, dtpAuditTo, lblLimit });
 
             dgvAudit = MakeGrid();
             dgvAudit.ColumnHeadersDefaultCellStyle.BackColor = Color.FromArgb(30, 41, 59);
@@ -513,8 +536,8 @@ namespace FaceIDApp.UserControls
                 case 0: await LoadUsersAsync();    break;
                 case 1: await LoadSystemInfoAsync(); break;
                 case 2: await LoadConfigAsync();   break;
-                case 3: /* audit: manual refresh */ break;
-                case 4: /* face: manual refresh */  break;
+                case 3: await LoadAuditAsync();    break;
+                case 4: await LoadFaceLogAsync();  break;
             }
         }
 
@@ -592,6 +615,14 @@ namespace FaceIDApp.UserControls
         {
             if (string.IsNullOrEmpty(s)) return "";
             return s.Length > max ? s.Substring(0, max) + "…" : s;
+        }
+
+        private static void SetWatermark(TextBox txt, string watermark)
+        {
+            txt.Text = watermark;
+            txt.ForeColor = Color.Gray;
+            txt.GotFocus += (s, e) => { if (txt.ForeColor == Color.Gray) { txt.Text = ""; txt.ForeColor = SystemColors.WindowText; } };
+            txt.LostFocus += (s, e) => { if (string.IsNullOrWhiteSpace(txt.Text)) { txt.Text = watermark; txt.ForeColor = Color.Gray; } };
         }
     }
 }

@@ -288,7 +288,7 @@ namespace FaceIDApp
                     return;
                 }
 
-                if (!BCrypt.Net.BCrypt.Verify(password, user.PasswordHash))
+                if (!AuthPasswordHasher.Verify(password, user.PasswordHash))
                 {
                     await AppDatabase.Repository.IncrementFailedLoginAsync(user.Id);
                     lblError.Text = $"Sai mật khẩu! ({user.FailedLoginCount + 1}/5 lần)";

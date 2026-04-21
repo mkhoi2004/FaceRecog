@@ -126,6 +126,9 @@ namespace FaceIDApp.UserControls
                 foreach (var d in departments)
                     cboDepartment.Items.Add(d.Name);
                 cboDepartment.SelectedIndex = 0;
+
+                // Auto-load báo cáo tháng hiện tại khi mở tab
+                BtnSearch_Click(null, null);
             }
             catch (Exception ex)
             {

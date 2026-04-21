@@ -1,4 +1,5 @@
 using System;
+using System.Runtime.InteropServices;
 using System.Windows.Forms;
 using FaceIDApp.Data;
 
@@ -9,6 +10,7 @@ namespace FaceIDApp
         [STAThread]
         static void Main()
         {
+            EnableDpiAwareness();
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
 
@@ -33,8 +35,41 @@ namespace FaceIDApp
                 if (loginForm.ShowDialog() != DialogResult.OK)
                     return;
 
-                Application.Run(new MainForm(loginForm.AuthenticatedUser));
+                Application.Run(new MainForm(loginForm.LoggedInUser));
             }
+        }
+
+        private static void EnableDpiAwareness()
+        {
+            try
+            {
+                // Prefer per-monitor DPI awareness to avoid blurry UI on scaled displays.
+                SetProcessDpiAwareness(ProcessDpiAwareness.ProcessPerMonitorDpiAware);
+            }
+            catch
+            {
+                try
+                {
+                    SetProcessDPIAware();
+                }
+                catch
+                {
+                    // Best effort only.
+                }
+            }
+        }
+
+        [DllImport("user32.dll")]
+        private static extern bool SetProcessDPIAware();
+
+        [DllImport("Shcore.dll")]
+        private static extern int SetProcessDpiAwareness(ProcessDpiAwareness value);
+
+        private enum ProcessDpiAwareness
+        {
+            ProcessDpiUnaware = 0,
+            ProcessSystemDpiAware = 1,
+            ProcessPerMonitorDpiAware = 2
         }
     }
 }

@@ -83,10 +83,40 @@ namespace FaceIDApp.Data
             {
                 await conn.OpenAsync();
 
-                using (var cmd = new NpgsqlCommand("SELECT 1 FROM users WHERE lower(username) = 'admin' LIMIT 1", conn))
+                int? adminId = null;
+                string adminHash = null;
+                using (var cmd = new NpgsqlCommand("SELECT id, password_hash FROM users WHERE lower(username) = 'admin' LIMIT 1", conn))
+                using (var r = await cmd.ExecuteReaderAsync())
                 {
-                    if (await cmd.ExecuteScalarAsync() != null)
-                        return;
+                    if (await r.ReadAsync())
+                    {
+                        adminId = r.GetInt32(0);
+                        adminHash = r.IsDBNull(1) ? null : r.GetString(1);
+                    }
+                }
+
+                if (adminId.HasValue)
+                {
+                    // One-time migration from legacy PBKDF2 format to BCrypt.
+                    if (!string.IsNullOrWhiteSpace(adminHash) &&
+                        adminHash.StartsWith("pbkdf2$", StringComparison.OrdinalIgnoreCase))
+                    {
+                        var migratedHash = AuthPasswordHasher.Hash("admin123");
+                        using (var cmd = new NpgsqlCommand(@"
+UPDATE users
+SET password_hash = @hash,
+    must_change_password = TRUE,
+    failed_login_count = 0,
+    locked_until = NULL
+WHERE id = @id", conn))
+                        {
+                            cmd.Parameters.AddWithValue("hash", migratedHash);
+                            cmd.Parameters.AddWithValue("id", adminId.Value);
+                            await cmd.ExecuteNonQueryAsync();
+                        }
+                    }
+
+                    return;
                 }
 
                 var passwordHash = AuthPasswordHasher.Hash("admin123");

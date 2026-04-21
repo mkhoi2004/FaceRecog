@@ -19,6 +19,22 @@ namespace FaceIDApp.Data
             return new NpgsqlConnection(this._config.ApplicationConnectionString);
         }
 
+        private static async Task<bool> ColumnExistsAsync(NpgsqlConnection conn, string tableName, string columnName)
+        {
+            using (var cmd = new NpgsqlCommand(@"
+SELECT 1
+FROM information_schema.columns
+WHERE table_schema = 'public'
+  AND table_name = @table_name
+  AND column_name = @column_name
+LIMIT 1", conn))
+            {
+                cmd.Parameters.AddWithValue("table_name", tableName);
+                cmd.Parameters.AddWithValue("column_name", columnName);
+                return await cmd.ExecuteScalarAsync() != null;
+            }
+        }
+
         // =============================================
         // DEPARTMENTS
         // =============================================
@@ -151,6 +167,7 @@ SELECT e.id, e.code, e.full_name, e.gender, e.date_of_birth, e.phone, e.email,
        e.identity_card, e.department_id, e.position_id, e.default_shift_id,
        e.hire_date, e.termination_date, e.employment_type, e.avatar_path,
        e.is_face_registered, e.face_registered_at, e.annual_leave_days, e.used_leave_days, e.is_active,
+       e.manager_id,
        d.name AS dept_name, p.name AS pos_name, ws.name AS shift_name
 FROM employees e
 LEFT JOIN departments d ON e.department_id = d.id
@@ -177,6 +194,7 @@ SELECT e.id, e.code, e.full_name, e.gender, e.date_of_birth, e.phone, e.email,
        e.identity_card, e.department_id, e.position_id, e.default_shift_id,
        e.hire_date, e.termination_date, e.employment_type, e.avatar_path,
        e.is_face_registered, e.face_registered_at, e.annual_leave_days, e.used_leave_days, e.is_active,
+       e.manager_id,
        d.name AS dept_name, p.name AS pos_name, ws.name AS shift_name
 FROM employees e
 LEFT JOIN departments d ON e.department_id = d.id
@@ -201,9 +219,9 @@ WHERE e.id = @id", conn))
                 await conn.OpenAsync();
                 using (var cmd = new NpgsqlCommand(@"
 INSERT INTO employees (code, full_name, gender, date_of_birth, phone, email, identity_card,
-                       department_id, position_id, default_shift_id, hire_date, employment_type, avatar_path, annual_leave_days)
+                       department_id, position_id, default_shift_id, manager_id, hire_date, employment_type, avatar_path, annual_leave_days)
 VALUES (@code, @full_name, @gender, @dob, @phone, @email, @idcard,
-        @dept_id, @pos_id, @shift_id, @hire_date, @emp_type, @avatar, @annual_leave)
+        @dept_id, @pos_id, @shift_id, @mgr_id, @hire_date, @emp_type, @avatar, @annual_leave)
 RETURNING id", conn))
                 {
                     cmd.Parameters.AddWithValue("code", emp.Code);
@@ -216,6 +234,7 @@ RETURNING id", conn))
                     cmd.Parameters.AddWithValue("dept_id", (object)emp.DepartmentId ?? DBNull.Value);
                     cmd.Parameters.AddWithValue("pos_id", (object)emp.PositionId ?? DBNull.Value);
                     cmd.Parameters.AddWithValue("shift_id", (object)emp.DefaultShiftId ?? DBNull.Value);
+                    cmd.Parameters.AddWithValue("mgr_id", (object)emp.ManagerId ?? DBNull.Value);
                     cmd.Parameters.AddWithValue("hire_date", emp.HireDate);
                     cmd.Parameters.AddWithValue("emp_type", emp.EmploymentType ?? "FullTime");
                     cmd.Parameters.AddWithValue("avatar", (object)emp.AvatarPath ?? DBNull.Value);
@@ -234,7 +253,7 @@ RETURNING id", conn))
                 using (var cmd = new NpgsqlCommand(@"
 UPDATE employees SET code=@code, full_name=@full_name, gender=@gender, date_of_birth=@dob,
     phone=@phone, email=@email, identity_card=@idcard,
-    department_id=@dept_id, position_id=@pos_id, default_shift_id=@shift_id,
+    department_id=@dept_id, position_id=@pos_id, default_shift_id=@shift_id, manager_id=@mgr_id,
     hire_date=@hire_date, termination_date=@term_date, employment_type=@emp_type,
     avatar_path=@avatar, annual_leave_days=@annual_leave, is_active=@is_active
 WHERE id=@id", conn))
@@ -250,6 +269,7 @@ WHERE id=@id", conn))
                     cmd.Parameters.AddWithValue("dept_id", (object)emp.DepartmentId ?? DBNull.Value);
                     cmd.Parameters.AddWithValue("pos_id", (object)emp.PositionId ?? DBNull.Value);
                     cmd.Parameters.AddWithValue("shift_id", (object)emp.DefaultShiftId ?? DBNull.Value);
+                    cmd.Parameters.AddWithValue("mgr_id", (object)emp.ManagerId ?? DBNull.Value);
                     cmd.Parameters.AddWithValue("hire_date", emp.HireDate);
                     cmd.Parameters.AddWithValue("term_date", (object)emp.TerminationDate ?? DBNull.Value);
                     cmd.Parameters.AddWithValue("emp_type", emp.EmploymentType ?? "FullTime");
@@ -298,9 +318,10 @@ WHERE id=@id", conn))
                 AnnualLeaveDays = r.GetDecimal(17),
                 UsedLeaveDays = r.GetDecimal(18),
                 IsActive = r.GetBoolean(19),
-                DepartmentName = r.IsDBNull(20) ? null : r.GetString(20),
-                PositionName = r.IsDBNull(21) ? null : r.GetString(21),
-                ShiftName = r.IsDBNull(22) ? null : r.GetString(22)
+                ManagerId = r.IsDBNull(20) ? (int?)null : r.GetInt32(20),
+                DepartmentName = r.IsDBNull(21) ? null : r.GetString(21),
+                PositionName = r.IsDBNull(22) ? null : r.GetString(22),
+                ShiftName = r.IsDBNull(23) ? null : r.GetString(23)
             };
         }
 
@@ -477,6 +498,8 @@ RETURNING id", conn))
                 EmployeeCode = r.IsDBNull(12) ? null : r.GetString(12)
             };
         }
+
+
 
         // =============================================
         // HOLIDAYS
@@ -1229,7 +1252,12 @@ INSERT INTO users (username, password_hash, employee_id, role, is_active) VALUES
             using (var conn = CreateConnection())
             {
                 await conn.OpenAsync();
-                using (var cmd = new NpgsqlCommand("SELECT id, code, name, device_type, location, ip_address, is_active, last_heartbeat FROM attendance_devices ORDER BY code", conn))
+                var legacyColumns = await ColumnExistsAsync(conn, "attendance_devices", "code");
+                var sql = legacyColumns
+                    ? "SELECT id, code, name, device_type, location, ip_address, is_active, last_heartbeat FROM attendance_devices ORDER BY code"
+                    : "SELECT id, device_code, device_name, device_type, location_name, ip_address, is_active, last_heartbeat FROM attendance_devices ORDER BY device_code";
+
+                using (var cmd = new NpgsqlCommand(sql, conn))
                 using (var r = await cmd.ExecuteReaderAsync())
                 {
                     while (await r.ReadAsync())
@@ -1252,9 +1280,16 @@ INSERT INTO users (username, password_hash, employee_id, role, is_active) VALUES
             using (var conn = CreateConnection())
             {
                 await conn.OpenAsync();
-                using (var cmd = new NpgsqlCommand(@"
+                var legacyColumns = await ColumnExistsAsync(conn, "attendance_devices", "code");
+                var sql = legacyColumns
+                    ? @"
 INSERT INTO attendance_devices (code, name, device_type, location, ip_address, is_active)
-VALUES (@code, @name, @type, @loc, @ip, TRUE) RETURNING id", conn))
+VALUES (@code, @name, @type, @loc, @ip, TRUE) RETURNING id"
+                    : @"
+INSERT INTO attendance_devices (device_code, device_name, device_type, location_name, ip_address, is_active)
+VALUES (@code, @name, @type, @loc, @ip, TRUE) RETURNING id";
+
+                using (var cmd = new NpgsqlCommand(sql, conn))
                 {
                     cmd.Parameters.AddWithValue("code", d.Code);
                     cmd.Parameters.AddWithValue("name", d.Name);
@@ -1271,7 +1306,12 @@ VALUES (@code, @name, @type, @loc, @ip, TRUE) RETURNING id", conn))
             using (var conn = CreateConnection())
             {
                 await conn.OpenAsync();
-                using (var cmd = new NpgsqlCommand("UPDATE attendance_devices SET code=@code, name=@name, device_type=@type, location=@loc, ip_address=@ip, is_active=@active WHERE id=@id", conn))
+                var legacyColumns = await ColumnExistsAsync(conn, "attendance_devices", "code");
+                var sql = legacyColumns
+                    ? "UPDATE attendance_devices SET code=@code, name=@name, device_type=@type, location=@loc, ip_address=@ip, is_active=@active WHERE id=@id"
+                    : "UPDATE attendance_devices SET device_code=@code, device_name=@name, device_type=@type, location_name=@loc, ip_address=@ip, is_active=@active WHERE id=@id";
+
+                using (var cmd = new NpgsqlCommand(sql, conn))
                 {
                     cmd.Parameters.AddWithValue("id", d.Id);
                     cmd.Parameters.AddWithValue("code", d.Code);
@@ -1307,15 +1347,31 @@ VALUES (@code, @name, @type, @loc, @ip, TRUE) RETURNING id", conn))
             using (var conn = CreateConnection())
             {
                 await conn.OpenAsync();
-                using (var cmd = new NpgsqlCommand(@"
-SELECT id, name, year, monday, tuesday, wednesday, thursday, friday, saturday, sunday, is_default, is_active
-FROM work_calendars WHERE is_active = TRUE ORDER BY year DESC, name", conn))
+                var hasYear = await ColumnExistsAsync(conn, "work_calendars", "year");
+                var hasIsActive = await ColumnExistsAsync(conn, "work_calendars", "is_active");
+
+                var sql = hasYear
+                    ? @"
+SELECT id, name, year, monday, tuesday, wednesday, thursday, friday, saturday, sunday, is_default,
+       " + (hasIsActive ? "is_active" : "TRUE AS is_active") + @"
+FROM work_calendars
+" + (hasIsActive ? "WHERE is_active = TRUE" : string.Empty) + @"
+ORDER BY year DESC, name"
+                    : @"
+SELECT id, name,
+       EXTRACT(YEAR FROM COALESCE(effective_from, CURRENT_DATE))::INT AS year,
+       monday, tuesday, wednesday, thursday, friday, saturday, sunday, is_default,
+       TRUE AS is_active
+FROM work_calendars
+ORDER BY effective_from DESC, name";
+
+                using (var cmd = new NpgsqlCommand(sql, conn))
                 using (var r = await cmd.ExecuteReaderAsync())
                 {
                     while (await r.ReadAsync())
                         list.Add(new WorkCalendarDto
                         {
-                            Id = r.GetInt32(0), Name = r.GetString(1), Year = r.GetInt16(2),
+                            Id = r.GetInt32(0), Name = r.GetString(1), Year = Convert.ToInt32(r.GetValue(2)),
                             Monday = r.GetBoolean(3), Tuesday = r.GetBoolean(4), Wednesday = r.GetBoolean(5),
                             Thursday = r.GetBoolean(6), Friday = r.GetBoolean(7), Saturday = r.GetBoolean(8),
                             Sunday = r.GetBoolean(9), IsDefault = r.GetBoolean(10), IsActive = r.GetBoolean(11)
@@ -1330,12 +1386,33 @@ FROM work_calendars WHERE is_active = TRUE ORDER BY year DESC, name", conn))
             using (var conn = CreateConnection())
             {
                 await conn.OpenAsync();
-                using (var cmd = new NpgsqlCommand(@"
+                var hasYear = await ColumnExistsAsync(conn, "work_calendars", "year");
+                var hasIsActive = await ColumnExistsAsync(conn, "work_calendars", "is_active");
+                var effectiveFrom = new DateTime(Math.Max(2000, wc.Year), 1, 1);
+
+                var sql = hasYear
+                    ? (hasIsActive
+                        ? @"
 INSERT INTO work_calendars (name, year, monday, tuesday, wednesday, thursday, friday, saturday, sunday, is_default, is_active)
-VALUES (@name, @year, @mon, @tue, @wed, @thu, @fri, @sat, @sun, @default, TRUE) RETURNING id", conn))
+VALUES (@name, @year, @mon, @tue, @wed, @thu, @fri, @sat, @sun, @default, TRUE) RETURNING id"
+                        : @"
+INSERT INTO work_calendars (name, year, monday, tuesday, wednesday, thursday, friday, saturday, sunday, is_default)
+VALUES (@name, @year, @mon, @tue, @wed, @thu, @fri, @sat, @sun, @default) RETURNING id")
+                    : @"
+INSERT INTO work_calendars (name, monday, tuesday, wednesday, thursday, friday, saturday, sunday, is_default, effective_from)
+VALUES (@name, @mon, @tue, @wed, @thu, @fri, @sat, @sun, @default, @effective_from) RETURNING id";
+
+                using (var cmd = new NpgsqlCommand(sql, conn))
                 {
                     cmd.Parameters.AddWithValue("name", wc.Name);
-                    cmd.Parameters.AddWithValue("year", (short)wc.Year);
+                    if (hasYear)
+                    {
+                        cmd.Parameters.AddWithValue("year", (short)wc.Year);
+                    }
+                    else
+                    {
+                        cmd.Parameters.AddWithValue("effective_from", effectiveFrom);
+                    }
                     cmd.Parameters.AddWithValue("mon", wc.Monday);
                     cmd.Parameters.AddWithValue("tue", wc.Tuesday);
                     cmd.Parameters.AddWithValue("wed", wc.Wednesday);
@@ -1354,14 +1431,38 @@ VALUES (@name, @year, @mon, @tue, @wed, @thu, @fri, @sat, @sun, @default, TRUE) 
             using (var conn = CreateConnection())
             {
                 await conn.OpenAsync();
-                using (var cmd = new NpgsqlCommand(@"
+                var hasYear = await ColumnExistsAsync(conn, "work_calendars", "year");
+                var hasIsActive = await ColumnExistsAsync(conn, "work_calendars", "is_active");
+                var effectiveFrom = new DateTime(Math.Max(2000, wc.Year), 1, 1);
+
+                var sql = hasYear
+                    ? (hasIsActive
+                        ? @"
 UPDATE work_calendars SET name=@name, year=@year, monday=@mon, tuesday=@tue, wednesday=@wed,
     thursday=@thu, friday=@fri, saturday=@sat, sunday=@sun, is_default=@default, is_active=@active
-WHERE id=@id", conn))
+WHERE id=@id"
+                        : @"
+UPDATE work_calendars SET name=@name, year=@year, monday=@mon, tuesday=@tue, wednesday=@wed,
+    thursday=@thu, friday=@fri, saturday=@sat, sunday=@sun, is_default=@default
+WHERE id=@id")
+                    : @"
+UPDATE work_calendars SET name=@name, monday=@mon, tuesday=@tue, wednesday=@wed,
+    thursday=@thu, friday=@fri, saturday=@sat, sunday=@sun, is_default=@default,
+    effective_from=@effective_from
+WHERE id=@id";
+
+                using (var cmd = new NpgsqlCommand(sql, conn))
                 {
                     cmd.Parameters.AddWithValue("id", wc.Id);
                     cmd.Parameters.AddWithValue("name", wc.Name);
-                    cmd.Parameters.AddWithValue("year", (short)wc.Year);
+                    if (hasYear)
+                    {
+                        cmd.Parameters.AddWithValue("year", (short)wc.Year);
+                    }
+                    else
+                    {
+                        cmd.Parameters.AddWithValue("effective_from", effectiveFrom);
+                    }
                     cmd.Parameters.AddWithValue("mon", wc.Monday);
                     cmd.Parameters.AddWithValue("tue", wc.Tuesday);
                     cmd.Parameters.AddWithValue("wed", wc.Wednesday);
@@ -1370,7 +1471,10 @@ WHERE id=@id", conn))
                     cmd.Parameters.AddWithValue("sat", wc.Saturday);
                     cmd.Parameters.AddWithValue("sun", wc.Sunday);
                     cmd.Parameters.AddWithValue("default", wc.IsDefault);
-                    cmd.Parameters.AddWithValue("active", wc.IsActive);
+                    if (hasIsActive)
+                    {
+                        cmd.Parameters.AddWithValue("active", wc.IsActive);
+                    }
                     await cmd.ExecuteNonQueryAsync();
                 }
             }
@@ -1381,7 +1485,12 @@ WHERE id=@id", conn))
             using (var conn = CreateConnection())
             {
                 await conn.OpenAsync();
-                using (var cmd = new NpgsqlCommand("UPDATE work_calendars SET is_active = FALSE WHERE id = @id", conn))
+                var hasIsActive = await ColumnExistsAsync(conn, "work_calendars", "is_active");
+                var sql = hasIsActive
+                    ? "UPDATE work_calendars SET is_active = FALSE WHERE id = @id"
+                    : "DELETE FROM work_calendars WHERE id = @id";
+
+                using (var cmd = new NpgsqlCommand(sql, conn))
                 {
                     cmd.Parameters.AddWithValue("id", id);
                     await cmd.ExecuteNonQueryAsync();
@@ -1398,11 +1507,13 @@ WHERE id=@id", conn))
             using (var conn = CreateConnection())
             {
                 await conn.OpenAsync();
+                var legacyDeviceColumns = await ColumnExistsAsync(conn, "attendance_devices", "name");
+                var deviceNameColumn = legacyDeviceColumns ? "d.name" : "d.device_name";
                 using (var cmd = new NpgsqlCommand(@"
 SELECT al.id, al.attendance_id, al.employee_id, al.device_id, al.log_time,
        al.log_type, al.method, al.matched_face_id, al.confidence, al.face_distance,
        al.image_path, al.result, al.fail_reason,
-       e.full_name, e.code, d.name AS device_name
+       e.full_name, e.code, " + deviceNameColumn + @" AS device_name
 FROM attendance_logs al
 LEFT JOIN employees e ON al.employee_id = e.id
 LEFT JOIN attendance_devices d ON al.device_id = d.id
@@ -1446,11 +1557,13 @@ ORDER BY al.log_time DESC", conn))
             using (var conn = CreateConnection())
             {
                 await conn.OpenAsync();
+                var legacyDeviceColumns = await ColumnExistsAsync(conn, "attendance_devices", "name");
+                var deviceNameColumn = legacyDeviceColumns ? "d.name" : "d.device_name";
                 using (var cmd = new NpgsqlCommand(@"
 SELECT al.id, al.attendance_id, al.employee_id, al.device_id, al.log_time,
        al.log_type, al.method, al.matched_face_id, al.confidence, al.face_distance,
        al.image_path, al.result, al.fail_reason,
-       e.full_name, e.code, d.name AS device_name
+       e.full_name, e.code, " + deviceNameColumn + @" AS device_name
 FROM attendance_logs al
 LEFT JOIN employees e ON al.employee_id = e.id
 LEFT JOIN attendance_devices d ON al.device_id = d.id
@@ -1672,6 +1785,41 @@ ORDER BY frl.created_at DESC LIMIT 1000", conn))
             return list;
         }
 
+        public async Task InsertFaceRegistrationLogAsync(int employeeId, string action, int? performedBy, string reason)
+        {
+            using (var conn = CreateConnection())
+            {
+                await conn.OpenAsync();
+                using (var cmd = new NpgsqlCommand(@"
+INSERT INTO face_registration_logs (employee_id, action, performed_by, reason)
+VALUES (@emp_id, @action, @performed_by, @reason)", conn))
+                {
+                    cmd.Parameters.AddWithValue("emp_id", employeeId);
+                    cmd.Parameters.AddWithValue("action", action);
+                    cmd.Parameters.AddWithValue("performed_by", (object)performedBy ?? DBNull.Value);
+                    cmd.Parameters.AddWithValue("reason", (object)reason ?? DBNull.Value);
+                    await cmd.ExecuteNonQueryAsync();
+                }
+            }
+        }
+
+        public async Task UpdateEmployeeFaceStatusAsync(int employeeId, bool isRegistered)
+        {
+            using (var conn = CreateConnection())
+            {
+                await conn.OpenAsync();
+                using (var cmd = new NpgsqlCommand(@"
+UPDATE employees SET is_face_registered = @registered,
+    face_registered_at = CASE WHEN @registered THEN now() ELSE NULL END
+WHERE id = @id", conn))
+                {
+                    cmd.Parameters.AddWithValue("id", employeeId);
+                    cmd.Parameters.AddWithValue("registered", isRegistered);
+                    await cmd.ExecuteNonQueryAsync();
+                }
+            }
+        }
+
         // =============================================
         // EMPLOYEE SHIFT SCHEDULES
         // =============================================
@@ -1749,6 +1897,22 @@ DO UPDATE SET shift_id = EXCLUDED.shift_id, is_override = EXCLUDED.is_override, 
                 {
                     cmd.Parameters.AddWithValue("id", id);
                     await cmd.ExecuteNonQueryAsync();
+                }
+            }
+        }
+
+        // =============================================
+        // PENDING LEAVE COUNT (for badge notification)
+        // =============================================
+        public async Task<int> GetPendingLeaveCountAsync()
+        {
+            using (var conn = CreateConnection())
+            {
+                await conn.OpenAsync();
+                using (var cmd = new NpgsqlCommand("SELECT COUNT(*) FROM leave_requests WHERE status = 'Pending'", conn))
+                {
+                    var result = await cmd.ExecuteScalarAsync();
+                    return Convert.ToInt32(result);
                 }
             }
         }

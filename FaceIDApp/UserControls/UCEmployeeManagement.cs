@@ -16,6 +16,7 @@ namespace FaceIDApp.UserControls
         private List<DepartmentDto> _departments = new List<DepartmentDto>();
         private List<PositionDto> _positions = new List<PositionDto>();
         private List<WorkShiftDto> _shifts = new List<WorkShiftDto>();
+        private List<EmployeeDto> _employees = new List<EmployeeDto>();
 
         // Extra form controls added in code (vì Designer chỉ có txtPosition)
         private ComboBox cboPosition;
@@ -25,6 +26,8 @@ namespace FaceIDApp.UserControls
         private TextBox txtIdentityCard;
         private TextBox txtGender;
         private DataGridView dgvAttHistory;
+        private ComboBox cboManager;
+        private Label lblLeaveBalance;
 
         public UCEmployeeManagement()
         {
@@ -107,19 +110,43 @@ namespace FaceIDApp.UserControls
             pnlEmployeeDetail.Controls.Add(lblGender);
             pnlEmployeeDetail.Controls.Add(txtGender);
 
+            // Quản lý trực tiếp
+            var lblMgr = new Label { Text = "Quản lý:", Font = new Font("Segoe UI", 9.5F), Location = new Point(15, 441), AutoSize = true };
+            cboManager = new ComboBox
+            {
+                DropDownStyle = ComboBoxStyle.DropDownList,
+                Font = new Font("Segoe UI", 9.5F),
+                Location = new Point(100, 438),
+                Size = new Size(210, 25),
+                Name = "cboManager"
+            };
+            pnlEmployeeDetail.Controls.Add(lblMgr);
+            pnlEmployeeDetail.Controls.Add(cboManager);
+
+            // Số ngày phép còn lại
+            lblLeaveBalance = new Label
+            {
+                Text = "Phép còn: — ngày",
+                Font = new Font("Segoe UI", 9F, FontStyle.Bold),
+                ForeColor = Color.FromArgb(107, 114, 128),
+                Location = new Point(190, 355),
+                AutoSize = true
+            };
+            pnlEmployeeDetail.Controls.Add(lblLeaveBalance);
+
             // Dời chkIsActive + Email + Phone + DatePicker xuống thấp hơn
-            lblEmail.Location    = new Point(lblEmail.Location.X, 441);
-            txtEmail.Location    = new Point(txtEmail.Location.X, 438);
-            lblPhone.Location    = new Point(lblPhone.Location.X, 468);
-            txtPhone.Location    = new Point(txtPhone.Location.X, 465);
-            lblDateOfBirth.Location = new Point(lblDateOfBirth.Location.X, 495);
-            dtpDateOfBirth.Location = new Point(dtpDateOfBirth.Location.X, 492);
-            lblHireDate.Location = new Point(lblHireDate.Location.X, 521);
-            dtpHireDate.Location = new Point(dtpHireDate.Location.X, 518);
-            chkIsActive.Location  = new Point(chkIsActive.Location.X, 546);
-            btnSave.Location      = new Point(btnSave.Location.X, 575);
-            btnCancel.Location    = new Point(btnCancel.Location.X, 575);
-            btnRegisterFace.Location = new Point(btnRegisterFace.Location.X, 575);
+            lblEmail.Location    = new Point(lblEmail.Location.X, 471);
+            txtEmail.Location    = new Point(txtEmail.Location.X, 468);
+            lblPhone.Location    = new Point(lblPhone.Location.X, 498);
+            txtPhone.Location    = new Point(txtPhone.Location.X, 495);
+            lblDateOfBirth.Location = new Point(lblDateOfBirth.Location.X, 525);
+            dtpDateOfBirth.Location = new Point(dtpDateOfBirth.Location.X, 522);
+            lblHireDate.Location = new Point(lblHireDate.Location.X, 551);
+            dtpHireDate.Location = new Point(dtpHireDate.Location.X, 548);
+            chkIsActive.Location  = new Point(chkIsActive.Location.X, 576);
+            btnSave.Location      = new Point(btnSave.Location.X, 605);
+            btnCancel.Location    = new Point(btnCancel.Location.X, 605);
+            btnRegisterFace.Location = new Point(btnRegisterFace.Location.X, 605);
 
             pnlEmployeeDetail.AutoScroll = true;
 
@@ -216,6 +243,10 @@ namespace FaceIDApp.UserControls
                 PopulateComboBox(cboDepartment, _departments, d => d.Name, "(-- Phòng ban --)");
                 PopulateComboBox(cboPosition,   _positions,   p => p.Name, "(-- Chức vụ --)");
                 PopulateComboBox(cboShift,      _shifts,      s => $"{s.Name} ({s.StartTime:hh\\:mm}–{s.EndTime:hh\\:mm})", "(-- Ca mặc định --)");
+
+                // Populate Manager dropdown
+                _employees = await AppDatabase.Repository.GetEmployeesAsync(true);
+                PopulateComboBox(cboManager, _employees, e => $"{e.Code} - {e.FullName}", "(-- Không có --)");
 
                 // Filter combobox
                 cboFilterDepartment.Items.Clear();
@@ -326,6 +357,18 @@ namespace FaceIDApp.UserControls
             // EmploymentType
             int etIdx = cboEmploymentType.FindStringExact(emp.EmploymentType ?? "FullTime");
             cboEmploymentType.SelectedIndex = etIdx >= 0 ? etIdx : 0;
+
+            // Manager
+            if (emp.ManagerId.HasValue)
+                SetComboById(cboManager, _employees, m => m.Id == emp.ManagerId.Value, m => m.FullName);
+            else
+                cboManager.SelectedIndex = 0;
+
+            // Leave Balance
+            var remaining = emp.AnnualLeaveDays - emp.UsedLeaveDays;
+            lblLeaveBalance.Text = $"Phép còn: {remaining} ngày";
+            lblLeaveBalance.ForeColor = remaining > 0
+                ? Color.FromArgb(34, 197, 94) : Color.FromArgb(239, 68, 68);
 
             // Load attendance history
             await LoadAttendanceHistoryAsync(emp.Id);
@@ -497,6 +540,7 @@ namespace FaceIDApp.UserControls
                     DepartmentId     = deptId,
                     PositionId       = posId,
                     DefaultShiftId   = shiftId,
+                    ManagerId        = (cboManager.SelectedItem as ComboItem<EmployeeDto>)?.Value?.Id,
                     EmploymentType   = cboEmploymentType.SelectedItem?.ToString() ?? "FullTime",
                     Phone            = NullIfEmpty(txtPhone.Text),
                     Email            = NullIfEmpty(txtEmail.Text),
@@ -559,7 +603,10 @@ namespace FaceIDApp.UserControls
             cboPosition.SelectedIndex    = 0;
             cboShift.SelectedIndex       = 0;
             cboEmploymentType.SelectedIndex = 0;
+            if (cboManager.Items.Count > 0) cboManager.SelectedIndex = 0;
             nudAnnualLeave.Value  = 12;
+            lblLeaveBalance.Text = "Phép còn: — ngày";
+            lblLeaveBalance.ForeColor = Color.FromArgb(107, 114, 128);
             dtpDateOfBirth.Value  = DateTime.Today.AddYears(-25);
             dtpHireDate.Value     = DateTime.Today;
             chkIsActive.Checked   = true;

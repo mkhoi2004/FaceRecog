@@ -6,7 +6,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using FaceIDApp.Data;
-using FaceRecog;
+
 
 namespace FaceIDApp.UserControls
 {
@@ -50,6 +50,82 @@ namespace FaceIDApp.UserControls
             btnCapture.Click += BtnCapture_Click;
             btnCheckIn.Click += BtnCheckIn_Click;
             btnCheckOut.Click += BtnCheckOut_Click;
+
+            // ─── Manual Check-in Panel ──────────────────────────────────────
+            var pnlManual = new Panel
+            {
+                Height = 45, Dock = DockStyle.Bottom,
+                BackColor = Color.FromArgb(241, 245, 249),
+                Padding = new Padding(10, 6, 10, 6)
+            };
+            var lblManual = new Label { Text = "📝 Thủ công:", Font = new Font("Segoe UI", 9F, FontStyle.Bold),
+                ForeColor = Color.FromArgb(71, 85, 105), AutoSize = true, Location = new Point(10, 12) };
+            var txtManualCode = new TextBox { Font = new Font("Segoe UI", 9.5F), Location = new System.Drawing.Point(110, 8),
+                Size = new Size(120, 24), Text = "Mã NV", ForeColor = Color.Gray };
+            txtManualCode.GotFocus += (s2, e2) => { if (txtManualCode.ForeColor == Color.Gray) { txtManualCode.Text = ""; txtManualCode.ForeColor = SystemColors.WindowText; } };
+            txtManualCode.LostFocus += (s2, e2) => { if (string.IsNullOrWhiteSpace(txtManualCode.Text)) { txtManualCode.Text = "Mã NV"; txtManualCode.ForeColor = Color.Gray; } };
+            var cboManualAction = new ComboBox { DropDownStyle = ComboBoxStyle.DropDownList,
+                Font = new Font("Segoe UI", 9F), Location = new Point(240, 8), Size = new Size(110, 24) };
+            cboManualAction.Items.AddRange(new[] { "Check-in", "Check-out" });
+            cboManualAction.SelectedIndex = 0;
+            var btnManualSubmit = new Button { Text = "Xác nhận", Font = new Font("Segoe UI", 9F, FontStyle.Bold),
+                ForeColor = Color.White, BackColor = Color.FromArgb(59, 130, 246),
+                FlatStyle = FlatStyle.Flat, Size = new Size(90, 28), Location = new Point(360, 7), Cursor = Cursors.Hand };
+            btnManualSubmit.FlatAppearance.BorderSize = 0;
+            btnManualSubmit.Click += async (s, ev) =>
+            {
+                var code = txtManualCode.Text.Trim();
+                if (string.IsNullOrWhiteSpace(code)) { MessageBox.Show("Nhập mã NV!", "Thông báo"); return; }
+                try
+                {
+                    var employees = await AppDatabase.Repository.GetEmployeesAsync(true);
+                    var emp = employees.FirstOrDefault(e => e.Code.Equals(code, StringComparison.OrdinalIgnoreCase));
+                    if (emp == null) { MessageBox.Show($"Không tìm thấy NV mã '{code}'!", "Lỗi"); return; }
+                    var now = DateTime.Now;
+                    if (cboManualAction.SelectedIndex == 0) // Check-in
+                    {
+                        var existing = await AppDatabase.Repository.GetTodayAttendanceAsync(emp.Id);
+                        if (existing?.CheckIn != null) { MessageBox.Show("NV đã check-in rồi!"); return; }
+                        var attId = await AppDatabase.Repository.CheckInAsync(emp.Id, emp.DefaultShiftId, now, null, null, "Manual");
+                        if (emp.DefaultShiftId.HasValue)
+                        {
+                            var shift = await AppDatabase.Repository.GetWorkShiftByIdAsync(emp.DefaultShiftId.Value);
+                            if (shift != null)
+                            {
+                                var status = AttendanceSchedule.CalculateStatus(now.TimeOfDay, null, shift.StartTime, shift.EndTime, shift.LateThreshold, shift.EarlyThreshold);
+                                var lateMin = AttendanceSchedule.CalculateLateMinutes(now.TimeOfDay, shift.StartTime, shift.LateThreshold);
+                                await AppDatabase.Repository.UpdateCheckInStatusAsync(emp.Id, status, lateMin);
+                            }
+                        }
+                        await AppDatabase.Repository.InsertAttendanceLogAsync(attId, emp.Id, null, "CheckIn", "Manual", null, null, null, null, "Success");
+                        UpdateStatus($"✅ Manual check-in: {emp.FullName} lúc {now:HH:mm:ss}", Color.FromArgb(46, 204, 113));
+                    }
+                    else // Check-out
+                    {
+                        var existing = await AppDatabase.Repository.GetTodayAttendanceAsync(emp.Id);
+                        if (existing == null || !existing.CheckIn.HasValue) { MessageBox.Show("NV chưa check-in!"); return; }
+                        if (existing.CheckOut.HasValue) { MessageBox.Show("NV đã check-out rồi!"); return; }
+                        WorkShiftDto shift = null;
+                        if (emp.DefaultShiftId.HasValue) shift = await AppDatabase.Repository.GetWorkShiftByIdAsync(emp.DefaultShiftId.Value);
+                        string st = "Present"; int late = 0, early = 0, work = (int)(now - existing.CheckIn.Value).TotalMinutes;
+                        if (shift != null)
+                        {
+                            st = AttendanceSchedule.CalculateStatus(existing.CheckIn.Value.TimeOfDay, now.TimeOfDay, shift.StartTime, shift.EndTime, shift.LateThreshold, shift.EarlyThreshold);
+                            late = AttendanceSchedule.CalculateLateMinutes(existing.CheckIn.Value.TimeOfDay, shift.StartTime, shift.LateThreshold);
+                            early = AttendanceSchedule.CalculateEarlyMinutes(now.TimeOfDay, shift.EndTime, shift.EarlyThreshold);
+                            work = AttendanceSchedule.CalculateWorkingMinutes(existing.CheckIn.Value, now, shift.BreakMinutes);
+                        }
+                        await AppDatabase.Repository.CheckOutAsync(emp.Id, now, null, null, st, late, early, work, "Manual");
+                        await AppDatabase.Repository.InsertAttendanceLogAsync(existing.Id, emp.Id, null, "CheckOut", "Manual", null, null, null, null, "Success");
+                        UpdateStatus($"✅ Manual check-out: {emp.FullName} lúc {now:HH:mm:ss}", Color.FromArgb(46, 204, 113));
+                    }
+                    txtManualCode.Clear();
+                    LoadTodayAttendanceAsync();
+                }
+                catch (Exception ex) { MessageBox.Show($"Lỗi: {ex.Message}", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error); }
+            };
+            pnlManual.Controls.AddRange(new Control[] { lblManual, txtManualCode, cboManualAction, btnManualSubmit });
+            pnlTodayList.Controls.Add(pnlManual);
         }
 
         private void SetupTimer()
@@ -71,7 +147,19 @@ namespace FaceIDApp.UserControls
                     var checkIn = att.CheckIn.HasValue ? att.CheckIn.Value.ToString("HH:mm:ss") : "--:--:--";
                     var checkOut = att.CheckOut.HasValue ? att.CheckOut.Value.ToString("HH:mm:ss") : "--:--:--";
                     var status = TranslateStatus(att.Status);
-                    dgvTodayAttendance.Rows.Add(idx++, att.EmployeeCode, att.FullName, checkIn, checkOut, status);
+                    var soGio = att.WorkingHours.HasValue ? $"{att.WorkingHours:F1}h" : "—";
+                    var rowIdx = dgvTodayAttendance.Rows.Add(idx++, att.EmployeeCode, att.FullName,
+                        att.ShiftName ?? "—", checkIn, checkOut, soGio, status);
+
+                    // Tô màu trạng thái
+                    var cell = dgvTodayAttendance.Rows[rowIdx].Cells["colTrangThai"];
+                    switch (att.Status)
+                    {
+                        case "Present":     cell.Style.BackColor = Color.FromArgb(212, 237, 218); cell.Style.ForeColor = Color.FromArgb(21, 87, 36);  break;
+                        case "Late":
+                        case "LateAndEarly":cell.Style.BackColor = Color.FromArgb(255, 243, 205); cell.Style.ForeColor = Color.FromArgb(133, 100, 4); break;
+                        case "Absent":      cell.Style.BackColor = Color.FromArgb(248, 215, 218); cell.Style.ForeColor = Color.FromArgb(114, 28, 36); break;
+                    }
                 }
 
                 // Cache face data for recognition
@@ -120,6 +208,11 @@ namespace FaceIDApp.UserControls
             timerCamera?.Dispose();
             timerCamera = null;
             _webcam.Stop();
+
+            picCamera.Image?.Dispose();
+            picCamera.Image = null;
+            picCamera.BackColor = Color.Black;
+
             btnStartCamera.Enabled = true;
             btnStopCamera.Enabled = false;
             UpdateStatus("📷 Camera đã tắt", Color.FromArgb(149, 165, 166));
@@ -157,7 +250,7 @@ namespace FaceIDApp.UserControls
                     return;
                 }
 
-                var results = _faceService.RecognizeFaces(_lastCapturedPath, _modelsDirectory, Model.Hog, _faceDataCache, 0.45);
+                var results = _faceService.RecognizeFaces(_lastCapturedPath, _modelsDirectory, FaceRecog.Model.Hog, _faceDataCache, 0.45);
 
                 if (results.Count == 0)
                 {
@@ -351,7 +444,15 @@ namespace FaceIDApp.UserControls
             lblCheckInTime.Text = $"⏰ Giờ vào: {time:HH:mm:ss}";
         }
 
-        public void SetCameraImage(System.Drawing.Image image) { picCamera.Image = image; }
+        public void SetCameraImage(System.Drawing.Image image)
+        {
+            picCamera.Image?.Dispose();
+            picCamera.Image = image;
+            if (image != null)
+            {
+                picCamera.BackColor = Color.FromArgb(44, 62, 80);
+            }
+        }
         public void SetEmployeePhoto(System.Drawing.Image image) { picEmployeePhoto.Image = image; }
 
         // Dispose is handled in Designer.cs

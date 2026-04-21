@@ -44,8 +44,10 @@ namespace FaceIDApp.UserControls
             this.colSTT = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.colMaNV = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.colHoTen = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.colCa = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.colGioVao = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.colGioRa = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.colSoGio = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.colTrangThai = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.lblTodayListTitle = new System.Windows.Forms.Label();
             this.pnlHeader.SuspendLayout();
@@ -379,8 +381,10 @@ namespace FaceIDApp.UserControls
             this.colSTT,
             this.colMaNV,
             this.colHoTen,
+            this.colCa,
             this.colGioVao,
             this.colGioRa,
+            this.colSoGio,
             this.colTrangThai});
             this.dgvTodayAttendance.Dock = System.Windows.Forms.DockStyle.Fill;
             this.dgvTodayAttendance.EnableHeadersVisualStyles = false;
@@ -418,6 +422,13 @@ namespace FaceIDApp.UserControls
             this.colHoTen.Name = "colHoTen";
             this.colHoTen.ReadOnly = true;
             // 
+            // colCa
+            // 
+            this.colCa.HeaderText = "Ca";
+            this.colCa.MinimumWidth = 8;
+            this.colCa.Name = "colCa";
+            this.colCa.ReadOnly = true;
+            // 
             // colGioVao
             // 
             this.colGioVao.HeaderText = "Giờ vào";
@@ -431,6 +442,14 @@ namespace FaceIDApp.UserControls
             this.colGioRa.MinimumWidth = 8;
             this.colGioRa.Name = "colGioRa";
             this.colGioRa.ReadOnly = true;
+            // 
+            // colSoGio
+            // 
+            this.colSoGio.HeaderText = "Số giờ";
+            this.colSoGio.FillWeight = 70F;
+            this.colSoGio.MinimumWidth = 8;
+            this.colSoGio.Name = "colSoGio";
+            this.colSoGio.ReadOnly = true;
             // 
             // colTrangThai
             // 
@@ -512,8 +531,10 @@ namespace FaceIDApp.UserControls
         private System.Windows.Forms.DataGridViewTextBoxColumn colSTT;
         private System.Windows.Forms.DataGridViewTextBoxColumn colMaNV;
         private System.Windows.Forms.DataGridViewTextBoxColumn colHoTen;
+        private System.Windows.Forms.DataGridViewTextBoxColumn colCa;
         private System.Windows.Forms.DataGridViewTextBoxColumn colGioVao;
         private System.Windows.Forms.DataGridViewTextBoxColumn colGioRa;
+        private System.Windows.Forms.DataGridViewTextBoxColumn colSoGio;
         private System.Windows.Forms.DataGridViewTextBoxColumn colTrangThai;
     }
 }
