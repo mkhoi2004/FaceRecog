@@ -39,6 +39,8 @@ namespace FaceIDApp
         private Timer clockTimer;
         private Label _lblLeaveBadge;
         private Button _btnLeaveMenu;
+        private readonly Dictionary<UserControl, Size> _viewMinSizes = new Dictionary<UserControl, Size>();
+        private Button _btnLogout;
 
         public MainForm(UserDto currentUser)
         {
@@ -60,19 +62,70 @@ namespace FaceIDApp
 
         private void InitializeUserControls()
         {
-            ucDashboard = new UCDashboard { Dock = DockStyle.Fill };
-            ucAttendance = new UCAttendance { Dock = DockStyle.Fill };
-            ucEmployeeManagement = new UCEmployeeManagement { Dock = DockStyle.Fill };
-            ucFaceRegistration = new UCFaceRegistration { Dock = DockStyle.Fill };
-            ucAttendanceReport = new UCAttendanceReport { Dock = DockStyle.Fill };
-            ucSettings = new UCSettings { Dock = DockStyle.Fill };
-            ucCatalog = new UCCatalog { Dock = DockStyle.Fill };
-            ucLeaveManagement = new UCLeaveManagement { Dock = DockStyle.Fill };
+            ucDashboard = RegisterResponsiveView(new UCDashboard());
+            ucAttendance = RegisterResponsiveView(new UCAttendance());
+            ucEmployeeManagement = RegisterResponsiveView(new UCEmployeeManagement());
+            ucFaceRegistration = RegisterResponsiveView(new UCFaceRegistration());
+            ucAttendanceReport = RegisterResponsiveView(new UCAttendanceReport());
+            ucSettings = RegisterResponsiveView(new UCSettings());
+            ucCatalog = RegisterResponsiveView(new UCCatalog());
+            ucLeaveManagement = RegisterResponsiveView(new UCLeaveManagement());
+        }
+
+        private T RegisterResponsiveView<T>(T view) where T : UserControl
+        {
+            view.Dock = DockStyle.None;
+            view.Anchor = AnchorStyles.Top | AnchorStyles.Left;
+            view.Margin = Padding.Empty;
+
+            _viewMinSizes[view] = GetPreferredViewSize(view);
+            return view;
+        }
+
+        private Size GetPreferredViewSize(UserControl view)
+        {
+            view.PerformLayout();
+
+            var contentBounds = GetDescendantContentBounds(view);
+            var minWidth = Math.Max(view.Width, contentBounds.Right + 16);
+            var minHeight = Math.Max(view.Height, contentBounds.Bottom + 16);
+
+            // Ngưỡng tối thiểu để UI không bị nén trên màn hình nhỏ.
+            minWidth = Math.Max(minWidth, 1000);
+            minHeight = Math.Max(minHeight, 640);
+
+            return new Size(minWidth, minHeight);
+        }
+
+        private Rectangle GetDescendantContentBounds(Control parent)
+        {
+            var aggregate = Rectangle.Empty;
+
+            foreach (Control child in parent.Controls)
+            {
+                var childBounds = child.Bounds;
+                var nestedBounds = GetDescendantContentBounds(child);
+                if (!nestedBounds.IsEmpty)
+                {
+                    childBounds = Rectangle.Union(
+                        childBounds,
+                        new Rectangle(
+                            child.Left + nestedBounds.Left,
+                            child.Top + nestedBounds.Top,
+                            nestedBounds.Width,
+                            nestedBounds.Height));
+                }
+
+                aggregate = aggregate.IsEmpty ? childBounds : Rectangle.Union(aggregate, childBounds);
+            }
+
+            return aggregate;
         }
 
         private void BuildSidebar()
         {
             pnlSidebar.BackColor = SidebarBg;
+            pnlSidebar.AutoScroll = true;
 
             // Logo area
             var pnlLogo = new Panel { Height = 80, Dock = DockStyle.Top, BackColor = Color.Transparent };
@@ -125,7 +178,7 @@ namespace FaceIDApp
             }
 
             // Logout at bottom
-            var btnLogout = new Button
+            _btnLogout = new Button
             {
                 Text = "   🚪  Đăng xuất",
                 Font = new Font("Segoe UI", 10F),
@@ -134,10 +187,10 @@ namespace FaceIDApp
                 Size = new Size(240, 44), Anchor = AnchorStyles.Bottom | AnchorStyles.Left,
                 Cursor = Cursors.Hand, BackColor = Color.Transparent
             };
-            btnLogout.Location = new Point(0, pnlSidebar.Height - 50);
-            btnLogout.FlatAppearance.BorderSize = 0;
-            btnLogout.FlatAppearance.MouseOverBackColor = Color.FromArgb(30, 20, 20);
-            btnLogout.Click += (s, e) =>
+            _btnLogout.Location = new Point(0, pnlSidebar.Height - 50);
+            _btnLogout.FlatAppearance.BorderSize = 0;
+            _btnLogout.FlatAppearance.MouseOverBackColor = Color.FromArgb(30, 20, 20);
+            _btnLogout.Click += (s, e) =>
             {
                 var r = MessageBox.Show("Bạn có chắc muốn đăng xuất?", "Xác nhận", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
                 if (r == DialogResult.Yes)
@@ -146,7 +199,20 @@ namespace FaceIDApp
                     this.Close();
                 }
             };
-            pnlSidebar.Controls.Add(btnLogout);
+            pnlSidebar.Controls.Add(_btnLogout);
+
+            pnlSidebar.Resize += (s, e) => UpdateSidebarLayout();
+            UpdateSidebarLayout();
+        }
+
+        private void UpdateSidebarLayout()
+        {
+            if (_btnLogout == null)
+                return;
+
+            _btnLogout.Width = pnlSidebar.ClientSize.Width;
+            _btnLogout.Left = 0;
+            _btnLogout.Top = Math.Max(0, pnlSidebar.ClientSize.Height - _btnLogout.Height - 8);
         }
 
         private void AddSectionLabel(string text, int y)
@@ -241,7 +307,11 @@ namespace FaceIDApp
             pnlHeader.Controls.Add(lblClock);
 
             clockTimer = new Timer { Interval = 1000 };
-            clockTimer.Tick += (s, e) => lblClock.Text = DateTime.Now.ToString("HH:mm:ss  •  dd/MM/yyyy");
+            clockTimer.Tick += (s, e) =>
+            {
+                lblClock.Text = DateTime.Now.ToString("HH:mm:ss  •  dd/MM/yyyy");
+                UpdateHeaderLayout();
+            };
             clockTimer.Start();
 
             // User badge
@@ -258,7 +328,30 @@ namespace FaceIDApp
             lblUserInfo.Location = new Point(pnlHeader.Width - 460, 20);
             pnlHeader.Controls.Add(lblUserInfo);
 
+            pnlHeader.Resize += (s, e) => UpdateHeaderLayout();
+            UpdateHeaderLayout();
+
             pnlMain.BackColor = ContentBg;
+            pnlMain.AutoScroll = false;
+        }
+
+        private void UpdateHeaderLayout()
+        {
+            if (lblClock == null || lblUserInfo == null || lblHeaderTitle == null)
+                return;
+
+            const int rightPadding = 18;
+            lblClock.Location = new Point(
+                Math.Max(0, pnlHeader.Width - lblClock.Width - rightPadding),
+                Math.Max(8, (pnlHeader.Height - lblClock.Height) / 2));
+
+            var availableLeft = lblClock.Left - 18;
+            var targetX = availableLeft - lblUserInfo.Width;
+            var minX = lblHeaderTitle.Right + 14;
+            lblUserInfo.Location = new Point(Math.Max(minX, targetX), Math.Max(8, (pnlHeader.Height - lblUserInfo.Height) / 2));
+
+            // Khi không còn đủ chỗ, ẩn badge user để không chồng lên tiêu đề.
+            lblUserInfo.Visible = (lblUserInfo.Right + 8) < lblClock.Left;
         }
 
         private void ShowDashboard()
@@ -273,7 +366,37 @@ namespace FaceIDApp
         {
             lblHeaderTitle.Text = $"  {title}";
             pnlMain.Controls.Clear();
-            pnlMain.Controls.Add(uc);
+
+            var host = new Panel
+            {
+                Dock = DockStyle.Fill,
+                BackColor = ContentBg,
+                AutoScroll = true,
+                Margin = Padding.Empty,
+                Padding = Padding.Empty
+            };
+            pnlMain.Controls.Add(host);
+
+            if (!_viewMinSizes.TryGetValue(uc, out var minSize))
+                minSize = GetPreferredViewSize(uc);
+
+            uc.Dock = DockStyle.None;
+            uc.Anchor = AnchorStyles.Top | AnchorStyles.Left;
+            uc.Location = Point.Empty;
+            host.Controls.Add(uc);
+
+            Action resizeView = () =>
+            {
+                host.AutoScrollMinSize = minSize;
+                var targetWidth = Math.Max(host.ClientSize.Width, minSize.Width);
+                var targetHeight = Math.Max(host.ClientSize.Height, minSize.Height);
+                if (uc.Width != targetWidth || uc.Height != targetHeight)
+                    uc.Size = new Size(targetWidth, targetHeight);
+            };
+
+            host.Resize += (s, e) => resizeView();
+            resizeView();
+            uc.BringToFront();
         }
 
         private async void LoadPendingBadgeAsync()

@@ -589,7 +589,7 @@ namespace FaceIDApp.UserControls
             // UCEmployeeManagement
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
-            this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
+            this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.None;
             this.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(236)))), ((int)(((byte)(240)))), ((int)(((byte)(241)))));
             this.Controls.Add(this.pnlContent);
             this.Controls.Add(this.pnlToolbar);

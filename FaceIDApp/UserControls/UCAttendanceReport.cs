@@ -10,8 +10,10 @@ namespace FaceIDApp.UserControls
 {
     public partial class UCAttendanceReport : UserControl
     {
-        private TabControl _tabMain;
         private DataGridView _dgvLog;
+        private Button _btnViewLog;
+        private Button _btnToggleView;
+        private bool _showingLog;
 
         public UCAttendanceReport()
         {
@@ -22,6 +24,7 @@ namespace FaceIDApp.UserControls
         private void SetupUI()
         {
             // ─── Style cho dgvReport (tab báo cáo tổng hợp) ──────────────────
+            ConfigureReportColumns();
             dgvReport.ColumnHeadersDefaultCellStyle.BackColor = Color.FromArgb(41, 128, 185);
             dgvReport.ColumnHeadersDefaultCellStyle.ForeColor = Color.White;
             dgvReport.ColumnHeadersDefaultCellStyle.Font = new Font("Segoe UI", 9.5F, FontStyle.Bold);
@@ -31,21 +34,24 @@ namespace FaceIDApp.UserControls
             dgvReport.RowTemplate.Height = 30;
             dgvReport.AlternatingRowsDefaultCellStyle.BackColor = Color.FromArgb(245, 248, 250);
 
+            // Dành hàng thứ hai cho nhóm nút nhật ký để tránh chồng lên filter cũ.
+            pnlFilter.Height = 108;
+
             // Mặc định ngày lọc
             dtpFromDate.Value = new DateTime(DateTime.Now.Year, DateTime.Now.Month, 1);
             dtpToDate.Value   = DateTime.Now;
 
             // ─── Tạo nút Log bên phải thanh filter ───────────────────────────
-            var btnViewLog = new Button
+            _btnViewLog = new Button
             {
                 Text = "📋 Nhật ký CC", Font = new Font("Segoe UI", 9F, FontStyle.Bold),
                 ForeColor = Color.White, BackColor = Color.FromArgb(107, 114, 128),
                 FlatStyle = FlatStyle.Flat, Cursor = Cursors.Hand,
-                Size = new Size(110, 32), Location = new Point(895, 18)
+                Size = new Size(120, 32)
             };
-            btnViewLog.FlatAppearance.BorderSize = 0;
-            btnViewLog.Click += (s, e) => LoadAttendanceLogsAsync();
-            pnlFilter.Controls.Add(btnViewLog);
+            _btnViewLog.FlatAppearance.BorderSize = 0;
+            _btnViewLog.Click += (s, e) => ShowLogView(true);
+            pnlFilter.Controls.Add(_btnViewLog);
 
             // ─── Panel nhật ký (ẩn mặc định) ─────────────────────────────────
             _dgvLog = new DataGridView
@@ -82,30 +88,70 @@ namespace FaceIDApp.UserControls
             pnlData.Controls.Add(_dgvLog);
 
             // Toggle view mode
-            var btnToggle = new Button
+            _btnToggleView = new Button
             {
                 Text = "⟺", Font = new Font("Segoe UI", 9F),
                 ForeColor = Color.White, BackColor = Color.FromArgb(71, 85, 105),
                 FlatStyle = FlatStyle.Flat, Cursor = Cursors.Hand,
-                Size = new Size(30, 32), Location = new Point(860, 18)
+                Size = new Size(32, 32)
             };
-            btnToggle.FlatAppearance.BorderSize = 0;
-            bool showingLog = false;
-            btnToggle.Click += (s, e) =>
+            _btnToggleView.FlatAppearance.BorderSize = 0;
+            _btnToggleView.Click += (s, e) =>
             {
-                showingLog = !showingLog;
-                dgvReport.Visible = !showingLog;
-                _dgvLog.Visible   =  showingLog;
-                if (showingLog) LoadAttendanceLogsAsync();
-                else dgvReport.BringToFront();
+                ShowLogView(!_showingLog);
             };
-            pnlFilter.Controls.Add(btnToggle);
+            pnlFilter.Controls.Add(_btnToggleView);
+
+            pnlFilter.Resize += (s, e) => LayoutFilterExtras();
+            LayoutFilterExtras();
+            ShowLogView(false);
 
             // ─── Event handlers ───────────────────────────────────────────────
             LoadFiltersAsync();
             btnSearch.Click      += BtnSearch_Click;
             btnExportExcel.Click += BtnExportExcel_Click;
             btnPrint.Click       += BtnPrint_Click;
+        }
+
+        private void ConfigureReportColumns()
+        {
+            dgvReport.Columns.Clear();
+            dgvReport.Columns.AddRange(new DataGridViewColumn[]
+            {
+                new DataGridViewTextBoxColumn { Name = "RMonth",   HeaderText = "Tháng",      FillWeight = 70F  },
+                new DataGridViewTextBoxColumn { Name = "REmpCode", HeaderText = "Mã NV",      FillWeight = 75F  },
+                new DataGridViewTextBoxColumn { Name = "REmpName", HeaderText = "Họ tên",     FillWeight = 130F },
+                new DataGridViewTextBoxColumn { Name = "RDept",    HeaderText = "Phòng ban",  FillWeight = 110F },
+                new DataGridViewTextBoxColumn { Name = "RPresent", HeaderText = "Ngày đi làm", FillWeight = 80F  },
+                new DataGridViewTextBoxColumn { Name = "RLate",    HeaderText = "Ngày đi trễ", FillWeight = 80F  },
+                new DataGridViewTextBoxColumn { Name = "RAbsent",  HeaderText = "Ngày vắng",  FillWeight = 80F  },
+                new DataGridViewTextBoxColumn { Name = "RLeave",   HeaderText = "Ngày nghỉ",  FillWeight = 80F  },
+                new DataGridViewTextBoxColumn { Name = "RHours",   HeaderText = "Tổng giờ",   FillWeight = 75F  },
+                new DataGridViewTextBoxColumn { Name = "RLateMin", HeaderText = "Trễ (ph)",   FillWeight = 70F  }
+            });
+        }
+
+        private void LayoutFilterExtras()
+        {
+            if (_btnViewLog == null || _btnToggleView == null)
+                return;
+
+            const int y = 58;
+            _btnToggleView.Location = new Point(Math.Max(20, pnlFilter.ClientSize.Width - _btnToggleView.Width - 18), y);
+            _btnViewLog.Location = new Point(Math.Max(20, _btnToggleView.Left - _btnViewLog.Width - 8), y);
+        }
+
+        private void ShowLogView(bool showLog)
+        {
+            _showingLog = showLog;
+            dgvReport.Visible = !showLog;
+            _dgvLog.Visible = showLog;
+            _btnToggleView.Text = showLog ? "📊" : "⟺";
+
+            if (showLog)
+                LoadAttendanceLogsAsync();
+            else
+                dgvReport.BringToFront();
         }
 
         // ─── Tải filter dropdowns từ DB ─────────────────────────────────────
@@ -181,13 +227,11 @@ namespace FaceIDApp.UserControls
                 // Tô màu các ô Late/Absent > 0
                 foreach (DataGridViewRow row in dgvReport.Rows)
                 {
-                    if (row.Cells.Count > 5 && row.Cells[5].Value != null
-                        && int.TryParse(row.Cells[5].Value.ToString(), out int ld) && ld > 0)
-                        row.Cells[5].Style.ForeColor = Color.FromArgb(234, 179, 8);
+                    if (int.TryParse(row.Cells["RLate"].Value?.ToString(), out int ld) && ld > 0)
+                        row.Cells["RLate"].Style.ForeColor = Color.FromArgb(234, 179, 8);
 
-                    if (row.Cells.Count > 6 && row.Cells[6].Value != null
-                        && int.TryParse(row.Cells[6].Value.ToString(), out int ad) && ad > 0)
-                        row.Cells[6].Style.ForeColor = Color.FromArgb(239, 68, 68);
+                    if (int.TryParse(row.Cells["RAbsent"].Value?.ToString(), out int ad) && ad > 0)
+                        row.Cells["RAbsent"].Style.ForeColor = Color.FromArgb(239, 68, 68);
                 }
             }
             catch (Exception ex)

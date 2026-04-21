@@ -30,7 +30,7 @@ namespace FaceIDApp
         {
             // Form settings
             this.Text = "FaceID — Đăng nhập";
-            this.Size = new Size(480, 620);
+            this.Size = new Size(480, 660);
             this.StartPosition = FormStartPosition.CenterScreen;
             this.FormBorderStyle = FormBorderStyle.None;
             this.BackColor = Color.FromArgb(15, 23, 42);
@@ -55,7 +55,7 @@ namespace FaceIDApp
             // Form panel (center card)
             pnlForm = new Panel
             {
-                Size = new Size(400, 480),
+                Size = new Size(400, 520),
                 Location = new Point(40, 80),
                 BackColor = Color.FromArgb(30, 41, 59)
             };
@@ -122,9 +122,9 @@ namespace FaceIDApp
                 ForeColor = Color.FromArgb(226, 232, 240),
                 BackColor = Color.FromArgb(51, 65, 85),
                 BorderStyle = BorderStyle.None,
-                Size = new Size(320, 28), Location = new Point(40, 215)
+                Size = new Size(320, 28), Location = new Point(40, 222)
             };
-            var pnlUser = CreateInputPanel(txtUsername, 40, 208);
+            var pnlUser = CreateInputPanel(txtUsername, 40, 215);
             pnlForm.Controls.Add(pnlUser);
 
             // Password label
@@ -132,7 +132,7 @@ namespace FaceIDApp
             {
                 Text = "MẬT KHẨU", Font = new Font("Segoe UI", 9F, FontStyle.Bold),
                 ForeColor = Color.FromArgb(148, 163, 184), Size = new Size(320, 20),
-                Location = new Point(40, 265), BackColor = Color.Transparent
+                Location = new Point(40, 275), BackColor = Color.Transparent
             };
             pnlForm.Controls.Add(lblPass);
 
@@ -143,10 +143,10 @@ namespace FaceIDApp
                 ForeColor = Color.FromArgb(226, 232, 240),
                 BackColor = Color.FromArgb(51, 65, 85),
                 BorderStyle = BorderStyle.None,
-                Size = new Size(290, 28), Location = new Point(40, 290),
+                Size = new Size(290, 28), Location = new Point(40, 307),
                 UseSystemPasswordChar = true
             };
-            var pnlPass = CreateInputPanel(txtPassword, 40, 283);
+            var pnlPass = CreateInputPanel(txtPassword, 40, 300);
             pnlForm.Controls.Add(pnlPass);
 
             // Show password
@@ -154,7 +154,7 @@ namespace FaceIDApp
             {
                 Text = "Hiện mật khẩu", Font = new Font("Segoe UI", 9F),
                 ForeColor = Color.FromArgb(148, 163, 184),
-                Size = new Size(150, 25), Location = new Point(40, 330),
+                Size = new Size(150, 25), Location = new Point(40, 350),
                 BackColor = Color.Transparent, FlatStyle = FlatStyle.Flat
             };
             chkShowPassword.CheckedChanged += (s, e) => txtPassword.UseSystemPasswordChar = !chkShowPassword.Checked;
@@ -165,7 +165,7 @@ namespace FaceIDApp
             {
                 Text = "ĐĂNG NHẬP", Font = new Font("Segoe UI", 12F, FontStyle.Bold),
                 ForeColor = Color.White, FlatStyle = FlatStyle.Flat,
-                Size = new Size(320, 48), Location = new Point(40, 370),
+                Size = new Size(320, 48), Location = new Point(40, 390),
                 Cursor = Cursors.Hand
             };
             btnLogin.FlatAppearance.BorderSize = 0;
@@ -181,7 +181,7 @@ namespace FaceIDApp
                 Text = "", Font = new Font("Segoe UI", 9F),
                 ForeColor = Color.FromArgb(248, 113, 113),
                 TextAlign = ContentAlignment.MiddleCenter,
-                Size = new Size(320, 40), Location = new Point(40, 425),
+                Size = new Size(320, 40), Location = new Point(40, 450),
                 BackColor = Color.Transparent
             };
             pnlForm.Controls.Add(lblError);

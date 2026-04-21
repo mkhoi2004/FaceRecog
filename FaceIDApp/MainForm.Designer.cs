@@ -45,7 +45,7 @@ namespace FaceIDApp
             // MainForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
-            this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
+            this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.None;
             this.ClientSize = new System.Drawing.Size(1280, 720);
             this.Controls.Add(this.pnlMain);
             this.Controls.Add(this.pnlHeader);

@@ -58,7 +58,7 @@ namespace FaceIDApp.UserControls
             this.tabShiftSched.Padding   = new System.Windows.Forms.Padding(10);
             // UCCatalog
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
-            this.AutoScaleMode       = System.Windows.Forms.AutoScaleMode.Font;
+            this.AutoScaleMode       = System.Windows.Forms.AutoScaleMode.None;
             this.BackColor           = System.Drawing.Color.FromArgb(248, 250, 252);
             this.Controls.Add(this.tabMain);
             this.Font    = new System.Drawing.Font("Segoe UI", 9F);

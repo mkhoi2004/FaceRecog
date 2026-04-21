@@ -475,7 +475,7 @@ namespace FaceIDApp.UserControls
             // UCAttendance
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(9F, 20F);
-            this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
+            this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.None;
             this.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(236)))), ((int)(((byte)(240)))), ((int)(((byte)(241)))));
             this.Controls.Add(this.pnlTodayList);
             this.Controls.Add(this.pnlMain);

@@ -70,8 +70,6 @@ namespace FaceIDApp.UserControls
             cboFilter.SelectedIndexChanged += async (s, e) => await LoadLeaveAsync();
             toolbar.Controls.Add(cboFilter);
 
-            tabLeave.Controls.Add(toolbar);
-
             dgvLeave = CreateGrid(tabLeave);
             dgvLeave.Columns.AddRange(new DataGridViewColumn[]
             {
@@ -87,6 +85,10 @@ namespace FaceIDApp.UserControls
                 new DataGridViewTextBoxColumn { Name = "ApprovedBy", HeaderText = "Người duyệt", Width = 120 }
             });
             dgvLeave.ReadOnly = true;
+
+            // Add toolbar after grid so DockStyle.Top is respected and not hidden by DockStyle.Fill.
+            tabLeave.Controls.Add(toolbar);
+            tabLeave.Controls.SetChildIndex(toolbar, 0);
         }
 
         private async System.Threading.Tasks.Task LoadLeaveAsync()
@@ -192,8 +194,6 @@ namespace FaceIDApp.UserControls
             btnDel.Click += BtnDeleteHoliday_Click;
             toolbar.Controls.Add(btnDel);
 
-            tabHolidays.Controls.Add(toolbar);
-
             dgvHolidays = CreateGrid(tabHolidays);
             dgvHolidays.Columns.AddRange(new DataGridViewColumn[]
             {
@@ -204,6 +204,10 @@ namespace FaceIDApp.UserControls
                 new DataGridViewCheckBoxColumn { Name = "IsRecurring", HeaderText = "Hàng năm", Width = 80 }
             });
             dgvHolidays.CellEndEdit += DgvHoliday_CellEndEdit;
+
+            // Add toolbar after grid so DockStyle.Top is respected and not hidden by DockStyle.Fill.
+            tabHolidays.Controls.Add(toolbar);
+            tabHolidays.Controls.SetChildIndex(toolbar, 0);
         }
 
         private async System.Threading.Tasks.Task LoadHolidaysAsync()

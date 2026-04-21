@@ -35,6 +35,13 @@ namespace FaceIDApp.UserControls
             ExtendDetailPanel();
             SetupUI();
             RefreshData();
+
+            // Responsive layout for variable host sizes.
+            this.Resize += (s, e) => ApplyResponsiveLayout();
+            pnlContent.Resize += (s, e) => ApplyResponsiveLayout();
+            pnlToolbar.Resize += (s, e) => ApplyToolbarLayout();
+            pnlEmployeeDetail.Resize += (s, e) => ApplyDetailPanelLayout();
+            ApplyResponsiveLayout();
         }
 
         // =============================================
@@ -225,6 +232,117 @@ namespace FaceIDApp.UserControls
             btnRegisterFace.Click  += BtnRegisterFace_Click;
             dgvEmployees.SelectionChanged += DgvEmployees_SelectionChanged;
             cboFilterDepartment.SelectedIndexChanged += async (s, e) => await FilterByDepartmentAsync();
+
+            pnlContent.Panel1MinSize = 520;
+            pnlContent.Panel2MinSize = 360;
+        }
+
+        private void ApplyResponsiveLayout()
+        {
+            ApplyToolbarLayout();
+
+            if (pnlContent.Width > 0)
+            {
+                var preferredRightWidth = Math.Max(380, Math.Min(460, pnlContent.Width / 2));
+                var splitter = pnlContent.Width - preferredRightWidth - pnlContent.SplitterWidth;
+
+                splitter = Math.Max(pnlContent.Panel1MinSize, splitter);
+                splitter = Math.Min(pnlContent.Width - pnlContent.Panel2MinSize - pnlContent.SplitterWidth, splitter);
+
+                if (splitter > 0)
+                    pnlContent.SplitterDistance = splitter;
+            }
+
+            ApplyDetailPanelLayout();
+        }
+
+        private void ApplyToolbarLayout()
+        {
+            var rightPadding = 15;
+            cboFilterDepartment.Left = pnlToolbar.ClientSize.Width - cboFilterDepartment.Width - rightPadding;
+            btnSearch.Left = cboFilterDepartment.Left - btnSearch.Width - 8;
+            txtSearch.Left = btnSearch.Left - txtSearch.Width - 8;
+
+            var minSearchLeft = btnRefresh.Right + 15;
+            if (txtSearch.Left < minSearchLeft)
+            {
+                txtSearch.Width = Math.Max(120, txtSearch.Width - (minSearchLeft - txtSearch.Left));
+                txtSearch.Left = minSearchLeft;
+            }
+        }
+
+        private void ApplyDetailPanelLayout()
+        {
+            var fieldLeft = 100;
+            var rightPadding = 20;
+            var available = pnlEmployeeDetail.ClientSize.Width - fieldLeft - rightPadding;
+            if (available < 170)
+                available = 170;
+
+            SetFieldWidth(txtEmployeeCode, available);
+            SetFieldWidth(txtFullName, available);
+            SetFieldWidth(cboDepartment, available);
+            SetFieldWidth(cboPosition, available);
+            SetFieldWidth(cboShift, available);
+            SetFieldWidth(cboEmploymentType, available);
+            SetFieldWidth(txtIdentityCard, available);
+            SetFieldWidth(cboManager, available);
+            SetFieldWidth(txtEmail, available);
+            SetFieldWidth(txtPhone, available);
+            SetFieldWidth(dtpDateOfBirth, available);
+            SetFieldWidth(dtpHireDate, available);
+
+            if (txtGender != null)
+                txtGender.Width = Math.Min(120, available);
+
+            if (nudAnnualLeave != null)
+                nudAnnualLeave.Width = Math.Min(90, available);
+
+            // Keep avatar centered relative to form field column.
+            picEmployeePhoto.Left = fieldLeft + Math.Max(0, (available - picEmployeePhoto.Width) / 2);
+
+            // Keep action buttons visible on narrow widths.
+            const int saveDefaultWidth = 90;
+            const int cancelDefaultWidth = 90;
+            const int registerDefaultWidth = 100;
+            var gap = 8;
+            var rowWidth = saveDefaultWidth + cancelDefaultWidth + registerDefaultWidth + (gap * 2);
+            if (rowWidth <= available)
+            {
+                btnSave.Width = saveDefaultWidth;
+                btnCancel.Width = cancelDefaultWidth;
+                btnRegisterFace.Width = registerDefaultWidth;
+
+                btnSave.Left = fieldLeft;
+                btnCancel.Left = btnSave.Right + gap;
+                btnRegisterFace.Left = btnCancel.Right + gap;
+
+                var top = Math.Max(btnSave.Top, btnCancel.Top);
+                btnSave.Top = top;
+                btnCancel.Top = top;
+                btnRegisterFace.Top = top;
+            }
+            else
+            {
+                btnSave.Left = fieldLeft;
+                btnCancel.Left = fieldLeft;
+                btnRegisterFace.Left = fieldLeft;
+
+                btnSave.Width = available;
+                btnCancel.Width = available;
+                btnRegisterFace.Width = available;
+
+                btnCancel.Top = btnSave.Bottom + 6;
+                btnRegisterFace.Top = btnCancel.Bottom + 6;
+            }
+        }
+
+        private static void SetFieldWidth(Control control, int width)
+        {
+            if (control == null)
+                return;
+
+            control.Width = Math.Max(120, width);
         }
 
         // =============================================
