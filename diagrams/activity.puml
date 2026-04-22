@@ -1,0 +1,82 @@
+@startuml activity
+skinparam activity {
+  BackgroundColor LightGoldenRodYellow
+  BorderColor DarkOrange
+  DiamondBackgroundColor LightSalmon
+  DiamondBorderColor DarkRed
+  StartColor DarkGreen
+  EndColor DarkRed
+  ArrowColor DarkSlateGray
+}
+title Activity Diagram — Attendance Check-In Business Process
+
+start
+
+:Employee approaches attendance device;
+
+:Camera captures frame;
+
+:Detect face in frame;
+
+if (Face detected?) then (no)
+  :Show "No face detected";
+  stop
+endif
+
+:Load enrolled face encodings from cache/DB;
+
+:Compute 128-D face encoding;
+
+:Find best match (Euclidean distance);
+
+if (distance < max_distance\n(0.40)?) then (no)
+  :Log as Failed;
+  :Show "Unknown face";
+  stop
+endif
+
+:Calculate confidence = 1 - distance;
+
+if (confidence >= min_confidence\n(0.70)?) then (no)
+  :Log as Suspicious;
+  :Show "Low confidence — manual check needed";
+  stop
+endif
+
+:Anti-spoofing check (liveness detection);
+
+if (Liveness OK?) then (no)
+  :Log as Spoofing;
+  :Alert security;
+  stop
+endif
+
+:Check duplicate window (5 min);
+
+if (Already checked in\nrecently?) then (yes)
+  :Log as Duplicate;
+  :Ignore silently;
+  stop
+endif
+
+:Determine log_type (CheckIn or CheckOut);
+
+:Save attendance_logs (audit trail);
+
+if (log_type == CheckIn?) then (yes)
+  :Create/update attendance_records.check_in;
+  :Determine shift from schedule or default;
+  :Calculate status (Present / Late);
+else (CheckOut)
+  :Update attendance_records.check_out;
+  :Calculate working_minutes;
+  :Calculate EarlyLeave status if applicable;
+endif
+
+:Persist attendance_record to DB;
+
+:Display confirmation to employee;
+
+stop
+
+@enduml

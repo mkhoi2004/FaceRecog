@@ -1,0 +1,214 @@
+@startuml Class_Diagram_Conceptual
+
+' ============================================================
+' CLASS DIAGRAM MỨC CONCEPTUAL
+' Hệ thống Chấm Công Nhận Diện Khuôn Mặt
+' Góc nhìn nghiệp vụ — không có kiểu dữ liệu kỹ thuật
+' Nhất quán với Use Case UC1–UC15
+' ============================================================
+
+skinparam classAttributeIconSize 0
+skinparam defaultFontName Arial
+skinparam defaultFontSize 12
+
+skinparam class {
+    BackgroundColor      #FFFDE7
+    BorderColor          #E65100
+    HeaderBackgroundColor #FFE0B2
+    HeaderFontColor      #BF360C
+    HeaderFontSize       13
+    FontSize             11
+    AttributeFontSize    11
+    AttributeFontColor   #424242
+}
+skinparam ArrowColor     #37474F
+skinparam ArrowFontSize  11
+skinparam ArrowFontColor #546E7A
+skinparam NoteBorderColor #78909C
+skinparam NoteBackgroundColor #ECEFF1
+
+title **Class Diagram Nghiệp vụ — Hệ thống Chấm Công Nhận Diện Khuôn Mặt**\n//Mức Conceptual — không có kiểu dữ liệu kỹ thuật//
+
+' ============================================================
+' [1] PHÒNG BAN
+' Nguồn UC: UC6 (theo dõi nhóm), UC9 (quản lý NV theo phòng ban)
+' Đơn vị tổ chức để phân nhóm nhân viên và báo cáo theo nhóm
+' ============================================================
+class "Phòng ban" as PhongBan {
+    mã phòng ban
+    tên phòng ban
+    người phụ trách
+}
+
+' ============================================================
+' [2] NHÂN VIÊN
+' Nguồn UC: UC1, UC4, UC5, UC9, UC10
+' Thực thể trung tâm — tham gia hầu hết các luồng nghiệp vụ
+' ============================================================
+class "Nhân viên" as NhanVien {
+    mã nhân viên
+    họ tên
+    ngày vào làm
+    chức vụ / vai trò
+    trạng thái hoạt động
+}
+
+' ============================================================
+' [3] HỒ SƠ KHUÔN MẶT
+' Nguồn UC: UC2 (xác thực danh tính), UC10 (đăng ký khuôn mặt)
+' Tách riêng vì có vòng đời độc lập:
+'   Admin HR có thể cập nhật mà không đổi thông tin NV
+' ============================================================
+class "Hồ sơ khuôn mặt" as HoSo {
+    ngày đăng ký
+    ngày cập nhật gần nhất
+    trạng thái (hoạt động / tạm khóa)
+}
+
+' ============================================================
+' [4] CA LÀM VIỆC
+' Nguồn UC: UC11 (Admin HR cấu hình ca)
+' Quy định giờ vào ra chuẩn và ngưỡng phạt ngoại lệ
+' ============================================================
+class "Ca làm việc" as Ca {
+    tên ca
+    giờ bắt đầu chuẩn
+    giờ kết thúc chuẩn
+    ngưỡng đi muộn (phút)
+    ngưỡng về sớm (phút)
+}
+
+' ============================================================
+' [5] PHÂN CÔNG CA
+' Nguồn UC: UC11
+' Bắt buộc tách riêng vì 1 NV có thể đổi ca theo từng ngày
+' Là entity liên kết giữa Nhân viên, Ca và ngày làm việc
+' ============================================================
+class "Phân công ca" as PhanCong {
+    ngày áp dụng
+    ghi chú
+}
+
+' ============================================================
+' [6] THIẾT BỊ ĐẦU CUỐI
+' Nguồn UC: UC1 (tạo bản ghi chấm công), UC12 (Admin quản lý)
+' Điểm chấm công vật lý — camera hoặc tablet
+' ============================================================
+class "Thiết bị đầu cuối" as ThietBi {
+    mã thiết bị
+    tên / vị trí lắp đặt
+    trạng thái kết nối
+}
+
+' ============================================================
+' [7] BẢN GHI CHẤM CÔNG
+' Nguồn UC: UC1 (tạo tự động khi chấm thành công)
+'           UC3 <<extend>> (cập nhật trạng thái ngoại lệ)
+'           UC4 (NV xem lại), UC6 (QL theo dõi nhóm)
+' Là bằng chứng nghiệp vụ cho mỗi lần vào/ra ca
+' ============================================================
+class "Bản ghi chấm công" as BanGhi {
+    thời điểm vào ca
+    thời điểm ra ca
+    loại ghi nhận (tự động / thủ công)
+    trạng thái (đúng giờ / đi muộn / về sớm / vắng)
+    ==
+    tính tổng giờ công
+}
+
+' ============================================================
+' [8] ĐƠN XIN NGHỈ / GIẢI TRÌNH
+' Nguồn UC: UC5 (NV tạo đơn), UC7 (QL duyệt nghỉ phép)
+'           UC8 (QL xử lý giải trình ngoại lệ)
+' Gộp 2 loại vì cùng quy trình tạo–duyệt–từ chối
+' ============================================================
+class "Đơn xin nghỉ /\nGiải trình" as Don {
+    loại đơn (nghỉ phép / giải trình)
+    lý do
+    ngày áp dụng
+    ngày nộp đơn
+    trạng thái duyệt (chờ / đã duyệt / từ chối)
+}
+
+' ============================================================
+' [9] KỲ TÍNH LƯƠNG
+' Nguồn UC: UC14 (tổng hợp & xác nhận lương)
+'           UC15 (xuất sang hệ thống tính lương ngoài)
+' Bắt buộc có vì UC15 <<include>> UC14:
+'   không thể xuất lương khi chưa chốt kỳ
+' ============================================================
+class "Kỳ tính lương" as KyLuong {
+    tháng / năm
+    ngày bắt đầu kỳ
+    ngày kết thúc kỳ
+    trạng thái (đang mở / đã chốt)
+    ==
+    tổng hợp công toàn kỳ
+}
+
+' ============================================================
+' RELATIONSHIPS
+' Nhãn: tiếng Việt + cardinality + hướng hành động
+' ============================================================
+
+' [R1] Nhân viên thuộc về một Phòng ban
+'      Nhiều NV trong cùng 1 phòng ban — UC6, UC9
+NhanVien "N" -right-> "1" PhongBan     : thuộc >
+
+' [R2] Nhân viên có một Hồ sơ khuôn mặt (composition)
+'      HoSo không tồn tại nếu không có NV — UC2, UC10
+NhanVien "1" *-left- "1" HoSo          : có >\n(chứa dữ liệu nhận diện)
+
+' [R3] Nhân viên được phân công ca (qua entity Phân công ca)
+'      1 NV → nhiều phân công theo từng ngày — UC11
+NhanVien "1" -down-> "N" PhanCong      : được phân công >
+
+' [R4] Phân công ca áp dụng theo Ca làm việc
+'      Nhiều phân công có thể dùng cùng 1 mẫu ca — UC11
+PhanCong "N" -right-> "1" Ca           : theo ca >
+
+' [R5] Nhân viên tạo Đơn xin nghỉ / Giải trình
+'      1 NV → nhiều đơn theo thời gian — UC5
+NhanVien "1" -down-> "N" Don           : tạo >
+
+' [R6] Nhân viên có các Bản ghi chấm công
+'      1 NV → nhiều bản ghi theo ngày và ca — UC1, UC4
+NhanVien "1" -down-> "N" BanGhi        : có >
+
+' [R7] Thiết bị đầu cuối tạo ra Bản ghi chấm công
+'      1 thiết bị ghi nhận nhiều lượt chấm — UC1, UC12
+ThietBi "1" -down-> "N" BanGhi         : tạo ra >
+
+' [R8] Đơn Giải trình liên kết tới Bản ghi có ngoại lệ
+'      Chỉ áp dụng khi loại đơn = "giải trình" — UC8
+'      0..1 vì đơn xin nghỉ phép không có bản ghi tương ứng
+Don "N" ..> "0..1" BanGhi              : giải trình cho >
+
+' [R9] Kỳ tính lương tổng hợp các Bản ghi chấm công
+'      Aggregation: BanGhi tồn tại độc lập trước khi kỳ tạo — UC14, UC15
+KyLuong "1" o-up- "N" BanGhi          : tổng hợp >
+
+' ============================================================
+' GHI CHÚ NGHIỆP VỤ
+' ============================================================
+note bottom of HoSo
+  Được tạo khi UC10 <<extend>> UC9
+  (đăng ký khi thêm nhân viên mới)
+  Được dùng để xác thực tại UC2
+  (bước <<include>> bắt buộc của UC1)
+end note
+
+note bottom of KyLuong
+  UC15 <<include>> UC14:
+  Phải chốt kỳ (UC14) trước khi
+  xuất sang hệ thống lương (UC15)
+end note
+
+note right of BanGhi
+  UC3 <<extend>> UC1:
+  Trạng thái "đi muộn / về sớm"
+  được ghi khi phát sinh ngoại lệ
+  → NV cần tạo Don để giải trình
+end note
+
+@enduml

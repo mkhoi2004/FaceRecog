@@ -1,0 +1,67 @@
+@startuml deployment
+skinparam node {
+  BackgroundColor LightSteelBlue
+  BorderColor Navy
+}
+skinparam database {
+  BackgroundColor LightYellow
+  BorderColor DarkGoldenRod
+}
+skinparam artifact {
+  BackgroundColor LightGreen
+  BorderColor DarkGreen
+}
+title Deployment Diagram — FaceID Attendance System
+
+node "Client Workstation\n(Windows 10/11)" as WS {
+  artifact "FaceIDApp.exe\n(.NET 4.6.1 WinForms)" as APP
+  artifact "DlibDotNet.dll\nFaceRecognitionDotNet.dll" as DLIB
+  database "face_attendance_v3.sqlite\n(SQLite 3.35+)" as DB
+  folder "models/" as MDL {
+    artifact "shape_predictor_5\n_face_landmarks.dat"
+    artifact "dlib_face_recognition\n_resnet_model_v1.dat"
+  }
+  folder "images/" as IMG {
+    artifact "face_images/\n(registered photos)"
+    artifact "checkin_snapshots/\n(audit trail)"
+  }
+  APP --> DB   : System.Data.SQLite
+  APP --> DLIB : P/Invoke
+  DLIB --> MDL : load models
+  APP --> IMG  : read/write
+}
+
+node "IP Camera\n(Camera)" as CAM {
+  artifact "RTSP Stream\nrtsp://192.168.1.x:554/stream"
+}
+
+node "Kiosk Terminal\n(Kiosk)" as KIOSK {
+  artifact "Touch UI\n(embedded browser or WinForms)"
+}
+
+node "Mobile Device\n(Android/iOS)" as MOB {
+  artifact "Mobile App\n(//TODO: planned)"
+  artifact "GPS Module"
+}
+
+node "Network Switch\n192.168.1.0/24" as NET
+
+CAM   --> NET   : RTSP/TCP
+KIOSK --> NET   : HTTP/TCP
+MOB   --> NET   : HTTPS / WiFi
+WS    --> NET   : read RTSP stream
+WS    --> CAM   : capture frames
+
+note right of DB
+  Single-file SQLite
+  No separate DB server needed
+  Backup via file copy
+end note
+
+note right of CAM
+  min_confidence = 0.70
+  RTSP URL stored in
+  attendance_devices table
+end note
+
+@enduml

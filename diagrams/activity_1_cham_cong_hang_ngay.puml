@@ -1,0 +1,110 @@
+@startuml activity_1_cham_cong_hang_ngay
+
+' ============================================================
+' ACTIVITY 1 — LUỒNG CHẤM CÔNG HẰNG NGÀY
+' Vòng lặp A — góc nhìn DÒNG CÔNG VIỆC (không phải trao đổi message)
+'
+' Swimlane 1 — Nhân viên       : người khởi động và nhận kết quả
+' Swimlane 2 — Thiết bị & Hệ thống : gộp chung — máy làm gì trong luồng
+' Swimlane 3 — Quản lý trực tiếp  : chỉ tham gia khi nhận diện thất bại
+'
+' Phạm vi: từ khi Nhân viên tiếp cận thiết bị
+'          đến khi Bản ghi chấm công được tạo xong
+'          (DỪNG trước UC5 — đó là phạm vi Activity 2)
+' ============================================================
+
+skinparam defaultFontName Arial
+skinparam defaultFontSize 12
+skinparam ActivityBackgroundColor     #FFFDE7
+skinparam ActivityBorderColor         #E65100
+skinparam ActivityFontSize            12
+skinparam ActivityDiamondBackgroundColor #E1F5FE
+skinparam ActivityDiamondBorderColor  #0277BD
+skinparam ActivityDiamondFontSize     11
+skinparam ArrowColor                  #37474F
+skinparam ArrowFontSize               11
+skinparam ArrowFontColor              #546E7A
+skinparam NoteBackgroundColor         #FFF9C4
+skinparam NoteBorderColor             #F9A825
+skinparam NoteFontSize                11
+
+title **Activity 1 — Luồng chấm công hằng ngày**\n//Vòng lặp A · Phạm vi: tiếp cận thiết bị → Bản ghi chấm công được tạo//
+
+' ============================================================
+' SWIMLANE: NHÂN VIÊN
+' ============================================================
+|#DCEEFB|Nhân viên|
+start
+:Tiếp cận Thiết bị đầu cuối;
+
+' ============================================================
+' SWIMLANE: THIẾT BỊ & HỆ THỐNG
+' (gộp: Thiết bị đầu cuối + Nhận diện khuôn mặt + Quản lý công)
+' Trong Activity không cần phân biệt — chỉ cần biết máy làm gì
+' ============================================================
+|#FFF8E1|Thiết bị & Hệ thống|
+:Chụp ảnh khuôn mặt;
+:Nhận diện khuôn mặt\n(so khớp với Hồ sơ khuôn mặt đang hoạt động);
+
+' ──────────────────────────────────────────────
+' QUYẾT ĐỊNH 1 — Kết quả nhận diện khuôn mặt
+' ──────────────────────────────────────────────
+if (Khuôn mặt có khớp\nHồ sơ khuôn mặt?) then (Có — khớp)
+
+  :Tra cứu Phân công ca & Ca làm việc\nhợp lệ cho nhân viên hôm nay;
+  :Xác định hành động: vào ca hay ra ca;
+
+  ' ──────────────────────────────────────────────
+  ' QUYẾT ĐỊNH 2 — Giờ thực tế so với ngưỡng ca
+  ' ──────────────────────────────────────────────
+  if (Giờ thực tế nằm trong\nngưỡng Ca làm việc?) then (Đúng giờ)
+
+    ' --- NHÁNH THÀNH CÔNG ---
+    :Ghi nhận Bản ghi chấm công\n(loại = tự động · trạng thái = đúng giờ);
+
+    |#DCEEFB|Nhân viên|
+    :Nhận xác nhận chấm công thành công\n(tên · giờ vào/ra ca · trạng thái);
+    stop
+
+  else (Sai lệch — đi muộn / về sớm)
+
+    ' --- NHÁNH NGOẠI LỆ (UC3 <<extend>>) ---
+    |#FFF8E1|Thiết bị & Hệ thống|
+
+    note right
+      **UC3 — Ghi nhận ngoại lệ**
+      là <<extend>> của UC1.
+      Tự kích hoạt khi phát hiện
+      sai lệch — không phải luồng
+      riêng, không cần ai gọi thủ công.
+    end note
+
+    :Ghi nhận ngoại lệ\n(loại sai lệch · số phút đi muộn / về sớm);
+    :Ghi nhận Bản ghi chấm công\n(loại = tự động\ntrạng thái = đi muộn / về sớm);
+
+    |#DCEEFB|Nhân viên|
+    :Nhận cảnh báo ngoại lệ\n+ hướng dẫn tạo Đơn giải trình\nnếu có lý do chính đáng;
+    stop
+
+  endif
+
+else (Không — không khớp)
+
+  ' --- NHÁNH NHẬN DIỆN THẤT BẠI ---
+  |#FFF8E1|Thiết bị & Hệ thống|
+  :Ghi nhận Bản ghi chấm công\n(loại = thủ công · trạng thái = cần xử lý);
+
+  ' ============================================================
+  ' SWIMLANE: QUẢN LÝ TRỰC TIẾP
+  ' Chỉ tham gia duy nhất một bước ở nhánh nhận diện thất bại
+  ' ============================================================
+  |#F3E5F5|Quản lý trực tiếp|
+  :Nhận thông báo lượt chấm công bất thường\n(cần xem xét và xử lý thủ công);
+
+  |#DCEEFB|Nhân viên|
+  :Nhận cảnh báo không nhận diện được\n(yêu cầu liên hệ Quản lý trực tiếp);
+  stop
+
+endif
+
+@enduml

@@ -1,0 +1,205 @@
+@startuml erd
+skinparam linetype ortho
+skinparam entity {
+  BackgroundColor LightYellow
+  BorderColor DarkGoldenRod
+}
+title ERD — Face Attendance Database (face_attendance_v3)
+
+' ── Group A: Catalog ────────────────────────────────
+entity "departments" as DEPT {
+  * id : INTEGER <<PK>>
+  --
+  code : TEXT <<UQ>>
+  name : TEXT
+  parent_id : INT <<FK→departments>>
+  manager_id : INT <<FK→employees>>
+  is_active : INTEGER
+}
+
+entity "positions" as POS {
+  * id : INTEGER <<PK>>
+  --
+  code : TEXT <<UQ>>
+  name : TEXT
+  level : SMALLINT
+  is_active : INTEGER
+}
+
+entity "work_shifts" as SHIFT {
+  * id : INTEGER <<PK>>
+  --
+  code : TEXT <<UQ>>
+  name : TEXT
+  shift_type : TEXT
+  start_time : TEXT
+  end_time : TEXT
+  break_minutes : SMALLINT
+  late_threshold : SMALLINT
+  early_threshold : SMALLINT
+}
+
+' ── Group B: Employees & Face ────────────────────────
+entity "employees" as EMP {
+  * id : INTEGER <<PK>>
+  --
+  code : TEXT <<UQ>>
+  full_name : TEXT
+  department_id : INT <<FK→departments>>
+  position_id : INT <<FK→positions>>
+  default_shift_id : INT <<FK→work_shifts>>
+  manager_id : INT <<FK→employees>>
+  is_face_registered : INTEGER
+  annual_leave_days : REAL
+  used_leave_days : REAL
+  is_active : INTEGER
+}
+
+entity "users" as USR {
+  * id : INTEGER <<PK>>
+  --
+  username : TEXT <<UQ>>
+  password_hash : TEXT
+  employee_id : INT <<FK→employees,UQ>>
+  role : TEXT
+  failed_login_count : SMALLINT
+  locked_until : DATETIME
+}
+
+entity "face_data" as FACE {
+  * id : INTEGER <<PK>>
+  --
+  employee_id : INT <<FK→employees>>
+  encoding : TEXT
+  image_path : TEXT
+  image_index : SMALLINT
+  angle : TEXT
+  quality_score : REAL
+  is_active : INTEGER
+  is_verified : INTEGER
+}
+
+entity "face_registration_logs" as FRLOG {
+  * id : INTEGER <<PK>>
+  --
+  employee_id : INT <<FK→employees>>
+  face_data_id : INT <<FK→face_data>>
+  action : TEXT
+  performed_by : INT <<FK→users>>
+}
+
+' ── Group C: Devices & Scheduling ──────────────────
+entity "attendance_devices" as DEV {
+  * id : INTEGER <<PK>>
+  --
+  device_code : TEXT <<UQ>>
+  device_name : TEXT
+  device_type : TEXT
+  location_name : TEXT
+  ip_address : TEXT
+  min_confidence : REAL
+}
+
+entity "employee_shift_schedule" as SCHED {
+  * id : INTEGER <<PK>>
+  --
+  employee_id : INT <<FK→employees>>
+  shift_id : INT <<FK→work_shifts>>
+  work_date : TEXT
+  is_day_off : INTEGER
+}
+
+entity "holidays" as HOL {
+  * id : INTEGER <<PK>>
+  --
+  holiday_date : TEXT
+  name : TEXT
+  holiday_type : TEXT
+  year : SMALLINT
+}
+
+' ── Group D: Attendance ──────────────────────────────
+entity "attendance_records" as ATT {
+  * id : INTEGER <<PK>>
+  --
+  employee_id : INT <<FK→employees>>
+  attendance_date : TEXT
+  shift_id : INT <<FK→work_shifts>>
+  check_in : DATETIME
+  check_in_device_id : INT <<FK→attendance_devices>>
+  check_in_method : TEXT
+  check_in_confidence : REAL
+  check_out : DATETIME
+  check_out_device_id : INT <<FK→attendance_devices>>
+  status : TEXT
+  late_minutes : SMALLINT
+  early_minutes : SMALLINT
+  working_minutes : INT
+  is_manual_edit : INTEGER
+}
+
+entity "attendance_logs" as ALOG {
+  * id : INTEGER <<PK>>
+  --
+  attendance_id : BIGINT <<FK→attendance_records>>
+  employee_id : INT <<FK→employees>>
+  device_id : INT <<FK→attendance_devices>>
+  log_time : DATETIME
+  log_type : TEXT
+  matched_face_id : INT <<FK→face_data>>
+  confidence : REAL
+  face_distance : REAL
+  result : TEXT
+}
+
+entity "leave_requests" as LVE {
+  * id : INTEGER <<PK>>
+  --
+  employee_id : INT <<FK→employees>>
+  leave_type : TEXT
+  start_date : TEXT
+  end_date : TEXT
+  total_days : REAL
+  status : TEXT
+  approved_by : INT <<FK→employees>>
+}
+
+' ── Group E: System ─────────────────────────────────
+entity "audit_logs" as AUD {
+  * id : INTEGER <<PK>>
+  --
+  user_id : INT <<FK→users>>
+  action : TEXT
+  table_name : TEXT
+  old_values : TEXT
+  new_values : TEXT
+}
+
+entity "system_settings" as CFG {
+  * id : INTEGER <<PK>>
+  --
+  key : TEXT <<UQ>>
+  value : TEXT
+  category : TEXT
+}
+
+' ── Relationships ─────────────────────────────────────
+DEPT    ||--o{ EMP    : "employs"
+POS     ||--o{ EMP    : "holds"
+SHIFT   ||--o{ EMP    : "default shift"
+EMP     ||--o{ FACE   : "has"
+EMP     ||--o{ USR    : "has account"
+FACE    ||--o{ FRLOG  : "logged by"
+EMP     ||--o{ ATT    : "records"
+SHIFT   ||--o{ ATT    : "applied to"
+DEV     ||--o{ ATT    : "check-in device"
+ATT     ||--o{ ALOG   : "has logs"
+EMP     ||--o{ ALOG   : "triggered by"
+DEV     ||--o{ ALOG   : "from device"
+FACE    ||--o{ ALOG   : "matched face"
+EMP     ||--o{ LVE    : "requests"
+EMP     ||--o{ SCHED  : "scheduled"
+SHIFT   ||--o{ SCHED  : "assigned"
+USR     ||--o{ AUD    : "performed"
+
+@enduml

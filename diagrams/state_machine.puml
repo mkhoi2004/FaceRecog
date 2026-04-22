@@ -1,0 +1,51 @@
+@startuml state_machine
+skinparam state {
+  BackgroundColor LightCoral
+  BorderColor DarkRed
+  ArrowColor DarkSlateGray
+  StartColor DarkGreen
+  EndColor DarkRed
+}
+title State Machine — AttendanceRecord Lifecycle
+
+[*] --> NotYet : work_date created\n(shift scheduled)
+
+NotYet --> Present     : CheckIn + CheckOut\nwithin thresholds
+NotYet --> Late        : CheckIn > start + late_threshold
+NotYet --> Absent      : No CheckIn by 22:00\n(AutoAbsentJob)
+NotYet --> Holiday     : date in holidays table
+NotYet --> DayOff      : is_day_off = 1\n(shift schedule)
+NotYet --> Leave       : approved leave_request\nexists for this date
+
+Present --> EarlyLeave    : CheckOut < end - early_threshold
+Late    --> LateAndEarly  : Late + CheckOut early
+Present --> Present       : HR manual edit\n(is_manual_edit = 1)
+Absent  --> Present       : HR manual edit\n(retroactive correction)
+
+Leave --> [*]       : leave period ends
+Holiday --> [*]     : next working day
+DayOff --> [*]      : next working day
+Present --> [*]     : end of work day (final)
+Late --> [*]        : end of work day (final)
+EarlyLeave --> [*]  : end of work day (final)
+LateAndEarly --> [*]: end of work day (final)
+Absent --> [*]      : record kept for reporting
+
+note right of NotYet
+  Initial state for every
+  active employee on a
+  working day
+end note
+
+note right of Present
+  status field in
+  attendance_records
+  (9 possible values)
+end note
+
+note right of Absent
+  Triggered by background job
+  attendance.auto_absent_hour = 22
+end note
+
+@enduml

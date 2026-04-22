@@ -1,0 +1,91 @@
+@startuml seq_1_cham_cong_thanh_cong
+
+' ============================================================
+' SEQUENCE 1 — CHẤM CÔNG THÀNH CÔNG
+' Vòng lặp A: Luồng chính (happy path)
+' Điều kiện: nhận diện khớp + đúng giờ quy định ca
+' ============================================================
+
+skinparam defaultFontName Arial
+skinparam defaultFontSize 12
+skinparam sequenceMessageAlign center
+skinparam sequence {
+    ArrowColor               #37474F
+    ActorBorderColor         #1565C0
+    ActorBackgroundColor     #E3F2FD
+    ActorFontSize            12
+    ActorFontColor           #0D47A1
+    ParticipantBorderColor   #E65100
+    ParticipantBackgroundColor #FFFDE7
+    ParticipantFontSize      12
+    ParticipantFontColor     #212121
+    LifeLineBorderColor      #B0BEC5
+    LifeLineBorderThickness  1
+}
+skinparam NoteBackgroundColor #ECEFF1
+skinparam NoteBorderColor     #546E7A
+skinparam NoteFontSize        11
+
+title **Sequence 1 — Chấm công thành công**\n//Vòng lặp A · Nhận diện khớp · Đúng giờ quy định ca//
+
+' ============================================================
+' LIFELINE
+' Nhân viên     — người khởi tạo hành động (đứng trước thiết bị)
+' Thiết bị đầu cuối — điểm thu ảnh, cầu nối vật lý ↔ phần mềm
+' Hệ thống nhận diện khuôn mặt — chỉ biết "ai đứng đây"
+' Hệ thống quản lý công — biết "cần ghi gì, trạng thái gì"
+' ============================================================
+actor      "Nhân viên"                       as NV
+participant "Thiết bị\nđầu cuối"             as TB
+participant "Hệ thống nhận diện\nkhuôn mặt" as HDND
+participant "Hệ thống\nquản lý công"         as HQLC
+
+autonumber "<b>[0]</b>"
+
+' --- Bước 1: Nhân viên khởi động chấm công ---
+NV    ->  TB   : Đứng trước thiết bị,\nbắt đầu chấm công
+
+' --- Bước 2: Thiết bị gửi ảnh lên hệ thống ---
+TB    ->  HQLC : Gửi ảnh khuôn mặt để xác thực
+
+' --- Bước 3: Hệ thống quản lý công chuyển yêu cầu nhận diện ---
+HQLC  ->  HDND : Yêu cầu nhận diện danh tính
+
+' --- Bước 4: So khớp ảnh với toàn bộ hồ sơ đang hoạt động ---
+HDND  ->  HDND : So khớp ảnh với Hồ sơ khuôn mặt\n(chỉ các hồ sơ trạng thái = hoạt động)
+
+note right of HDND
+  Đối tượng so khớp là
+  **Hồ sơ khuôn mặt** (entity riêng),
+  không phải trực tiếp Nhân viên.
+  Tách biệt để Admin HR có thể
+  cập nhật hồ sơ mà không đổi
+  thông tin hành chính nhân viên.
+end note
+
+' --- Bước 5: Trả kết quả nhận diện thành công ---
+HDND  --> HQLC : Nhận diện thành công\n(kèm mã nhân viên đã khớp)
+
+' --- Bước 6: Tra lịch phân công để biết đang ở ca nào ---
+HQLC  ->  HQLC : Tra Phân công ca & Ca làm việc\nxác định: vào ca hay ra ca hôm nay
+
+' --- Bước 7: Đối chiếu giờ thực tế với ngưỡng ca ---
+HQLC  ->  HQLC : Đối chiếu giờ thực tế với\nngưỡng Ca làm việc\n→ kết quả: đúng giờ
+
+' --- Bước 8: Tạo bản ghi tự động ---
+HQLC  ->  HQLC : Tạo Bản ghi chấm công\n(loại = tự động · trạng thái = đúng giờ)
+
+' --- Bước 9: Gửi kết quả về thiết bị ---
+HQLC  --> TB   : Xác nhận chấm công thành công\n(tên nhân viên, giờ ghi nhận, ca làm việc)
+
+' --- Bước 10: Thiết bị hiển thị cho nhân viên ---
+TB    --> NV   : Hiển thị kết quả:\ntên · giờ vào / ra ca · trạng thái ✓
+
+note over HQLC
+  Bản ghi được tạo hoàn toàn tự động.
+  Quản lý và Admin HR không cần can thiệp
+  trong luồng này — con người chỉ xuất hiện
+  khi có ngoại lệ (xem Sequence 2).
+end note
+
+@enduml

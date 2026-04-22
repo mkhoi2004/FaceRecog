@@ -1,0 +1,163 @@
+@startuml Cham_Cong_Khuon_Mat_UseCase
+
+' ============================================================
+' SƠ ĐỒ USE CASE — HỆ THỐNG CHẤM CÔNG NHẬN DIỆN KHUÔN MẶT
+' Phiên bản nghiệp vụ — System Analyst View
+' ============================================================
+
+skinparam defaultFontName Arial
+skinparam defaultFontSize 12
+
+skinparam usecase {
+    BackgroundColor #FFFDE7
+    BorderColor     #E65100
+    FontColor       #212121
+    FontSize        12
+}
+skinparam actor {
+    BackgroundColor #E3F2FD
+    BorderColor     #1565C0
+    FontColor       #0D47A1
+    FontSize        12
+}
+skinparam package {
+    BackgroundColor #F5F5F5
+    BorderColor     #546E7A
+    FontColor       #263238
+    FontSize        13
+    FontStyle       bold
+}
+skinparam arrow {
+    Color           #37474F
+    FontSize        11
+    FontColor       #546E7A
+}
+skinparam actorStyle awesome
+
+title **Sơ đồ Use Case — Hệ thống Chấm Công Nhận Diện Khuôn Mặt**
+
+' ============================================================
+' KHAI BÁO ACTOR
+' Bên trái: actor khởi tạo hành động
+' Bên phải: actor nhận dữ liệu từ hệ thống
+' ============================================================
+
+actor "Nhân viên"                    as NV
+actor "Quản lý\ntrực tiếp"          as QL
+actor "Admin HR"                     as HR
+actor "Thiết bị đầu cuối\n(Camera / Tablet)" as TB <<Thiết bị>>
+
+actor "Hệ thống\nTính lương\n(bên ngoài)" as HTTL <<Ngoại vi>>
+
+' ============================================================
+' PACKAGE 1: CHẤM CÔNG
+' Ghi nhận thời gian vào/ra ca qua nhận diện khuôn mặt.
+' Nhân viên đứng trước thiết bị — hệ thống tự xử lý còn lại.
+' ============================================================
+package "Chấm công" as P1 {
+
+    usecase "Chấm công\nbằng khuôn mặt"  as UC1
+    usecase "Xác thực\ndanh tính"         as UC2
+    usecase "Ghi nhận\nngoại lệ"          as UC3
+    usecase "Xem lịch sử\nchấm công"      as UC4
+
+}
+
+' ============================================================
+' PACKAGE 2: QUẢN LÝ CHUYÊN CẦN
+' Quản lý theo dõi tình hình nhóm, duyệt đơn,
+' xử lý các trường hợp ngoại lệ từ nhân viên.
+' ============================================================
+package "Quản lý chuyên cần" as P2 {
+
+    usecase "Nộp đơn xin nghỉ\n/ giải trình"      as UC5
+    usecase "Theo dõi chuyên cần\ncủa nhóm"        as UC6
+    usecase "Duyệt đơn\nxin nghỉ"                  as UC7
+    usecase "Xử lý giải trình\nngoại lệ"           as UC8
+
+}
+
+' ============================================================
+' PACKAGE 3: QUẢN TRỊ HỆ THỐNG
+' Admin HR cấu hình toàn bộ hệ thống: nhân viên,
+' ca làm việc, thiết bị và dữ liệu khuôn mặt.
+' ============================================================
+package "Quản trị hệ thống" as P3 {
+
+    usecase "Quản lý thông tin\nnhân viên"          as UC9
+    usecase "Đăng ký khuôn mặt\nnhân viên"          as UC10
+    usecase "Cấu hình\nca làm việc"                  as UC11
+    usecase "Quản lý\nthiết bị đầu cuối"             as UC12
+
+}
+
+' ============================================================
+' PACKAGE 4: BÁO CÁO & LƯƠNG
+' Tổng hợp dữ liệu chuyên cần, tạo báo cáo
+' và chuyển dữ liệu sang hệ thống tính lương ngoài.
+' ============================================================
+package "Báo cáo & Lương" as P4 {
+
+    usecase "Xem báo cáo\nchuyên cần"               as UC13
+    usecase "Tổng hợp công\nvà xác nhận lương"       as UC14
+    usecase "Xuất dữ liệu\nsang hệ thống lương"      as UC15
+
+}
+
+' ============================================================
+' KẾT NỐI: NHÂN VIÊN
+' ============================================================
+NV --> UC1 : đứng trước thiết bị
+NV --> UC4 : tra cứu công của mình
+NV --> UC5 : gửi đơn / giải trình
+
+' ============================================================
+' KẾT NỐI: THIẾT BỊ ĐẦU CUỐI
+' ============================================================
+TB --> UC1 : chụp ảnh & gửi dữ liệu
+
+' ============================================================
+' KẾT NỐI: QUẢN LÝ TRỰC TIẾP
+' ============================================================
+QL --> UC6 : xem tổng quan nhóm
+QL --> UC7 : duyệt / từ chối đơn
+QL --> UC8 : xác nhận lý do ngoại lệ
+QL --> UC13 : xem báo cáo nhóm mình
+
+' ============================================================
+' KẾT NỐI: ADMIN HR
+' ============================================================
+HR --> UC9  : thêm / sửa / vô hiệu hóa nhân viên
+HR --> UC10 : cập nhật dữ liệu khuôn mặt
+HR --> UC11 : thiết lập ca, giờ vào ra
+HR --> UC12 : thêm / kiểm tra thiết bị
+HR --> UC13 : xem báo cáo toàn công ty
+HR --> UC14 : xác nhận bảng công cuối tháng
+HR --> UC15 : khởi động xuất dữ liệu
+
+' ============================================================
+' KẾT NỐI: HỆ THỐNG TÍNH LƯƠNG (nhận dữ liệu đầu ra)
+' ============================================================
+UC15 --> HTTL : truyền dữ liệu công
+
+' ============================================================
+' QUAN HỆ <<include>> — bước BẮT BUỘC phải thực hiện
+' ============================================================
+
+' Mọi lần chấm công đều phải xác thực danh tính trước khi ghi nhận
+UC1 ..> UC2 : <<include>>
+
+' Xuất dữ liệu lương bắt buộc phải tổng hợp & xác nhận công trước
+UC15 ..> UC14 : <<include>>
+
+' ============================================================
+' QUAN HỆ <<extend>> — ngoại lệ hoặc luồng bổ sung
+' ============================================================
+
+' Chỉ phát sinh khi phát hiện đi muộn / về sớm / quên chấm
+UC3 ..> UC1 : <<extend>>\n[khi phát hiện sai lệch]
+
+' Đăng ký khuôn mặt là bước mở rộng khi thêm nhân viên mới
+UC10 ..> UC9 : <<extend>>\n[khi thêm nhân viên mới]
+
+@enduml

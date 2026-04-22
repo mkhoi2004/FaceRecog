@@ -1,0 +1,94 @@
+@startuml seq_2_cham_cong_ngoai_le
+
+' ============================================================
+' SEQUENCE 2 — CHẤM CÔNG NGOẠI LỆ
+' Vòng lặp A: Hai trường hợp ngoại lệ từ UC1
+'   TH1: Hệ thống không nhận diện được khuôn mặt
+'   TH2: Nhận diện thành công nhưng sai lệch giờ (đi muộn / về sớm)
+'        → UC3 <<extend>> UC1 tự động kích hoạt
+' ============================================================
+
+skinparam defaultFontName Arial
+skinparam defaultFontSize 12
+skinparam sequenceMessageAlign center
+skinparam sequence {
+    ArrowColor               #37474F
+    ActorBorderColor         #1565C0
+    ActorBackgroundColor     #E3F2FD
+    ActorFontSize            12
+    ActorFontColor           #0D47A1
+    ParticipantBorderColor   #E65100
+    ParticipantBackgroundColor #FFFDE7
+    ParticipantFontSize      12
+    ParticipantFontColor     #212121
+    LifeLineBorderColor      #B0BEC5
+    LifeLineBorderThickness  1
+}
+skinparam NoteBackgroundColor #FFF9C4
+skinparam NoteBorderColor     #F9A825
+skinparam NoteFontSize        11
+
+title **Sequence 2 — Chấm công ngoại lệ**\n//Vòng lặp A · TH1: Nhận diện thất bại · TH2: Đi muộn / Về sớm//
+
+' ============================================================
+' LIFELINE
+' Quản lý trực tiếp — chỉ tham gia ở TH1 (nhận thông báo bất thường)
+' ============================================================
+actor      "Nhân viên"                       as NV
+participant "Thiết bị\nđầu cuối"             as TB
+participant "Hệ thống nhận diện\nkhuôn mặt" as HDND
+participant "Hệ thống\nquản lý công"         as HQLC
+actor      "Quản lý\ntrực tiếp"              as QL
+
+autonumber "<b>[0]</b>"
+
+' --- 4 bước đầu giống Sequence 1 (luồng dùng chung) ---
+NV    ->  TB   : Đứng trước thiết bị,\nbắt đầu chấm công
+
+TB    ->  HQLC : Gửi ảnh khuôn mặt để xác thực
+
+HQLC  ->  HDND : Yêu cầu nhận diện danh tính
+
+HDND  ->  HDND : So khớp ảnh với Hồ sơ khuôn mặt\n(chỉ các hồ sơ trạng thái = hoạt động)
+
+' ============================================================
+' PHÂN NHÁNH: kết quả nhận diện
+' ============================================================
+
+alt [Trường hợp 1 — Nhận diện THẤT BẠI: ảnh không khớp bất kỳ hồ sơ nào]
+
+  HDND  --> HQLC : Nhận diện thất bại\n(không tìm thấy khuôn mặt khớp)
+
+  HQLC  ->  HQLC : Tạo Bản ghi chấm công\n(loại = thủ công · trạng thái = cần xử lý)
+
+  HQLC  ->  QL   : Thông báo có lượt chấm công bất thường\n(nhân viên chưa xác định · cần xem xét thủ công)
+
+  HQLC  --> TB   : Thông báo không nhận diện được,\nyêu cầu thử lại hoặc liên hệ Quản lý trực tiếp
+
+  TB    --> NV   : Hiển thị cảnh báo:\nKhông nhận diện được khuôn mặt ✗
+
+else [Trường hợp 2 — Nhận diện THÀNH CÔNG nhưng phát hiện sai lệch giờ]
+
+  HDND  --> HQLC : Nhận diện thành công\n(kèm mã nhân viên đã khớp)
+
+  HQLC  ->  HQLC : Tra Phân công ca & Ca làm việc\nxác định: vào ca hay ra ca
+
+  HQLC  ->  HQLC : Đối chiếu giờ thực tế với ngưỡng Ca làm việc\n→ phát hiện sai lệch: đi muộn / về sớm\n→ **UC3 (Ghi nhận ngoại lệ) tự động kích hoạt**
+
+  HQLC  ->  HQLC : Tạo Bản ghi chấm công\n(loại = tự động · trạng thái = đi muộn / về sớm\n· ghi nhận số phút sai lệch)
+
+  HQLC  --> TB   : Xác nhận chấm công + cảnh báo ngoại lệ\n(tên · giờ thực tế · số phút sai lệch)
+
+  TB    --> NV   : Hiển thị kết quả ⚠\nCó ngoại lệ — tạo Đơn giải trình\nnếu có lý do chính đáng (xem Sequence 3)
+
+end alt
+
+note over HQLC
+  **UC3 là <<extend>> của UC1 — không phải luồng riêng.**
+  Tự kích hoạt khi phát hiện sai lệch, không cần
+  Nhân viên hay Quản lý yêu cầu.
+  Nhân viên chủ động xử lý tiếp qua UC5
+  (tạo Đơn giải trình — xem Sequence 3).
+end note
+
+@enduml

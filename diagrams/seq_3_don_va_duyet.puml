@@ -1,0 +1,102 @@
+@startuml seq_3_don_va_duyet
+
+' ============================================================
+' SEQUENCE 3 — XỬ LÝ ĐƠN VÀ DUYỆT
+' Vòng lặp B: Phát sinh khi có ngoại lệ từ Sequence 2
+'   UC5  — Nhân viên tạo Đơn xin nghỉ / Giải trình
+'   UC7  — Quản lý duyệt đơn xin nghỉ phép
+'   UC8  — Quản lý xử lý giải trình ngoại lệ
+'
+' Luồng chính: Đơn GIẢI TRÌNH (bắt buộc liên kết Bản ghi)
+' Ghi chú:     Đơn XIN NGHỈ bỏ qua bước [2], dùng UC7 thay UC8
+' ============================================================
+
+skinparam defaultFontName Arial
+skinparam defaultFontSize 12
+skinparam sequenceMessageAlign center
+skinparam sequence {
+    ArrowColor               #37474F
+    ActorBorderColor         #1565C0
+    ActorBackgroundColor     #E3F2FD
+    ActorFontSize            12
+    ActorFontColor           #0D47A1
+    ParticipantBorderColor   #E65100
+    ParticipantBackgroundColor #FFFDE7
+    ParticipantFontSize      12
+    ParticipantFontColor     #212121
+    LifeLineBorderColor      #B0BEC5
+    LifeLineBorderThickness  1
+}
+skinparam NoteBackgroundColor #E8F5E9
+skinparam NoteBorderColor     #2E7D32
+skinparam NoteFontSize        11
+
+title **Sequence 3 — Xử lý đơn và duyệt**\n//Vòng lặp B · UC5 → UC8 · Luồng chính: Đơn giải trình//
+
+' ============================================================
+' LIFELINE
+' 3 lifeline là đủ: Nhân viên và Quản lý tương tác qua HQLC
+' Không cần Thiết bị hay HDND — đây là luồng hành chính
+' ============================================================
+actor      "Nhân viên"                as NV
+participant "Hệ thống\nquản lý công" as HQLC
+actor      "Quản lý\ntrực tiếp"       as QL
+
+autonumber "<b>[0]</b>"
+
+' --- Bước 1: Nhân viên tạo đơn giải trình ---
+NV    ->  HQLC : Tạo Đơn giải trình\n(loại = giải trình · nhập lý do · chọn ngày áp dụng)
+
+note over NV, HQLC
+  **Đơn xin nghỉ phép**: bỏ qua bước [2],
+  không cần liên kết Bản ghi chấm công,
+  Quản lý xử lý qua UC7 thay vì UC8.
+end note
+
+' --- Bước 2: Hệ thống tìm và liên kết bản ghi có ngoại lệ ---
+HQLC  ->  HQLC : Tìm Bản ghi chấm công có ngoại lệ\nkhớp với nhân viên và ngày đã chọn\n(trạng thái = đi muộn / về sớm / cần xử lý)
+
+' --- Bước 3: Lưu đơn với trạng thái chờ duyệt ---
+HQLC  ->  HQLC : Lưu Đơn giải trình\n(trạng thái = chờ duyệt)\n+ liên kết Bản ghi chấm công tương ứng
+
+' --- Bước 4: Thông báo Quản lý trực tiếp ---
+HQLC  ->  QL   : Thông báo có Đơn giải trình mới\ncần xem xét (tên NV, ngày, loại ngoại lệ)
+
+' --- Bước 5: Quản lý yêu cầu xem chi tiết ---
+QL    ->  HQLC : Tra cứu Đơn giải trình\nvà Bản ghi chấm công liên quan
+
+' --- Bước 6: Hệ thống trả tài liệu để đối chiếu ---
+HQLC  --> QL   : Trả Đơn giải trình + Bản ghi gốc\n(lý do · số phút sai lệch · loại ngoại lệ)
+
+' ============================================================
+' PHÂN NHÁNH: quyết định của Quản lý trực tiếp
+' ============================================================
+
+alt [Duyệt — lý do giải trình hợp lệ]
+
+  QL    ->  HQLC : Xác nhận duyệt Đơn giải trình
+
+  HQLC  ->  HQLC : Cập nhật Đơn (trạng thái = đã duyệt)\n+ Cập nhật Bản ghi chấm công\n(trạng thái được điều chỉnh theo lý do)
+
+  HQLC  ->  NV   : Thông báo: Đơn giải trình đã được duyệt ✓\n(Bản ghi chấm công đã được cập nhật)
+
+else [Từ chối — lý do không đủ cơ sở]
+
+  QL    ->  HQLC : Từ chối kèm lý do cụ thể
+
+  HQLC  ->  HQLC : Cập nhật Đơn (trạng thái = từ chối)\nBản ghi chấm công giữ nguyên trạng thái gốc
+
+  HQLC  ->  NV   : Thông báo: Đơn bị từ chối ✗\n(kèm lý do từ chối của Quản lý)
+
+end alt
+
+note right of HQLC
+  Khi Đơn được duyệt:
+  Bản ghi chấm công có ngoại lệ
+  được cập nhật trạng thái.
+  Điều này ảnh hưởng đến
+  dữ liệu tổng hợp ở Kỳ tính lương
+  (Sequence 4 — Vòng lặp C).
+end note
+
+@enduml

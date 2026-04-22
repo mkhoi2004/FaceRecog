@@ -1,0 +1,109 @@
+@startuml seq_4_chot_cong_xuat_luong
+
+' ============================================================
+' SEQUENCE 4 — CHỐT CÔNG VÀ XUẤT LƯƠNG
+' Vòng lặp C: Diễn ra cuối mỗi tháng
+'   UC14 — Admin HR tổng hợp công và chốt kỳ (bắt buộc trước)
+'   UC15 — Admin HR xuất dữ liệu sang hệ thống tính lương ngoài
+'
+' Ràng buộc nghiệp vụ cốt lõi:
+'   UC15 <<include>> UC14
+'   → Không thể xuất khi Kỳ chưa ở trạng thái "đã chốt"
+' ============================================================
+
+skinparam defaultFontName Arial
+skinparam defaultFontSize 12
+skinparam sequenceMessageAlign center
+skinparam sequence {
+    ArrowColor               #37474F
+    ActorBorderColor         #1565C0
+    ActorBackgroundColor     #E3F2FD
+    ActorFontSize            12
+    ActorFontColor           #0D47A1
+    ParticipantBorderColor   #E65100
+    ParticipantBackgroundColor #FFFDE7
+    ParticipantFontSize      12
+    ParticipantFontColor     #212121
+    LifeLineBorderColor      #B0BEC5
+    LifeLineBorderThickness  1
+}
+skinparam NoteBackgroundColor #EDE7F6
+skinparam NoteBorderColor     #512DA8
+skinparam NoteFontSize        11
+
+title **Sequence 4 — Chốt công và xuất lương**\n//Vòng lặp C · UC14 (tổng hợp + chốt kỳ) → UC15 (xuất dữ liệu)//
+
+' ============================================================
+' LIFELINE
+' Admin HR      — người duy nhất có quyền chốt kỳ và xuất lương
+' HQLC          — điều phối UC14 và UC15
+' Hệ thống tính lương — hệ thống bên ngoài, chỉ nhận dữ liệu
+' ============================================================
+actor      "Admin HR"                        as HR
+participant "Hệ thống\nquản lý công"         as HQLC
+participant "Hệ thống Tính lương\n(bên ngoài)" as HTTL
+
+autonumber "<b>[0]</b>"
+
+' ============================================================
+' PHẦN 1: UC14 — TỔNG HỢP CÔNG VÀ CHỐT KỲ
+' ============================================================
+
+' --- Bước 1: Admin chọn kỳ cần chốt ---
+HR    ->  HQLC : Chọn Kỳ tính lương cần chốt\n(chỉ hiển thị các kỳ đang ở trạng thái "đang mở")
+
+' --- Bước 2: Kiểm tra điều kiện hợp lệ ---
+HQLC  ->  HQLC : Xác nhận Kỳ hợp lệ:\ntrạng thái = đang mở · chưa từng chốt hoặc xuất
+
+' --- Bước 3: Tổng hợp bản ghi chấm công (UC14 bắt đầu) ---
+HQLC  ->  HQLC : Tổng hợp toàn bộ Bản ghi chấm công\nthuộc kỳ (bao gồm bản ghi đã được duyệt\ngiải trình — từ Sequence 3)
+
+note right of HQLC
+  **UC14 bắt đầu.**
+  Bản ghi đã được Quản lý duyệt
+  giải trình (Sequence 3) sẽ có
+  trạng thái đã điều chỉnh — được
+  tính đúng vào tổng hợp kỳ này.
+end note
+
+' --- Bước 4: Trình kết quả tổng hợp cho Admin xem xét ---
+HQLC  --> HR   : Trình kết quả tổng hợp kỳ:\ntổng ngày công · số ngoại lệ · số vắng mặt\n(Admin xem xét trước khi chốt)
+
+note over HR, HQLC
+  Nếu phát hiện sai sót, Admin có thể yêu cầu
+  điều chỉnh Bản ghi chấm công cụ thể trước khi chốt.
+  Khi đã chốt, không thể sửa Bản ghi thuộc kỳ này nữa.
+end note
+
+' --- Bước 5: Admin xác nhận chốt ---
+HR    ->  HQLC : Xác nhận kết quả và yêu cầu chốt kỳ
+
+' --- Bước 6: Kỳ chuyển sang "đã chốt" (UC14 hoàn thành) ---
+HQLC  ->  HQLC : Chuyển Kỳ tính lương sang trạng thái "đã chốt"\n(khóa — không thể sửa Bản ghi trong kỳ)\n**→ UC14 hoàn thành**
+
+' ============================================================
+' PHẦN 2: UC15 — XUẤT DỮ LIỆU SANG HỆ THỐNG TÍNH LƯƠNG
+' Chỉ thực hiện được SAU KHI UC14 hoàn thành (<<include>>)
+' ============================================================
+
+' --- Bước 7: Truyền dữ liệu sang hệ thống ngoài (UC15 bắt đầu) ---
+HQLC  ->  HTTL : Truyền dữ liệu công đã chốt\n(danh sách nhân viên · ngày công · ngoại lệ)
+
+note right of HTTL
+  **UC15 <<include>> UC14:**
+  Bước này chỉ thực hiện được
+  khi Kỳ đang ở trạng thái "đã chốt".
+  Nếu UC14 chưa hoàn thành →
+  hệ thống từ chối và thông báo Admin.
+end note
+
+' --- Bước 8: Hệ thống tính lương xác nhận tiếp nhận ---
+HTTL  --> HQLC : Xác nhận đã tiếp nhận\nvà xử lý dữ liệu thành công
+
+' --- Bước 9: Ghi nhận kết quả truyền ---
+HQLC  ->  HQLC : Ghi nhận kết quả truyền\n(timestamp · số bản ghi đã xuất · trạng thái giao tiếp)
+
+' --- Bước 10: Báo cáo kết quả cuối cho Admin ---
+HQLC  --> HR   : Thông báo xuất dữ liệu thành công ✓\n(số bản ghi · thời điểm xuất · kỳ đã hoàn tất)
+
+@enduml

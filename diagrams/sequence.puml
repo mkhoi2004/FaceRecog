@@ -1,0 +1,45 @@
+@startuml sequence
+skinparam sequenceArrowThickness 2
+skinparam sequence {
+  ParticipantBackgroundColor LightBlue
+  ParticipantBorderColor DarkBlue
+  ActorBackgroundColor LightGreen
+  LifeLineBorderColor DarkGray
+}
+title Sequence Diagram — Employee Face Check-In Flow
+
+actor       "Employee"            as EMP
+participant "Camera Device"       as CAM
+participant "UCAttendance\n(UI)"  as UI
+participant "FaceRecognition\nService" as FRS
+participant "Repository"          as REPO
+database    "SQLite DB"           as DB
+
+EMP  -> CAM  : Stand in front of camera
+CAM  -> UI   : Capture frame (bitmap)
+UI   -> FRS  : RecognizeFaces(imagePath, faceDataList)
+
+FRS  -> DB   : Load active face_data encodings
+DB   --> FRS : List<FaceDataDto> (128-D vectors)
+
+FRS  -> FRS  : Detect face locations (dlib)
+FRS  -> FRS  : Compute face encoding (128-D)
+FRS  -> FRS  : Euclidean distance vs enrolled faces
+FRS  --> UI  : FaceMatchItem {employeeId, confidence, distance}
+
+alt confidence >= 0.70 (threshold met)
+  UI   -> REPO : SaveAttendanceLog(CheckIn, Success, confidence)
+  REPO -> DB   : INSERT attendance_logs
+  UI   -> REPO : UpsertAttendanceRecord(employeeId, checkIn)
+  REPO -> DB   : INSERT / UPDATE attendance_records
+  REPO -> DB   : Calculate status (Present / Late)
+  DB   --> REPO: attendance_id
+  REPO --> UI  : AttendanceRecordDto
+  UI   --> EMP : "Check-In OK — 07:56 ✓"
+else confidence < 0.70 (recognition failed)
+  UI   -> REPO : SaveAttendanceLog(CheckIn, Failed)
+  REPO -> DB   : INSERT attendance_logs (result=Failed)
+  UI   --> EMP : "Face not recognized — try again"
+end
+
+@enduml
