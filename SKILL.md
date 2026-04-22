@@ -36,7 +36,7 @@
 
 ### 1.1 Mục tiêu hệ thống
 
-Hệ thống chấm công Windows chuyên nghiệp cho doanh nghiệp vừa và nhỏ. Nhận diện nhân viên qua webcam bằng deep learning (không cần thẻ từ, vân tay), lưu trữ toàn bộ trên PostgreSQL với audit trail đầy đủ.
+Hệ thống chấm công Windows chuyên nghiệp cho doanh nghiệp vừa và nhỏ. Nhận diện nhân viên qua webcam bằng deep learning (không cần thẻ từ, vân tay), lưu trữ toàn bộ trên SQLite với audit trail đầy đủ.
 
 **Các chức năng cốt lõi**:
 - Chấm công tự động qua nhận diện khuôn mặt real-time
@@ -53,7 +53,7 @@ Hệ thống chấm công Windows chuyên nghiệp cho doanh nghiệp vừa và 
 | UI | C# WinForms | — | .NET 4.6.1 |
 | AI Recognition | Dlib ResNet-128 | `DlibDotNet` | 19.21.x |
 | Computer Vision | OpenCV | `OpenCvSharp4` | 4.x |
-| Database | PostgreSQL | `Npgsql` | 6.x |
+| Database | SQLite | `System.Data.SQLite` | 6.x |
 | Architecture | N-Tier (UI → Service → Repo) | — | — |
 
 ### 1.3 Ràng buộc bất di bất dịch (Non-negotiables)
@@ -98,7 +98,7 @@ Hệ thống chấm công Windows chuyên nghiệp cho doanh nghiệp vừa và 
        │
        ▼
 ╔══════════════════╗
-║  PostgreSQL DB   ║
+║  SQLite DB   ║
 ║  face_attendance ║
 ╚══════════════════╝
 ```
@@ -116,7 +116,7 @@ Rule 3: Repository không chứa business logic.
         Chỉ CRUD thuần túy — không if/else nghiệp vụ ở đây
 
 Rule 4: DTO là vật trung gian duy nhất giữa các layer.
-        Không truyền SqlDataReader, NpgsqlDataReader ra ngoài Repository
+        Không truyền SqlDataReader, System.Data.SQLiteDataReader ra ngoài Repository
 
 Rule 5: Mọi exception phải được log trước khi bubble up.
         Không bao giờ để exception âm thầm bị nuốt (catch không xử lý)
@@ -323,9 +323,9 @@ Lỗi thường gặp:
 
 **Query cơ bản — LUÔN dùng @param, không string concatenation**
 ```csharp
-using var conn = new NpgsqlConnection(_connectionString);
+using var conn = new System.Data.SQLiteConnection(_connectionString);
 conn.Open();
-using var cmd = new NpgsqlCommand(
+using var cmd = new System.Data.SQLiteCommand(
     "SELECT id, name FROM employee WHERE id = @id AND is_active = TRUE", conn);
 cmd.Parameters.AddWithValue("@id", employeeId);
 using var reader = cmd.ExecuteReader();
@@ -337,7 +337,7 @@ while (reader.Read())
 
 **Insert và lấy ID vừa tạo**
 ```csharp
-using var cmd = new NpgsqlCommand(
+using var cmd = new System.Data.SQLiteCommand(
     @"INSERT INTO face_data (employee_id, encoding)
       VALUES (@empId, @enc)
       RETURNING id", conn);
@@ -348,7 +348,7 @@ int newId = (int)cmd.ExecuteScalar();
 
 **Upsert chấm công — 1 record/người/ngày**
 ```csharp
-using var cmd = new NpgsqlCommand(
+using var cmd = new System.Data.SQLiteCommand(
     @"INSERT INTO attendance_record (employee_id, work_date, check_in, status)
       VALUES (@empId, @date, @time, 'present')
       ON CONFLICT (employee_id, work_date)
@@ -366,7 +366,7 @@ cmd.Parameters.AddWithValue("@time", DateTime.Now);
 ```csharp
 // Trả về Dictionary<int employeeId, List<double[]>>
 var result = new Dictionary<int, List<double[]>>();
-using var cmd = new NpgsqlCommand(
+using var cmd = new System.Data.SQLiteCommand(
     @"SELECT fd.employee_id, fd.encoding
       FROM face_data fd
       JOIN employee e ON e.id = fd.employee_id
@@ -385,7 +385,7 @@ return result;
 
 **Report chấm công theo tháng**
 ```csharp
-using var cmd = new NpgsqlCommand(
+using var cmd = new System.Data.SQLiteCommand(
     @"SELECT e.name, ar.work_date, ar.check_in, ar.check_out,
              ar.status, ar.is_late
       FROM attendance_record ar
@@ -401,7 +401,7 @@ cmd.Parameters.AddWithValue("@deptId", departmentId);  // 0 = tất cả phòng 
 
 **Ghi audit log**
 ```csharp
-using var cmd = new NpgsqlCommand(
+using var cmd = new System.Data.SQLiteCommand(
     @"INSERT INTO attendance_log (record_id, action, old_value, new_value, changed_by)
       VALUES (@recId, @action, @old::jsonb, @new::jsonb, @by)", conn);
 cmd.Parameters.AddWithValue("@recId",  recordId);
@@ -416,7 +416,7 @@ cmd.ExecuteNonQuery();
 
 ```
 1. KHÔNG dùng ORM (Entity Framework, Dapper, v.v.)
-   → Project dùng raw SQL thuần qua Npgsql
+   → Project dùng raw SQL thuần qua System.Data.SQLite
 
 2. KHÔNG string concatenation trong SQL
    → Luôn dùng Parameters.AddWithValue() để tránh SQL Injection
@@ -983,7 +983,7 @@ int intervalMs = int.TryParse(
 | Windows | 10/11, 64-bit | x64 bắt buộc |
 | Visual Studio | 2019 hoặc 2022 | Community edition OK |
 | .NET Framework | 4.6.1 | Có sẵn trong VS install |
-| PostgreSQL | 15+ | Cài đặt riêng |
+| SQLite | 15+ | Cài đặt riêng |
 | VC++ Redistributable | 2015-2022 x64 | Dlib native cần |
 | Model files | 2 file `.dat` | Download thủ công |
 
@@ -994,7 +994,7 @@ int intervalMs = int.TryParse(
 | `DlibDotNet` | 19.21.0.20230823 | AI face recognition |
 | `OpenCvSharp4` | 4.8.0.20230708 | Webcam capture |
 | `OpenCvSharp4.runtime.win` | 4.8.0.20230708 | OpenCV native DLLs |
-| `Npgsql` | 6.0.11 | PostgreSQL connector |
+| `System.Data.SQLite` | 6.0.11 | SQLite connector |
 | `Newtonsoft.Json` | 13.0.3 | JSON cho audit log |
 
 ### 8.3 Setup Lần Đầu (Step by Step)
@@ -1009,7 +1009,7 @@ cd FaceIDAttendance
 #    shape_predictor_5_face_landmarks.dat        (~9MB)
 #    Nguồn: http://dlib.net/files/
 
-# 3. Tạo PostgreSQL database
+# 3. Tạo SQLite database
 createdb -U postgres face_attendance
 
 # 4. Apply schema
@@ -1037,7 +1037,7 @@ xcopy /Y /I models\*.dat FaceIDApp\bin\x64\Debug\models\
   <connectionStrings>
     <add name="FaceAttendanceDB"
          connectionString="Host=localhost;Port=5432;Database=face_attendance;Username=postgres;Password=YOUR_PASSWORD;Pooling=true;MinPoolSize=1;MaxPoolSize=10;"
-         providerName="Npgsql" />
+         providerName="System.Data.SQLite" />
   </connectionStrings>
   <appSettings>
     <add key="FaceRecog.Tolerance"       value="0.6" />
@@ -1068,7 +1068,7 @@ xcopy /Y /I models\*.dat publish\models\
 #   FaceRecog.dll
 #   DlibDotNet.dll + Native dlls
 #   OpenCvSharp.dll + OpenCvSharpExtern.dll
-#   Npgsql.dll
+#   System.Data.SQLite.dll
 #   App.config (đã cấu hình đúng production DB)
 #   models\dlib_face_recognition_resnet_model_v1.dat
 #   models\shape_predictor_5_face_landmarks.dat
@@ -1082,7 +1082,7 @@ xcopy /Y /I models\*.dat publish\models\
 □ .NET Framework 4.6.1 (có sẵn Win 10+)
 □ Thư mục models\ với 2 file .dat
 □ App.config trỏ đúng server DB
-□ PostgreSQL server accessible từ máy client
+□ SQLite server accessible từ máy client
 □ Webcam kết nối và được Windows nhận dạng
 ```
 
@@ -1096,9 +1096,9 @@ xcopy /Y /I models\*.dat publish\models\
 | :--- | :--- | :--- |
 | `DllNotFoundException: dlib.dll` | Build với AnyCPU hoặc x86 | Đổi Platform → x64 trong VS |
 | `FileNotFoundException: *.dat` | Model file không đúng thư mục | Copy dat files vào `bin\x64\Debug\models\` |
-| `NpgsqlException: connection refused` | PostgreSQL chưa chạy | Kiểm tra service PostgreSQL đang chạy |
-| `NpgsqlException: password authentication failed` | Sai password | Sửa App.config |
-| `NpgsqlException: database does not exist` | Chưa tạo DB | Chạy `createdb face_attendance` |
+| `System.Data.SQLiteException: connection refused` | SQLite chưa chạy | Kiểm tra service SQLite đang chạy |
+| `System.Data.SQLiteException: password authentication failed` | Sai password | Sửa App.config |
+| `System.Data.SQLiteException: database does not exist` | Chưa tạo DB | Chạy `createdb face_attendance` |
 | Crash ngay khi load model, không exception | Unicode path bug | Xem §5.1, dùng ModelsDirectoryResolver |
 
 ### 9.2 Lỗi nhận diện

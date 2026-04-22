@@ -448,7 +448,7 @@ namespace FaceIDApp.UserControls
                 AllowUserToAddRows = false, AllowUserToDeleteRows = false,
                 RowHeadersVisible = false, SelectionMode = DataGridViewSelectionMode.FullRowSelect,
                 AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill,
-                ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.DisableResizing, ColumnHeadersHeight = 38, RowTemplate = { Height = 32 },
+                ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.DisableResizing, ColumnHeadersHeight = 42, RowTemplate = { Height = 32 },
                 Font = new Font("Segoe UI", 9.5F),
                 GridColor = Color.FromArgb(226, 232, 240)
             };
@@ -461,6 +461,7 @@ namespace FaceIDApp.UserControls
             dgv.AlternatingRowsDefaultCellStyle.BackColor = Color.FromArgb(248, 250, 252);
             dgv.EnableHeadersVisualStyles = false;
             tab.Controls.Add(dgv);
+            dgv.BringToFront();
             return dgv;
         }
 

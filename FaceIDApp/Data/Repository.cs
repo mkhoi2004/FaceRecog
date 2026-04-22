@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using Npgsql;
+using System.Data.SQLite;
 
 namespace FaceIDApp.Data
 {
@@ -14,25 +14,23 @@ namespace FaceIDApp.Data
             this._config = config ?? throw new ArgumentNullException(nameof(config));
         }
 
-        private NpgsqlConnection CreateConnection()
+        private SQLiteConnection CreateConnection()
         {
-            return new NpgsqlConnection(this._config.ApplicationConnectionString);
+            return new SQLiteConnection(this._config.ApplicationConnectionString);
         }
 
-        private static async Task<bool> ColumnExistsAsync(NpgsqlConnection conn, string tableName, string columnName)
+        private static async Task<bool> ColumnExistsAsync(SQLiteConnection conn, string tableName, string columnName)
         {
-            using (var cmd = new NpgsqlCommand(@"
-SELECT 1
-FROM information_schema.columns
-WHERE table_schema = 'public'
-  AND table_name = @table_name
-  AND column_name = @column_name
-LIMIT 1", conn))
+            using (var cmd = new SQLiteCommand($"PRAGMA table_info({tableName})", conn))
+            using (var r = await cmd.ExecuteReaderAsync())
             {
-                cmd.Parameters.AddWithValue("table_name", tableName);
-                cmd.Parameters.AddWithValue("column_name", columnName);
-                return await cmd.ExecuteScalarAsync() != null;
+                while (await r.ReadAsync())
+                {
+                    if (string.Equals(r.GetString(1), columnName, System.StringComparison.OrdinalIgnoreCase))
+                        return true;
+                }
             }
+            return false;
         }
 
         // =============================================
@@ -44,7 +42,7 @@ LIMIT 1", conn))
             using (var conn = CreateConnection())
             {
                 await conn.OpenAsync();
-                using (var cmd = new NpgsqlCommand("SELECT id, code, name, description, is_active FROM departments WHERE is_active = TRUE ORDER BY sort_order, name", conn))
+                using (var cmd = new SQLiteCommand("SELECT id, code, name, description, is_active FROM departments WHERE is_active = 1 ORDER BY sort_order, name", conn))
                 using (var r = await cmd.ExecuteReaderAsync())
                 {
                     while (await r.ReadAsync())
@@ -54,7 +52,7 @@ LIMIT 1", conn))
                             Code = r.GetString(1),
                             Name = r.GetString(2),
                             Description = r.IsDBNull(3) ? null : r.GetString(3),
-                            IsActive = r.GetBoolean(4)
+                            IsActive = Convert.ToBoolean(r.GetValue(4))
                         });
                 }
             }
@@ -70,7 +68,7 @@ LIMIT 1", conn))
             using (var conn = CreateConnection())
             {
                 await conn.OpenAsync();
-                using (var cmd = new NpgsqlCommand("SELECT id, code, name, level, is_active FROM positions WHERE is_active = TRUE ORDER BY level DESC, name", conn))
+                using (var cmd = new SQLiteCommand("SELECT id, code, name, level, is_active FROM positions WHERE is_active = 1 ORDER BY level DESC, name", conn))
                 using (var r = await cmd.ExecuteReaderAsync())
                 {
                     while (await r.ReadAsync())
@@ -80,7 +78,7 @@ LIMIT 1", conn))
                             Code = r.GetString(1),
                             Name = r.GetString(2),
                             Level = r.GetInt32(3),
-                            IsActive = r.GetBoolean(4)
+                            IsActive = Convert.ToBoolean(r.GetValue(4))
                         });
                 }
             }
@@ -96,10 +94,10 @@ LIMIT 1", conn))
             using (var conn = CreateConnection())
             {
                 await conn.OpenAsync();
-                using (var cmd = new NpgsqlCommand(@"
+                using (var cmd = new SQLiteCommand(@"
 SELECT id, code, name, shift_type, start_time, end_time, break_minutes,
        standard_hours, late_threshold, early_threshold, is_overnight, color_code, is_active
-FROM work_shifts WHERE is_active = TRUE ORDER BY start_time", conn))
+FROM work_shifts WHERE is_active = 1 ORDER BY start_time", conn))
                 using (var r = await cmd.ExecuteReaderAsync())
                 {
                     while (await r.ReadAsync())
@@ -109,15 +107,15 @@ FROM work_shifts WHERE is_active = TRUE ORDER BY start_time", conn))
                             Code = r.GetString(1),
                             Name = r.GetString(2),
                             ShiftType = r.GetString(3),
-                            StartTime = r.GetTimeSpan(4),
-                            EndTime = r.GetTimeSpan(5),
-                            BreakMinutes = r.GetInt16(6),
-                            StandardHours = r.GetDecimal(7),
-                            LateThreshold = r.GetInt16(8),
-                            EarlyThreshold = r.GetInt16(9),
-                            IsOvernight = r.GetBoolean(10),
+                            StartTime = TimeSpan.Parse(r.GetString(4)),
+                            EndTime = TimeSpan.Parse(r.GetString(5)),
+                            BreakMinutes = Convert.ToInt16(r.GetValue(6)),
+                            StandardHours = Convert.ToDecimal(r.GetValue(7)),
+                            LateThreshold = Convert.ToInt16(r.GetValue(8)),
+                            EarlyThreshold = Convert.ToInt16(r.GetValue(9)),
+                            IsOvernight = Convert.ToBoolean(r.GetValue(10)),
                             ColorCode = r.IsDBNull(11) ? null : r.GetString(11),
-                            IsActive = r.GetBoolean(12)
+                            IsActive = Convert.ToBoolean(r.GetValue(12))
                         });
                 }
             }
@@ -129,7 +127,7 @@ FROM work_shifts WHERE is_active = TRUE ORDER BY start_time", conn))
             using (var conn = CreateConnection())
             {
                 await conn.OpenAsync();
-                using (var cmd = new NpgsqlCommand(@"
+                using (var cmd = new SQLiteCommand(@"
 SELECT id, code, name, shift_type, start_time, end_time, break_minutes,
        standard_hours, late_threshold, early_threshold, is_overnight, color_code, is_active
 FROM work_shifts WHERE id = @id", conn))
@@ -141,11 +139,11 @@ FROM work_shifts WHERE id = @id", conn))
                         return new WorkShiftDto
                         {
                             Id = r.GetInt32(0), Code = r.GetString(1), Name = r.GetString(2),
-                            ShiftType = r.GetString(3), StartTime = r.GetTimeSpan(4), EndTime = r.GetTimeSpan(5),
-                            BreakMinutes = r.GetInt16(6), StandardHours = r.GetDecimal(7),
-                            LateThreshold = r.GetInt16(8), EarlyThreshold = r.GetInt16(9),
-                            IsOvernight = r.GetBoolean(10),
-                            ColorCode = r.IsDBNull(11) ? null : r.GetString(11), IsActive = r.GetBoolean(12)
+                            ShiftType = r.GetString(3), StartTime = TimeSpan.Parse(r.GetString(4)), EndTime = TimeSpan.Parse(r.GetString(5)),
+                            BreakMinutes = Convert.ToInt16(r.GetValue(6)), StandardHours = Convert.ToDecimal(r.GetValue(7)),
+                            LateThreshold = Convert.ToInt16(r.GetValue(8)), EarlyThreshold = Convert.ToInt16(r.GetValue(9)),
+                            IsOvernight = Convert.ToBoolean(r.GetValue(10)),
+                            ColorCode = r.IsDBNull(11) ? null : r.GetString(11), IsActive = Convert.ToBoolean(r.GetValue(12))
                         };
                     }
                 }
@@ -158,11 +156,11 @@ FROM work_shifts WHERE id = @id", conn))
         public async Task<List<EmployeeDto>> GetEmployeesAsync(bool activeOnly = true)
         {
             var list = new List<EmployeeDto>();
-            var whereClause = activeOnly ? "WHERE e.is_active = TRUE" : "";
+            var whereClause = activeOnly ? "WHERE e.is_active = 1" : "";
             using (var conn = CreateConnection())
             {
                 await conn.OpenAsync();
-                using (var cmd = new NpgsqlCommand($@"
+                using (var cmd = new SQLiteCommand($@"
 SELECT e.id, e.code, e.full_name, e.gender, e.date_of_birth, e.phone, e.email,
        e.identity_card, e.department_id, e.position_id, e.default_shift_id,
        e.hire_date, e.termination_date, e.employment_type, e.avatar_path,
@@ -189,7 +187,7 @@ ORDER BY e.code", conn))
             using (var conn = CreateConnection())
             {
                 await conn.OpenAsync();
-                using (var cmd = new NpgsqlCommand(@"
+                using (var cmd = new SQLiteCommand(@"
 SELECT e.id, e.code, e.full_name, e.gender, e.date_of_birth, e.phone, e.email,
        e.identity_card, e.department_id, e.position_id, e.default_shift_id,
        e.hire_date, e.termination_date, e.employment_type, e.avatar_path,
@@ -217,7 +215,7 @@ WHERE e.id = @id", conn))
             using (var conn = CreateConnection())
             {
                 await conn.OpenAsync();
-                using (var cmd = new NpgsqlCommand(@"
+                using (var cmd = new SQLiteCommand(@"
 INSERT INTO employees (code, full_name, gender, date_of_birth, phone, email, identity_card,
                        department_id, position_id, default_shift_id, manager_id, hire_date, employment_type, avatar_path, annual_leave_days)
 VALUES (@code, @full_name, @gender, @dob, @phone, @email, @idcard,
@@ -250,7 +248,7 @@ RETURNING id", conn))
             using (var conn = CreateConnection())
             {
                 await conn.OpenAsync();
-                using (var cmd = new NpgsqlCommand(@"
+                using (var cmd = new SQLiteCommand(@"
 UPDATE employees SET code=@code, full_name=@full_name, gender=@gender, date_of_birth=@dob,
     phone=@phone, email=@email, identity_card=@idcard,
     department_id=@dept_id, position_id=@pos_id, default_shift_id=@shift_id, manager_id=@mgr_id,
@@ -286,7 +284,7 @@ WHERE id=@id", conn))
             using (var conn = CreateConnection())
             {
                 await conn.OpenAsync();
-                using (var cmd = new NpgsqlCommand("UPDATE employees SET is_active = FALSE, termination_date = CURRENT_DATE WHERE id = @id", conn))
+                using (var cmd = new SQLiteCommand("UPDATE employees SET is_active = 0, termination_date = CURRENT_DATE WHERE id = @id", conn))
                 {
                     cmd.Parameters.AddWithValue("id", id);
                     await cmd.ExecuteNonQueryAsync();
@@ -294,7 +292,7 @@ WHERE id=@id", conn))
             }
         }
 
-        private static EmployeeDto ReadEmployee(NpgsqlDataReader r)
+        private static EmployeeDto ReadEmployee(System.Data.Common.DbDataReader r)
         {
             return new EmployeeDto
             {
@@ -313,11 +311,11 @@ WHERE id=@id", conn))
                 TerminationDate = r.IsDBNull(12) ? (DateTime?)null : r.GetDateTime(12),
                 EmploymentType = r.GetString(13),
                 AvatarPath = r.IsDBNull(14) ? null : r.GetString(14),
-                IsFaceRegistered = r.GetBoolean(15),
+                IsFaceRegistered = Convert.ToBoolean(r.GetValue(15)),
                 FaceRegisteredAt = r.IsDBNull(16) ? (DateTime?)null : r.GetDateTime(16),
-                AnnualLeaveDays = r.GetDecimal(17),
-                UsedLeaveDays = r.GetDecimal(18),
-                IsActive = r.GetBoolean(19),
+                AnnualLeaveDays = Convert.ToDecimal(r.GetValue(17)),
+                UsedLeaveDays = Convert.ToDecimal(r.GetValue(18)),
+                IsActive = Convert.ToBoolean(r.GetValue(19)),
                 ManagerId = r.IsDBNull(20) ? (int?)null : r.GetInt32(20),
                 DepartmentName = r.IsDBNull(21) ? null : r.GetString(21),
                 PositionName = r.IsDBNull(22) ? null : r.GetString(22),
@@ -334,7 +332,7 @@ WHERE id=@id", conn))
             using (var conn = CreateConnection())
             {
                 await conn.OpenAsync();
-                using (var cmd = new NpgsqlCommand(@"
+                using (var cmd = new SQLiteCommand(@"
 SELECT u.id, u.username, u.password_hash, u.employee_id, u.role, u.is_active,
        u.last_login, u.failed_login_count, u.locked_until, u.must_change_password,
        e.full_name, e.code
@@ -350,11 +348,11 @@ WHERE lower(u.username) = lower(@username) LIMIT 1", conn))
                         {
                             Id = r.GetInt32(0), Username = r.GetString(1), PasswordHash = r.GetString(2),
                             EmployeeId = r.IsDBNull(3) ? (int?)null : r.GetInt32(3),
-                            Role = r.GetString(4), IsActive = r.GetBoolean(5),
+                            Role = r.GetString(4), IsActive = Convert.ToBoolean(r.GetValue(5)),
                             LastLogin = r.IsDBNull(6) ? (DateTime?)null : r.GetDateTime(6),
-                            FailedLoginCount = r.GetInt16(7),
+                            FailedLoginCount = Convert.ToInt16(r.GetValue(7)),
                             LockedUntil = r.IsDBNull(8) ? (DateTime?)null : r.GetDateTime(8),
-                            MustChangePassword = r.GetBoolean(9),
+                            MustChangePassword = Convert.ToBoolean(r.GetValue(9)),
                             EmployeeName = r.IsDBNull(10) ? null : r.GetString(10),
                             EmployeeCode = r.IsDBNull(11) ? null : r.GetString(11)
                         };
@@ -368,7 +366,7 @@ WHERE lower(u.username) = lower(@username) LIMIT 1", conn))
             using (var conn = CreateConnection())
             {
                 await conn.OpenAsync();
-                using (var cmd = new NpgsqlCommand("UPDATE users SET last_login = now(), failed_login_count = 0 WHERE id = @id", conn))
+                using (var cmd = new SQLiteCommand("UPDATE users SET last_login = CURRENT_TIMESTAMP, failed_login_count = 0 WHERE id = @id", conn))
                 {
                     cmd.Parameters.AddWithValue("id", userId);
                     await cmd.ExecuteNonQueryAsync();
@@ -381,10 +379,10 @@ WHERE lower(u.username) = lower(@username) LIMIT 1", conn))
             using (var conn = CreateConnection())
             {
                 await conn.OpenAsync();
-                using (var cmd = new NpgsqlCommand(@"
+                using (var cmd = new SQLiteCommand(@"
 UPDATE users SET failed_login_count = failed_login_count + 1,
     locked_until = CASE WHEN failed_login_count + 1 >= 5
-        THEN now() + INTERVAL '30 minutes' ELSE locked_until END
+        THEN datetime(CURRENT_TIMESTAMP, '+30 minutes') ELSE locked_until END
 WHERE id = @id", conn))
                 {
                     cmd.Parameters.AddWithValue("id", userId);
@@ -402,13 +400,13 @@ WHERE id = @id", conn))
             using (var conn = CreateConnection())
             {
                 await conn.OpenAsync();
-                using (var cmd = new NpgsqlCommand(@"
+                using (var cmd = new SQLiteCommand(@"
 SELECT fd.id, fd.employee_id, fd.encoding, fd.image_path, fd.thumbnail_path,
        fd.image_index, fd.angle, fd.quality_score, fd.is_active, fd.is_verified, fd.created_at,
        e.full_name, e.code
 FROM face_data fd
 JOIN employees e ON fd.employee_id = e.id
-WHERE fd.is_active = TRUE AND e.is_active = TRUE
+WHERE fd.is_active = 1 AND e.is_active = TRUE
 ORDER BY fd.employee_id, fd.image_index", conn))
                 using (var r = await cmd.ExecuteReaderAsync())
                 {
@@ -425,7 +423,7 @@ ORDER BY fd.employee_id, fd.image_index", conn))
             using (var conn = CreateConnection())
             {
                 await conn.OpenAsync();
-                using (var cmd = new NpgsqlCommand(@"
+                using (var cmd = new SQLiteCommand(@"
 SELECT fd.id, fd.employee_id, fd.encoding, fd.image_path, fd.thumbnail_path,
        fd.image_index, fd.angle, fd.quality_score, fd.is_active, fd.is_verified, fd.created_at,
        e.full_name, e.code
@@ -449,9 +447,9 @@ WHERE fd.employee_id = @emp_id ORDER BY fd.image_index", conn))
             using (var conn = CreateConnection())
             {
                 await conn.OpenAsync();
-                using (var cmd = new NpgsqlCommand(@"
+                using (var cmd = new SQLiteCommand(@"
 INSERT INTO face_data (employee_id, encoding, image_path, image_index, angle, quality_score, registered_by, is_active, is_verified)
-VALUES (@emp_id, @encoding, @image_path, @image_index, @angle, @quality_score, @registered_by, TRUE, FALSE)
+VALUES (@emp_id, @encoding, @image_path, @image_index, @angle, @quality_score, @registered_by, 1, 0)
 ON CONFLICT (employee_id, image_index) DO UPDATE SET
     encoding = EXCLUDED.encoding, image_path = EXCLUDED.image_path,
     angle = EXCLUDED.angle, quality_score = EXCLUDED.quality_score,
@@ -475,7 +473,7 @@ RETURNING id", conn))
             using (var conn = CreateConnection())
             {
                 await conn.OpenAsync();
-                using (var cmd = new NpgsqlCommand("UPDATE face_data SET is_active = FALSE WHERE id = @id", conn))
+                using (var cmd = new SQLiteCommand("UPDATE face_data SET is_active = 0 WHERE id = @id", conn))
                 {
                     cmd.Parameters.AddWithValue("id", faceDataId);
                     await cmd.ExecuteNonQueryAsync();
@@ -483,17 +481,17 @@ RETURNING id", conn))
             }
         }
 
-        private static FaceDataDto ReadFaceData(NpgsqlDataReader r)
+        private static FaceDataDto ReadFaceData(System.Data.Common.DbDataReader r)
         {
             return new FaceDataDto
             {
                 Id = r.GetInt32(0), EmployeeId = r.GetInt32(1),
                 Encoding = r.GetString(2), ImagePath = r.GetString(3),
                 ThumbnailPath = r.IsDBNull(4) ? null : r.GetString(4),
-                ImageIndex = r.GetInt16(5),
+                ImageIndex = Convert.ToInt16(r.GetValue(5)),
                 Angle = r.IsDBNull(6) ? null : r.GetString(6),
-                QualityScore = r.GetFloat(7), IsActive = r.GetBoolean(8),
-                IsVerified = r.GetBoolean(9), CreatedAt = r.GetDateTime(10),
+                QualityScore = r.GetFloat(7), IsActive = Convert.ToBoolean(r.GetValue(8)),
+                IsVerified = Convert.ToBoolean(r.GetValue(9)), CreatedAt = r.GetDateTime(10),
                 EmployeeName = r.IsDBNull(11) ? null : r.GetString(11),
                 EmployeeCode = r.IsDBNull(12) ? null : r.GetString(12)
             };
@@ -509,7 +507,7 @@ RETURNING id", conn))
             using (var conn = CreateConnection())
             {
                 await conn.OpenAsync();
-                using (var cmd = new NpgsqlCommand("SELECT 1 FROM holidays WHERE holiday_date = @date LIMIT 1", conn))
+                using (var cmd = new SQLiteCommand("SELECT 1 FROM holidays WHERE holiday_date = @date LIMIT 1", conn))
                 {
                     cmd.Parameters.AddWithValue("date", date.Date);
                     return await cmd.ExecuteScalarAsync() != null;
@@ -525,7 +523,7 @@ RETURNING id", conn))
             using (var conn = CreateConnection())
             {
                 await conn.OpenAsync();
-                using (var cmd = new NpgsqlCommand(@"
+                using (var cmd = new SQLiteCommand(@"
 SELECT id, employee_id, attendance_date, shift_id, check_in, check_out,
        check_in_image_path, check_out_image_path, check_in_method, check_out_method,
        check_in_confidence, check_out_confidence,
@@ -549,7 +547,7 @@ WHERE employee_id = @emp_id AND attendance_date = CURRENT_DATE LIMIT 1", conn))
             using (var conn = CreateConnection())
             {
                 await conn.OpenAsync();
-                using (var cmd = new NpgsqlCommand(@"
+                using (var cmd = new SQLiteCommand(@"
 INSERT INTO attendance_records
     (employee_id, attendance_date, shift_id, check_in, check_in_image_path,
      check_in_method, check_in_confidence, status)
@@ -577,7 +575,7 @@ RETURNING id", conn))
             using (var conn = CreateConnection())
             {
                 await conn.OpenAsync();
-                using (var cmd = new NpgsqlCommand(@"
+                using (var cmd = new SQLiteCommand(@"
 UPDATE attendance_records SET
     check_out = @check_out, check_out_image_path = @image_path,
     check_out_method = @method, check_out_confidence = @confidence,
@@ -607,7 +605,7 @@ WHERE employee_id = @emp_id AND attendance_date = CURRENT_DATE", conn))
             using (var conn = CreateConnection())
             {
                 await conn.OpenAsync();
-                using (var cmd = new NpgsqlCommand(@"
+                using (var cmd = new SQLiteCommand(@"
 UPDATE attendance_records SET status = @status, late_minutes = @late_min
 WHERE employee_id = @emp_id AND attendance_date = CURRENT_DATE", conn))
                 {
@@ -619,7 +617,7 @@ WHERE employee_id = @emp_id AND attendance_date = CURRENT_DATE", conn))
             }
         }
 
-        private static AttendanceRecordDto ReadAttendance(NpgsqlDataReader r)
+        private static AttendanceRecordDto ReadAttendance(System.Data.Common.DbDataReader r)
         {
             return new AttendanceRecordDto
             {
@@ -633,8 +631,8 @@ WHERE employee_id = @emp_id AND attendance_date = CURRENT_DATE", conn))
                 CheckOutMethod = r.IsDBNull(9) ? null : r.GetString(9),
                 CheckInConfidence = r.IsDBNull(10) ? (float?)null : r.GetFloat(10),
                 CheckOutConfidence = r.IsDBNull(11) ? (float?)null : r.GetFloat(11),
-                Status = r.GetString(12), LateMinutes = r.GetInt16(13), EarlyMinutes = r.GetInt16(14),
-                WorkingMinutes = r.GetInt32(15), IsManualEdit = r.GetBoolean(16),
+                Status = r.GetString(12), LateMinutes = Convert.ToInt16(r.GetValue(13)), EarlyMinutes = Convert.ToInt16(r.GetValue(14)),
+                WorkingMinutes = r.GetInt32(15), IsManualEdit = Convert.ToBoolean(r.GetValue(16)),
                 Note = r.IsDBNull(17) ? null : r.GetString(17)
             };
         }
@@ -648,7 +646,7 @@ WHERE employee_id = @emp_id AND attendance_date = CURRENT_DATE", conn))
             using (var conn = CreateConnection())
             {
                 await conn.OpenAsync();
-                using (var cmd = new NpgsqlCommand("SELECT * FROM v_today_attendance ORDER BY full_name", conn))
+                using (var cmd = new SQLiteCommand("SELECT * FROM v_today_attendance ORDER BY full_name", conn))
                 using (var r = await cmd.ExecuteReaderAsync())
                 {
                     while (await r.ReadAsync())
@@ -661,14 +659,14 @@ WHERE employee_id = @emp_id AND attendance_date = CURRENT_DATE", conn))
                             DepartmentName = r.IsDBNull(r.GetOrdinal("department_name")) ? null : r.GetString(r.GetOrdinal("department_name")),
                             PositionName = r.IsDBNull(r.GetOrdinal("position_name")) ? null : r.GetString(r.GetOrdinal("position_name")),
                             ShiftName = r.IsDBNull(r.GetOrdinal("shift_name")) ? null : r.GetString(r.GetOrdinal("shift_name")),
-                            ShiftStart = r.IsDBNull(r.GetOrdinal("start_time")) ? (TimeSpan?)null : r.GetTimeSpan(r.GetOrdinal("start_time")),
-                            ShiftEnd = r.IsDBNull(r.GetOrdinal("end_time")) ? (TimeSpan?)null : r.GetTimeSpan(r.GetOrdinal("end_time")),
+                            ShiftStart = r.IsDBNull(r.GetOrdinal("start_time")) ? (TimeSpan?)null : TimeSpan.Parse(r.GetString(r.GetOrdinal("start_time"))),
+                            ShiftEnd = r.IsDBNull(r.GetOrdinal("end_time")) ? (TimeSpan?)null : TimeSpan.Parse(r.GetString(r.GetOrdinal("end_time"))),
                             CheckIn = r.IsDBNull(r.GetOrdinal("check_in")) ? (DateTime?)null : r.GetDateTime(r.GetOrdinal("check_in")),
                             CheckOut = r.IsDBNull(r.GetOrdinal("check_out")) ? (DateTime?)null : r.GetDateTime(r.GetOrdinal("check_out")),
                             Status = r.IsDBNull(r.GetOrdinal("status")) ? null : r.GetString(r.GetOrdinal("status")),
                             LateMinutes = r.IsDBNull(r.GetOrdinal("late_minutes")) ? (int?)null : r.GetInt16(r.GetOrdinal("late_minutes")),
-                            WorkingHours = r.IsDBNull(r.GetOrdinal("working_hours")) ? (decimal?)null : r.GetDecimal(r.GetOrdinal("working_hours")),
-                            IsFaceRegistered = r.GetBoolean(r.GetOrdinal("is_face_registered"))
+                            WorkingHours = r.IsDBNull(r.GetOrdinal("working_hours")) ? (decimal?)null : Convert.ToDecimal(r.GetValue(r.GetOrdinal("working_hours"))),
+                            IsFaceRegistered = Convert.ToBoolean(r.GetValue(r.GetOrdinal("is_face_registered")))
                         });
                     }
                 }
@@ -686,7 +684,7 @@ WHERE employee_id = @emp_id AND attendance_date = CURRENT_DATE", conn))
             using (var conn = CreateConnection())
             {
                 await conn.OpenAsync();
-                using (var cmd = new NpgsqlCommand(@"
+                using (var cmd = new SQLiteCommand(@"
 SELECT * FROM v_monthly_summary WHERE month = @month ORDER BY full_name", conn))
                 {
                     cmd.Parameters.AddWithValue("month", firstOfMonth);
@@ -712,7 +710,7 @@ SELECT * FROM v_monthly_summary WHERE month = @month ORDER BY full_name", conn))
                                 DayOffDays = r.GetInt32(r.GetOrdinal("day_off_days")),
                                 ActualWorkDays = r.GetInt32(r.GetOrdinal("actual_work_days")),
                                 TotalLateMinutes = r.GetInt64(r.GetOrdinal("total_late_minutes")),
-                                TotalWorkingHours = r.GetDecimal(r.GetOrdinal("total_working_hours")),
+                                TotalWorkingHours = Convert.ToDecimal(r.GetValue(r.GetOrdinal("total_working_hours"))),
                                 ManualEditCount = r.GetInt32(r.GetOrdinal("manual_edit_count"))
                             });
                         }
@@ -732,16 +730,16 @@ SELECT * FROM v_monthly_summary WHERE month = @month ORDER BY full_name", conn))
             {
                 await conn.OpenAsync();
                 // Total active employees
-                using (var cmd = new NpgsqlCommand("SELECT COUNT(*) FROM employees WHERE is_active = TRUE", conn))
+                using (var cmd = new SQLiteCommand("SELECT COUNT(*) FROM employees WHERE is_active = 1", conn))
                     stats.TotalEmployees = Convert.ToInt32(await cmd.ExecuteScalarAsync());
 
                 // Face registered
-                using (var cmd = new NpgsqlCommand("SELECT COUNT(*) FROM employees WHERE is_active=TRUE AND is_face_registered=TRUE", conn))
+                using (var cmd = new SQLiteCommand("SELECT COUNT(*) FROM employees WHERE is_active=1 AND is_face_registered=TRUE", conn))
                     stats.FaceRegistered = Convert.ToInt32(await cmd.ExecuteScalarAsync());
                 stats.FaceNotRegistered = stats.TotalEmployees - stats.FaceRegistered;
 
                 // Today attendance stats
-                using (var cmd = new NpgsqlCommand(@"
+                using (var cmd = new SQLiteCommand(@"
 SELECT
     COALESCE(SUM(CASE WHEN status='Present' THEN 1 ELSE 0 END), 0),
     COALESCE(SUM(CASE WHEN status='Late' OR status='LateAndEarly' OR status='EarlyLeave' THEN 1 ELSE 0 END), 0),
@@ -778,7 +776,7 @@ FROM attendance_records WHERE attendance_date = CURRENT_DATE", conn))
             using (var conn = CreateConnection())
             {
                 await conn.OpenAsync();
-                using (var cmd = new NpgsqlCommand($@"
+                using (var cmd = new SQLiteCommand($@"
 SELECT lr.id, lr.employee_id, lr.leave_type, lr.start_date, lr.end_date, lr.total_days,
        lr.is_half_day, lr.half_day_period, lr.reason, lr.status,
        lr.approved_by, lr.approved_at, lr.reject_reason,
@@ -799,7 +797,7 @@ ORDER BY lr.created_at DESC", conn))
                             {
                                 Id = r.GetInt32(0), EmployeeId = r.GetInt32(1), LeaveType = r.GetString(2),
                                 StartDate = r.GetDateTime(3), EndDate = r.GetDateTime(4),
-                                TotalDays = r.GetDecimal(5), IsHalfDay = r.GetBoolean(6),
+                                TotalDays = Convert.ToDecimal(r.GetValue(5)), IsHalfDay = Convert.ToBoolean(r.GetValue(6)),
                                 HalfDayPeriod = r.IsDBNull(7) ? null : r.GetString(7),
                                 Reason = r.GetString(8), Status = r.GetString(9),
                                 ApprovedBy = r.IsDBNull(10) ? (int?)null : r.GetInt32(10),
@@ -825,7 +823,7 @@ ORDER BY lr.created_at DESC", conn))
             using (var conn = CreateConnection())
             {
                 await conn.OpenAsync();
-                using (var cmd = new NpgsqlCommand(@"
+                using (var cmd = new SQLiteCommand(@"
 INSERT INTO attendance_logs
     (attendance_id, employee_id, device_id, log_type, method,
      matched_face_id, confidence, face_distance, image_path, result, fail_reason)
@@ -856,8 +854,8 @@ VALUES (@att_id, @emp_id, @dev_id, @log_type, @method,
             using (var conn = CreateConnection())
             {
                 await conn.OpenAsync();
-                using (var cmd = new NpgsqlCommand(@"
-INSERT INTO departments (code, name, description, is_active) VALUES (@code, @name, @desc, TRUE) RETURNING id", conn))
+                using (var cmd = new SQLiteCommand(@"
+INSERT INTO departments (code, name, description, is_active) VALUES (@code, @name, @desc, 1) RETURNING id", conn))
                 {
                     cmd.Parameters.AddWithValue("code", dept.Code);
                     cmd.Parameters.AddWithValue("name", dept.Name);
@@ -872,7 +870,7 @@ INSERT INTO departments (code, name, description, is_active) VALUES (@code, @nam
             using (var conn = CreateConnection())
             {
                 await conn.OpenAsync();
-                using (var cmd = new NpgsqlCommand("UPDATE departments SET code=@code, name=@name, description=@desc, is_active=@active WHERE id=@id", conn))
+                using (var cmd = new SQLiteCommand("UPDATE departments SET code=@code, name=@name, description=@desc, is_active=@active WHERE id=@id", conn))
                 {
                     cmd.Parameters.AddWithValue("id", dept.Id);
                     cmd.Parameters.AddWithValue("code", dept.Code);
@@ -889,7 +887,7 @@ INSERT INTO departments (code, name, description, is_active) VALUES (@code, @nam
             using (var conn = CreateConnection())
             {
                 await conn.OpenAsync();
-                using (var cmd = new NpgsqlCommand("UPDATE departments SET is_active = FALSE WHERE id = @id", conn))
+                using (var cmd = new SQLiteCommand("UPDATE departments SET is_active = 0 WHERE id = @id", conn))
                 {
                     cmd.Parameters.AddWithValue("id", id);
                     await cmd.ExecuteNonQueryAsync();
@@ -905,8 +903,8 @@ INSERT INTO departments (code, name, description, is_active) VALUES (@code, @nam
             using (var conn = CreateConnection())
             {
                 await conn.OpenAsync();
-                using (var cmd = new NpgsqlCommand(@"
-INSERT INTO positions (code, name, level, is_active) VALUES (@code, @name, @level, TRUE) RETURNING id", conn))
+                using (var cmd = new SQLiteCommand(@"
+INSERT INTO positions (code, name, level, is_active) VALUES (@code, @name, @level, 1) RETURNING id", conn))
                 {
                     cmd.Parameters.AddWithValue("code", pos.Code);
                     cmd.Parameters.AddWithValue("name", pos.Name);
@@ -921,7 +919,7 @@ INSERT INTO positions (code, name, level, is_active) VALUES (@code, @name, @leve
             using (var conn = CreateConnection())
             {
                 await conn.OpenAsync();
-                using (var cmd = new NpgsqlCommand("UPDATE positions SET code=@code, name=@name, level=@level, is_active=@active WHERE id=@id", conn))
+                using (var cmd = new SQLiteCommand("UPDATE positions SET code=@code, name=@name, level=@level, is_active=@active WHERE id=@id", conn))
                 {
                     cmd.Parameters.AddWithValue("id", pos.Id);
                     cmd.Parameters.AddWithValue("code", pos.Code);
@@ -938,7 +936,7 @@ INSERT INTO positions (code, name, level, is_active) VALUES (@code, @name, @leve
             using (var conn = CreateConnection())
             {
                 await conn.OpenAsync();
-                using (var cmd = new NpgsqlCommand("UPDATE positions SET is_active = FALSE WHERE id = @id", conn))
+                using (var cmd = new SQLiteCommand("UPDATE positions SET is_active = 0 WHERE id = @id", conn))
                 {
                     cmd.Parameters.AddWithValue("id", id);
                     await cmd.ExecuteNonQueryAsync();
@@ -954,10 +952,10 @@ INSERT INTO positions (code, name, level, is_active) VALUES (@code, @name, @leve
             using (var conn = CreateConnection())
             {
                 await conn.OpenAsync();
-                using (var cmd = new NpgsqlCommand(@"
+                using (var cmd = new SQLiteCommand(@"
 INSERT INTO work_shifts (code, name, shift_type, start_time, end_time, break_minutes, standard_hours,
     late_threshold, early_threshold, is_overnight, color_code, is_active)
-VALUES (@code, @name, @type, @start, @end, @break, @hours, @late, @early, @overnight, @color, TRUE)
+VALUES (@code, @name, @type, @start, @end, @break, @hours, @late, @early, @overnight, @color, 1)
 RETURNING id", conn))
                 {
                     cmd.Parameters.AddWithValue("code", ws.Code);
@@ -981,7 +979,7 @@ RETURNING id", conn))
             using (var conn = CreateConnection())
             {
                 await conn.OpenAsync();
-                using (var cmd = new NpgsqlCommand(@"
+                using (var cmd = new SQLiteCommand(@"
 UPDATE work_shifts SET code=@code, name=@name, shift_type=@type, start_time=@start, end_time=@end,
     break_minutes=@break, standard_hours=@hours, late_threshold=@late, early_threshold=@early,
     is_overnight=@overnight, color_code=@color, is_active=@active
@@ -1010,7 +1008,7 @@ WHERE id=@id", conn))
             using (var conn = CreateConnection())
             {
                 await conn.OpenAsync();
-                using (var cmd = new NpgsqlCommand("UPDATE work_shifts SET is_active = FALSE WHERE id = @id", conn))
+                using (var cmd = new SQLiteCommand("UPDATE work_shifts SET is_active = 0 WHERE id = @id", conn))
                 {
                     cmd.Parameters.AddWithValue("id", id);
                     await cmd.ExecuteNonQueryAsync();
@@ -1028,7 +1026,7 @@ WHERE id=@id", conn))
             using (var conn = CreateConnection())
             {
                 await conn.OpenAsync();
-                using (var cmd = new NpgsqlCommand($"SELECT id, holiday_date, name, holiday_type, is_recurring FROM holidays {where} ORDER BY holiday_date", conn))
+                using (var cmd = new SQLiteCommand($"SELECT id, holiday_date, name, holiday_type, is_recurring FROM holidays {where} ORDER BY holiday_date", conn))
                 {
                     if (year.HasValue) cmd.Parameters.AddWithValue("year", (short)year.Value);
                     using (var r = await cmd.ExecuteReaderAsync())
@@ -1038,7 +1036,7 @@ WHERE id=@id", conn))
                             {
                                 Id = r.GetInt32(0), HolidayDate = r.GetDateTime(1),
                                 Name = r.GetString(2), HolidayType = r.GetString(3),
-                                IsRecurring = r.GetBoolean(4)
+                                IsRecurring = Convert.ToBoolean(r.GetValue(4))
                             });
                     }
                 }
@@ -1051,7 +1049,7 @@ WHERE id=@id", conn))
             using (var conn = CreateConnection())
             {
                 await conn.OpenAsync();
-                using (var cmd = new NpgsqlCommand(@"
+                using (var cmd = new SQLiteCommand(@"
 INSERT INTO holidays (holiday_date, name, holiday_type, is_recurring, year)
 VALUES (@date, @name, @type, @recurring, @year) RETURNING id", conn))
                 {
@@ -1070,7 +1068,7 @@ VALUES (@date, @name, @type, @recurring, @year) RETURNING id", conn))
             using (var conn = CreateConnection())
             {
                 await conn.OpenAsync();
-                using (var cmd = new NpgsqlCommand("UPDATE holidays SET holiday_date=@date, name=@name, holiday_type=@type, is_recurring=@recurring WHERE id=@id", conn))
+                using (var cmd = new SQLiteCommand("UPDATE holidays SET holiday_date=@date, name=@name, holiday_type=@type, is_recurring=@recurring WHERE id=@id", conn))
                 {
                     cmd.Parameters.AddWithValue("id", h.Id);
                     cmd.Parameters.AddWithValue("date", h.HolidayDate.Date);
@@ -1087,7 +1085,7 @@ VALUES (@date, @name, @type, @recurring, @year) RETURNING id", conn))
             using (var conn = CreateConnection())
             {
                 await conn.OpenAsync();
-                using (var cmd = new NpgsqlCommand("DELETE FROM holidays WHERE id = @id", conn))
+                using (var cmd = new SQLiteCommand("DELETE FROM holidays WHERE id = @id", conn))
                 {
                     cmd.Parameters.AddWithValue("id", id);
                     await cmd.ExecuteNonQueryAsync();
@@ -1103,7 +1101,7 @@ VALUES (@date, @name, @type, @recurring, @year) RETURNING id", conn))
             using (var conn = CreateConnection())
             {
                 await conn.OpenAsync();
-                using (var cmd = new NpgsqlCommand(@"
+                using (var cmd = new SQLiteCommand(@"
 INSERT INTO leave_requests (employee_id, leave_type, start_date, end_date, total_days, is_half_day, half_day_period, reason, status)
 VALUES (@emp_id, @type, @start, @end, @days, @half, @period, @reason, 'Pending') RETURNING id", conn))
                 {
@@ -1125,7 +1123,7 @@ VALUES (@emp_id, @type, @start, @end, @days, @half, @period, @reason, 'Pending')
             using (var conn = CreateConnection())
             {
                 await conn.OpenAsync();
-                using (var cmd = new NpgsqlCommand("UPDATE leave_requests SET status='Approved', approved_by=@by, approved_at=now() WHERE id=@id", conn))
+                using (var cmd = new SQLiteCommand("UPDATE leave_requests SET status='Approved', approved_by=@by, approved_at=CURRENT_TIMESTAMP WHERE id=@id", conn))
                 {
                     cmd.Parameters.AddWithValue("id", requestId);
                     cmd.Parameters.AddWithValue("by", approvedBy);
@@ -1139,7 +1137,7 @@ VALUES (@emp_id, @type, @start, @end, @days, @half, @period, @reason, 'Pending')
             using (var conn = CreateConnection())
             {
                 await conn.OpenAsync();
-                using (var cmd = new NpgsqlCommand("UPDATE leave_requests SET status='Rejected', approved_by=@by, approved_at=now(), reject_reason=@reason WHERE id=@id", conn))
+                using (var cmd = new SQLiteCommand("UPDATE leave_requests SET status='Rejected', approved_by=@by, approved_at=CURRENT_TIMESTAMP, reject_reason=@reason WHERE id=@id", conn))
                 {
                     cmd.Parameters.AddWithValue("id", requestId);
                     cmd.Parameters.AddWithValue("by", rejectedBy);
@@ -1158,7 +1156,7 @@ VALUES (@emp_id, @type, @start, @end, @days, @half, @period, @reason, 'Pending')
             using (var conn = CreateConnection())
             {
                 await conn.OpenAsync();
-                using (var cmd = new NpgsqlCommand(@"
+                using (var cmd = new SQLiteCommand(@"
 SELECT u.id, u.username, u.password_hash, u.employee_id, u.role, u.is_active,
        u.last_login, u.failed_login_count, u.locked_until, u.must_change_password,
        e.full_name, e.code
@@ -1170,11 +1168,11 @@ FROM users u LEFT JOIN employees e ON u.employee_id = e.id ORDER BY u.username",
                         {
                             Id = r.GetInt32(0), Username = r.GetString(1), PasswordHash = r.GetString(2),
                             EmployeeId = r.IsDBNull(3) ? (int?)null : r.GetInt32(3),
-                            Role = r.GetString(4), IsActive = r.GetBoolean(5),
+                            Role = r.GetString(4), IsActive = Convert.ToBoolean(r.GetValue(5)),
                             LastLogin = r.IsDBNull(6) ? (DateTime?)null : r.GetDateTime(6),
-                            FailedLoginCount = r.GetInt16(7),
+                            FailedLoginCount = Convert.ToInt16(r.GetValue(7)),
                             LockedUntil = r.IsDBNull(8) ? (DateTime?)null : r.GetDateTime(8),
-                            MustChangePassword = r.GetBoolean(9),
+                            MustChangePassword = Convert.ToBoolean(r.GetValue(9)),
                             EmployeeName = r.IsDBNull(10) ? null : r.GetString(10),
                             EmployeeCode = r.IsDBNull(11) ? null : r.GetString(11)
                         });
@@ -1188,8 +1186,8 @@ FROM users u LEFT JOIN employees e ON u.employee_id = e.id ORDER BY u.username",
             using (var conn = CreateConnection())
             {
                 await conn.OpenAsync();
-                using (var cmd = new NpgsqlCommand(@"
-INSERT INTO users (username, password_hash, employee_id, role, is_active) VALUES (@user, @hash, @emp_id, @role, TRUE) RETURNING id", conn))
+                using (var cmd = new SQLiteCommand(@"
+INSERT INTO users (username, password_hash, employee_id, role, is_active) VALUES (@user, @hash, @emp_id, @role, 1) RETURNING id", conn))
                 {
                     cmd.Parameters.AddWithValue("user", username);
                     cmd.Parameters.AddWithValue("hash", passwordHash);
@@ -1205,7 +1203,7 @@ INSERT INTO users (username, password_hash, employee_id, role, is_active) VALUES
             using (var conn = CreateConnection())
             {
                 await conn.OpenAsync();
-                using (var cmd = new NpgsqlCommand("UPDATE users SET role=@role, is_active=@active, employee_id=@emp_id WHERE id=@id", conn))
+                using (var cmd = new SQLiteCommand("UPDATE users SET role=@role, is_active=@active, employee_id=@emp_id WHERE id=@id", conn))
                 {
                     cmd.Parameters.AddWithValue("id", userId);
                     cmd.Parameters.AddWithValue("role", role);
@@ -1221,7 +1219,7 @@ INSERT INTO users (username, password_hash, employee_id, role, is_active) VALUES
             using (var conn = CreateConnection())
             {
                 await conn.OpenAsync();
-                using (var cmd = new NpgsqlCommand("UPDATE users SET password_hash=@hash, failed_login_count=0, locked_until=NULL, must_change_password=TRUE WHERE id=@id", conn))
+                using (var cmd = new SQLiteCommand("UPDATE users SET password_hash=@hash, failed_login_count=0, locked_until=NULL, must_change_password=1 WHERE id=@id", conn))
                 {
                     cmd.Parameters.AddWithValue("id", userId);
                     cmd.Parameters.AddWithValue("hash", newPasswordHash);
@@ -1235,7 +1233,7 @@ INSERT INTO users (username, password_hash, employee_id, role, is_active) VALUES
             using (var conn = CreateConnection())
             {
                 await conn.OpenAsync();
-                using (var cmd = new NpgsqlCommand("UPDATE users SET is_active = FALSE WHERE id = @id", conn))
+                using (var cmd = new SQLiteCommand("UPDATE users SET is_active = 0 WHERE id = @id", conn))
                 {
                     cmd.Parameters.AddWithValue("id", id);
                     await cmd.ExecuteNonQueryAsync();
@@ -1257,7 +1255,7 @@ INSERT INTO users (username, password_hash, employee_id, role, is_active) VALUES
                     ? "SELECT id, code, name, device_type, location, ip_address, is_active, last_heartbeat FROM attendance_devices ORDER BY code"
                     : "SELECT id, device_code, device_name, device_type, location_name, ip_address, is_active, last_heartbeat FROM attendance_devices ORDER BY device_code";
 
-                using (var cmd = new NpgsqlCommand(sql, conn))
+                using (var cmd = new SQLiteCommand(sql, conn))
                 using (var r = await cmd.ExecuteReaderAsync())
                 {
                     while (await r.ReadAsync())
@@ -1267,7 +1265,7 @@ INSERT INTO users (username, password_hash, employee_id, role, is_active) VALUES
                             DeviceType = r.GetString(3),
                             Location = r.IsDBNull(4) ? null : r.GetString(4),
                             IpAddress = r.IsDBNull(5) ? null : r.GetString(5),
-                            IsActive = r.GetBoolean(6),
+                            IsActive = Convert.ToBoolean(r.GetValue(6)),
                             LastHeartbeat = r.IsDBNull(7) ? (DateTime?)null : r.GetDateTime(7)
                         });
                 }
@@ -1284,12 +1282,12 @@ INSERT INTO users (username, password_hash, employee_id, role, is_active) VALUES
                 var sql = legacyColumns
                     ? @"
 INSERT INTO attendance_devices (code, name, device_type, location, ip_address, is_active)
-VALUES (@code, @name, @type, @loc, @ip, TRUE) RETURNING id"
+VALUES (@code, @name, @type, @loc, @ip, 1) RETURNING id"
                     : @"
 INSERT INTO attendance_devices (device_code, device_name, device_type, location_name, ip_address, is_active)
-VALUES (@code, @name, @type, @loc, @ip, TRUE) RETURNING id";
+VALUES (@code, @name, @type, @loc, @ip, 1) RETURNING id";
 
-                using (var cmd = new NpgsqlCommand(sql, conn))
+                using (var cmd = new SQLiteCommand(sql, conn))
                 {
                     cmd.Parameters.AddWithValue("code", d.Code);
                     cmd.Parameters.AddWithValue("name", d.Name);
@@ -1311,7 +1309,7 @@ VALUES (@code, @name, @type, @loc, @ip, TRUE) RETURNING id";
                     ? "UPDATE attendance_devices SET code=@code, name=@name, device_type=@type, location=@loc, ip_address=@ip, is_active=@active WHERE id=@id"
                     : "UPDATE attendance_devices SET device_code=@code, device_name=@name, device_type=@type, location_name=@loc, ip_address=@ip, is_active=@active WHERE id=@id";
 
-                using (var cmd = new NpgsqlCommand(sql, conn))
+                using (var cmd = new SQLiteCommand(sql, conn))
                 {
                     cmd.Parameters.AddWithValue("id", d.Id);
                     cmd.Parameters.AddWithValue("code", d.Code);
@@ -1330,7 +1328,7 @@ VALUES (@code, @name, @type, @loc, @ip, TRUE) RETURNING id";
             using (var conn = CreateConnection())
             {
                 await conn.OpenAsync();
-                using (var cmd = new NpgsqlCommand("UPDATE attendance_devices SET is_active = FALSE WHERE id = @id", conn))
+                using (var cmd = new SQLiteCommand("UPDATE attendance_devices SET is_active = 0 WHERE id = @id", conn))
                 {
                     cmd.Parameters.AddWithValue("id", id);
                     await cmd.ExecuteNonQueryAsync();
@@ -1353,28 +1351,28 @@ VALUES (@code, @name, @type, @loc, @ip, TRUE) RETURNING id";
                 var sql = hasYear
                     ? @"
 SELECT id, name, year, monday, tuesday, wednesday, thursday, friday, saturday, sunday, is_default,
-       " + (hasIsActive ? "is_active" : "TRUE AS is_active") + @"
+       " + (hasIsActive ? "is_active" : "1 AS is_active") + @"
 FROM work_calendars
-" + (hasIsActive ? "WHERE is_active = TRUE" : string.Empty) + @"
+" + (hasIsActive ? "WHERE is_active = 1" : string.Empty) + @"
 ORDER BY year DESC, name"
                     : @"
 SELECT id, name,
-       EXTRACT(YEAR FROM COALESCE(effective_from, CURRENT_DATE))::INT AS year,
+       CAST(strftime('%Y', COALESCE(effective_from, date('now'))) AS INTEGER) AS year,
        monday, tuesday, wednesday, thursday, friday, saturday, sunday, is_default,
-       TRUE AS is_active
+       1 AS is_active
 FROM work_calendars
 ORDER BY effective_from DESC, name";
 
-                using (var cmd = new NpgsqlCommand(sql, conn))
+                using (var cmd = new SQLiteCommand(sql, conn))
                 using (var r = await cmd.ExecuteReaderAsync())
                 {
                     while (await r.ReadAsync())
                         list.Add(new WorkCalendarDto
                         {
                             Id = r.GetInt32(0), Name = r.GetString(1), Year = Convert.ToInt32(r.GetValue(2)),
-                            Monday = r.GetBoolean(3), Tuesday = r.GetBoolean(4), Wednesday = r.GetBoolean(5),
-                            Thursday = r.GetBoolean(6), Friday = r.GetBoolean(7), Saturday = r.GetBoolean(8),
-                            Sunday = r.GetBoolean(9), IsDefault = r.GetBoolean(10), IsActive = r.GetBoolean(11)
+                            Monday = Convert.ToBoolean(r.GetValue(3)), Tuesday = Convert.ToBoolean(r.GetValue(4)), Wednesday = Convert.ToBoolean(r.GetValue(5)),
+                            Thursday = Convert.ToBoolean(r.GetValue(6)), Friday = Convert.ToBoolean(r.GetValue(7)), Saturday = Convert.ToBoolean(r.GetValue(8)),
+                            Sunday = Convert.ToBoolean(r.GetValue(9)), IsDefault = Convert.ToBoolean(r.GetValue(10)), IsActive = Convert.ToBoolean(r.GetValue(11))
                         });
                 }
             }
@@ -1394,7 +1392,7 @@ ORDER BY effective_from DESC, name";
                     ? (hasIsActive
                         ? @"
 INSERT INTO work_calendars (name, year, monday, tuesday, wednesday, thursday, friday, saturday, sunday, is_default, is_active)
-VALUES (@name, @year, @mon, @tue, @wed, @thu, @fri, @sat, @sun, @default, TRUE) RETURNING id"
+VALUES (@name, @year, @mon, @tue, @wed, @thu, @fri, @sat, @sun, @default, 1) RETURNING id"
                         : @"
 INSERT INTO work_calendars (name, year, monday, tuesday, wednesday, thursday, friday, saturday, sunday, is_default)
 VALUES (@name, @year, @mon, @tue, @wed, @thu, @fri, @sat, @sun, @default) RETURNING id")
@@ -1402,7 +1400,7 @@ VALUES (@name, @year, @mon, @tue, @wed, @thu, @fri, @sat, @sun, @default) RETURN
 INSERT INTO work_calendars (name, monday, tuesday, wednesday, thursday, friday, saturday, sunday, is_default, effective_from)
 VALUES (@name, @mon, @tue, @wed, @thu, @fri, @sat, @sun, @default, @effective_from) RETURNING id";
 
-                using (var cmd = new NpgsqlCommand(sql, conn))
+                using (var cmd = new SQLiteCommand(sql, conn))
                 {
                     cmd.Parameters.AddWithValue("name", wc.Name);
                     if (hasYear)
@@ -1451,7 +1449,7 @@ UPDATE work_calendars SET name=@name, monday=@mon, tuesday=@tue, wednesday=@wed,
     effective_from=@effective_from
 WHERE id=@id";
 
-                using (var cmd = new NpgsqlCommand(sql, conn))
+                using (var cmd = new SQLiteCommand(sql, conn))
                 {
                     cmd.Parameters.AddWithValue("id", wc.Id);
                     cmd.Parameters.AddWithValue("name", wc.Name);
@@ -1487,10 +1485,10 @@ WHERE id=@id";
                 await conn.OpenAsync();
                 var hasIsActive = await ColumnExistsAsync(conn, "work_calendars", "is_active");
                 var sql = hasIsActive
-                    ? "UPDATE work_calendars SET is_active = FALSE WHERE id = @id"
+                    ? "UPDATE work_calendars SET is_active = 0 WHERE id = @id"
                     : "DELETE FROM work_calendars WHERE id = @id";
 
-                using (var cmd = new NpgsqlCommand(sql, conn))
+                using (var cmd = new SQLiteCommand(sql, conn))
                 {
                     cmd.Parameters.AddWithValue("id", id);
                     await cmd.ExecuteNonQueryAsync();
@@ -1509,7 +1507,7 @@ WHERE id=@id";
                 await conn.OpenAsync();
                 var legacyDeviceColumns = await ColumnExistsAsync(conn, "attendance_devices", "name");
                 var deviceNameColumn = legacyDeviceColumns ? "d.name" : "d.device_name";
-                using (var cmd = new NpgsqlCommand(@"
+                using (var cmd = new SQLiteCommand(@"
 SELECT al.id, al.attendance_id, al.employee_id, al.device_id, al.log_time,
        al.log_type, al.method, al.matched_face_id, al.confidence, al.face_distance,
        al.image_path, al.result, al.fail_reason,
@@ -1559,7 +1557,7 @@ ORDER BY al.log_time DESC", conn))
                 await conn.OpenAsync();
                 var legacyDeviceColumns = await ColumnExistsAsync(conn, "attendance_devices", "name");
                 var deviceNameColumn = legacyDeviceColumns ? "d.name" : "d.device_name";
-                using (var cmd = new NpgsqlCommand(@"
+                using (var cmd = new SQLiteCommand(@"
 SELECT al.id, al.attendance_id, al.employee_id, al.device_id, al.log_time,
        al.log_type, al.method, al.matched_face_id, al.confidence, al.face_distance,
        al.image_path, al.result, al.fail_reason,
@@ -1611,7 +1609,7 @@ LIMIT @limit", conn))
                 using (var conn = CreateConnection())
                 {
                     await conn.OpenAsync();
-                    using (var cmd = new NpgsqlCommand("SELECT 1", conn))
+                    using (var cmd = new SQLiteCommand("SELECT 1", conn))
                     {
                         await cmd.ExecuteScalarAsync();
                         return true;
@@ -1633,7 +1631,7 @@ LIMIT @limit", conn))
             using (var conn = CreateConnection())
             {
                 await conn.OpenAsync();
-                using (var cmd = new NpgsqlCommand(@"
+                using (var cmd = new SQLiteCommand(@"
 SELECT ar.id, ar.employee_id, ar.attendance_date, ar.shift_id, ar.check_in, ar.check_out,
        ar.check_in_image_path, ar.check_out_image_path, ar.check_in_method, ar.check_out_method,
        ar.check_in_confidence, ar.check_out_confidence,
@@ -1665,7 +1663,7 @@ ORDER BY ar.attendance_date DESC", conn))
             using (var conn = CreateConnection())
             {
                 await conn.OpenAsync();
-                using (var cmd = new NpgsqlCommand(
+                using (var cmd = new SQLiteCommand(
                     "SELECT key, value, description, data_type FROM system_settings ORDER BY key", conn))
                 using (var r = await cmd.ExecuteReaderAsync())
                 {
@@ -1687,9 +1685,9 @@ ORDER BY ar.attendance_date DESC", conn))
             using (var conn = CreateConnection())
             {
                 await conn.OpenAsync();
-                using (var cmd = new NpgsqlCommand(@"
+                using (var cmd = new SQLiteCommand(@"
 INSERT INTO system_settings (key, value) VALUES (@key, @val)
-ON CONFLICT (key) DO UPDATE SET value = EXCLUDED.value, updated_at = now()", conn))
+ON CONFLICT (key) DO UPDATE SET value = EXCLUDED.value, updated_at = CURRENT_TIMESTAMP", conn))
                 {
                     cmd.Parameters.AddWithValue("key", key);
                     cmd.Parameters.AddWithValue("val", (object)value ?? DBNull.Value);
@@ -1708,7 +1706,7 @@ ON CONFLICT (key) DO UPDATE SET value = EXCLUDED.value, updated_at = now()", con
             using (var conn = CreateConnection())
             {
                 await conn.OpenAsync();
-                using (var cmd = new NpgsqlCommand($@"
+                using (var cmd = new SQLiteCommand($@"
 SELECT al.id, al.user_id, al.action, al.table_name, al.record_id,
        al.old_values, al.new_values, al.ip_address, al.created_at,
        u.username
@@ -1752,7 +1750,7 @@ ORDER BY al.created_at DESC LIMIT @limit", conn))
             using (var conn = CreateConnection())
             {
                 await conn.OpenAsync();
-                using (var cmd = new NpgsqlCommand($@"
+                using (var cmd = new SQLiteCommand($@"
 SELECT frl.id, frl.face_data_id, frl.employee_id, frl.action,
        frl.performed_by, frl.reason, frl.created_at,
        e.full_name AS emp_name, pe.full_name AS by_name
@@ -1790,7 +1788,7 @@ ORDER BY frl.created_at DESC LIMIT 1000", conn))
             using (var conn = CreateConnection())
             {
                 await conn.OpenAsync();
-                using (var cmd = new NpgsqlCommand(@"
+                using (var cmd = new SQLiteCommand(@"
 INSERT INTO face_registration_logs (employee_id, action, performed_by, reason)
 VALUES (@emp_id, @action, @performed_by, @reason)", conn))
                 {
@@ -1808,9 +1806,9 @@ VALUES (@emp_id, @action, @performed_by, @reason)", conn))
             using (var conn = CreateConnection())
             {
                 await conn.OpenAsync();
-                using (var cmd = new NpgsqlCommand(@"
+                using (var cmd = new SQLiteCommand(@"
 UPDATE employees SET is_face_registered = @registered,
-    face_registered_at = CASE WHEN @registered THEN now() ELSE NULL END
+    face_registered_at = CASE WHEN @registered THEN CURRENT_TIMESTAMP ELSE NULL END
 WHERE id = @id", conn))
                 {
                     cmd.Parameters.AddWithValue("id", employeeId);
@@ -1835,7 +1833,7 @@ WHERE id = @id", conn))
             using (var conn = CreateConnection())
             {
                 await conn.OpenAsync();
-                using (var cmd = new NpgsqlCommand($@"
+                using (var cmd = new SQLiteCommand($@"
 SELECT ess.id, ess.employee_id, ess.schedule_date, ess.shift_id, ess.is_override, ess.note,
        e.full_name AS emp_name, ws.name AS shift_name
 FROM employee_shift_schedules ess
@@ -1856,7 +1854,7 @@ LIMIT 2000", conn))
                                 EmployeeId = r.GetInt32(1),
                                 ScheduleDate = r.GetDateTime(2),
                                 ShiftId = r.GetInt32(3),
-                                IsOverride = r.GetBoolean(4),
+                                IsOverride = Convert.ToBoolean(r.GetValue(4)),
                                 Note = r.IsDBNull(5) ? null : r.GetString(5),
                                 EmployeeName = r.IsDBNull(6) ? null : r.GetString(6),
                                 ShiftName = r.IsDBNull(7) ? null : r.GetString(7)
@@ -1872,7 +1870,7 @@ LIMIT 2000", conn))
             using (var conn = CreateConnection())
             {
                 await conn.OpenAsync();
-                using (var cmd = new NpgsqlCommand(@"
+                using (var cmd = new SQLiteCommand(@"
 INSERT INTO employee_shift_schedules (employee_id, schedule_date, shift_id, is_override, note)
 VALUES (@emp_id, @date, @shift_id, @override, @note)
 ON CONFLICT (employee_id, schedule_date)
@@ -1893,7 +1891,7 @@ DO UPDATE SET shift_id = EXCLUDED.shift_id, is_override = EXCLUDED.is_override, 
             using (var conn = CreateConnection())
             {
                 await conn.OpenAsync();
-                using (var cmd = new NpgsqlCommand("DELETE FROM employee_shift_schedules WHERE id = @id", conn))
+                using (var cmd = new SQLiteCommand("DELETE FROM employee_shift_schedules WHERE id = @id", conn))
                 {
                     cmd.Parameters.AddWithValue("id", id);
                     await cmd.ExecuteNonQueryAsync();
@@ -1909,7 +1907,7 @@ DO UPDATE SET shift_id = EXCLUDED.shift_id, is_override = EXCLUDED.is_override, 
             using (var conn = CreateConnection())
             {
                 await conn.OpenAsync();
-                using (var cmd = new NpgsqlCommand("SELECT COUNT(*) FROM leave_requests WHERE status = 'Pending'", conn))
+                using (var cmd = new SQLiteCommand("SELECT COUNT(*) FROM leave_requests WHERE status = 'Pending'", conn))
                 {
                     var result = await cmd.ExecuteScalarAsync();
                     return Convert.ToInt32(result);

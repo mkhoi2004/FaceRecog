@@ -86,9 +86,8 @@ namespace FaceIDApp.UserControls
             });
             dgvLeave.ReadOnly = true;
 
-            // Add toolbar after grid so DockStyle.Top is respected and not hidden by DockStyle.Fill.
             tabLeave.Controls.Add(toolbar);
-            tabLeave.Controls.SetChildIndex(toolbar, 0);
+            dgvLeave.BringToFront();
         }
 
         private async System.Threading.Tasks.Task LoadLeaveAsync()
@@ -205,9 +204,8 @@ namespace FaceIDApp.UserControls
             });
             dgvHolidays.CellEndEdit += DgvHoliday_CellEndEdit;
 
-            // Add toolbar after grid so DockStyle.Top is respected and not hidden by DockStyle.Fill.
             tabHolidays.Controls.Add(toolbar);
-            tabHolidays.Controls.SetChildIndex(toolbar, 0);
+            dgvHolidays.BringToFront();
         }
 
         private async System.Threading.Tasks.Task LoadHolidaysAsync()
@@ -276,7 +274,7 @@ namespace FaceIDApp.UserControls
                 AllowUserToAddRows = false, AllowUserToDeleteRows = false,
                 RowHeadersVisible = false, SelectionMode = DataGridViewSelectionMode.FullRowSelect,
                 AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill,
-                ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.DisableResizing, ColumnHeadersHeight = 38, RowTemplate = { Height = 32 },
+                ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.DisableResizing, ColumnHeadersHeight = 42, RowTemplate = { Height = 32 },
                 Font = new Font("Segoe UI", 9.5F), GridColor = Color.FromArgb(226, 232, 240)
             };
             dgv.ColumnHeadersDefaultCellStyle.BackColor = Color.FromArgb(30, 41, 59);
@@ -288,6 +286,7 @@ namespace FaceIDApp.UserControls
             dgv.AlternatingRowsDefaultCellStyle.BackColor = Color.FromArgb(248, 250, 252);
             dgv.EnableHeadersVisualStyles = false;
             tab.Controls.Add(dgv);
+            dgv.BringToFront();
             return dgv;
         }
 

@@ -28,7 +28,8 @@ namespace FaceIDApp.Data
             dgv.ColumnHeadersDefaultCellStyle.Font = new Font("Segoe UI", 9.5F, FontStyle.Bold);
             dgv.ColumnHeadersDefaultCellStyle.SelectionBackColor = HeaderBg;
             dgv.ColumnHeadersDefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleCenter;
-            dgv.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.DisableResizing; dgv.ColumnHeadersHeight = 36;
+            dgv.ColumnHeadersDefaultCellStyle.Padding = new Padding(0, 4, 0, 4);
+            dgv.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.DisableResizing; dgv.ColumnHeadersHeight = 40;
 
             dgv.DefaultCellStyle.Font = new Font("Segoe UI", 9F);
             dgv.DefaultCellStyle.SelectionBackColor = SelectBg;

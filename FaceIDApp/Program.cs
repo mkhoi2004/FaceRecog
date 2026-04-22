@@ -22,7 +22,7 @@ namespace FaceIDApp
             catch (Exception ex)
             {
                 MessageBox.Show(
-                    $"Không thể kết nối PostgreSQL!\n\n{ex.Message}\n\nVui lòng kiểm tra:\n- PostgreSQL đã chạy chưa?\n- Connection string trong App.config đúng chưa?",
+                    $"Không thể khởi tạo Database SQLite!\n\n{ex.Message}\n\nVui lòng kiểm tra:\n- Thư mục ứng dụng có quyền ghi không?\n- Connection string trong App.config đúng chưa?",
                     "Khởi tạo Database thất bại",
                     MessageBoxButtons.OK,
                     MessageBoxIcon.Error);
