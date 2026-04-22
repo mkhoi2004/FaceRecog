@@ -416,9 +416,14 @@ namespace FaceIDApp.UserControls
 
             var btnAdd = new Button
             {
-                Text = $"＋ {addText}", Font = new Font("Segoe UI", 10F, FontStyle.Bold),
-                ForeColor = Color.White, BackColor = Color.FromArgb(34, 197, 94),
-                FlatStyle = FlatStyle.Flat, Size = new Size(180, 35), Location = new Point(5, 5),
+                Text = $"＋ {addText}", 
+                Font = new Font("Segoe UI", 9.5F, FontStyle.Bold),
+                ForeColor = Color.White, 
+                BackColor = Color.FromArgb(34, 197, 94),
+                FlatStyle = FlatStyle.Flat, 
+                Size = new Size(180, 36), 
+                Location = new Point(5, 5),
+                TextAlign = ContentAlignment.MiddleCenter,
                 Cursor = Cursors.Hand
             };
             btnAdd.FlatAppearance.BorderSize = 0;
@@ -427,9 +432,14 @@ namespace FaceIDApp.UserControls
 
             var btnDel = new Button
             {
-                Text = "🗑 Xóa", Font = new Font("Segoe UI", 10F),
-                ForeColor = Color.White, BackColor = Color.FromArgb(239, 68, 68),
-                FlatStyle = FlatStyle.Flat, Size = new Size(100, 35), Location = new Point(195, 5),
+                Text = "🗑 Xóa", 
+                Font = new Font("Segoe UI", 9.5F, FontStyle.Bold),
+                ForeColor = Color.White, 
+                BackColor = Color.FromArgb(239, 68, 68),
+                FlatStyle = FlatStyle.Flat, 
+                Size = new Size(100, 36), 
+                Location = new Point(btnAdd.Right + 8, 5),
+                TextAlign = ContentAlignment.MiddleCenter,
                 Cursor = Cursors.Hand
             };
             btnDel.FlatAppearance.BorderSize = 0;

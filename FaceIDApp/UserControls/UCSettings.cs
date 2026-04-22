@@ -68,35 +68,66 @@ namespace FaceIDApp.UserControls
 
             // Toolbar
             var toolbar = MakePanel(DockStyle.Top, 50);
-            btnAddUser      = MakeBtn("➕ Thêm TK", Color.FromArgb(34, 197, 94));
-            btnResetPwd     = MakeBtn("🔑 Reset PW", Color.FromArgb(59, 130, 246));
-            btnToggleActive = MakeBtn("🔒 Kích hoạt", Color.FromArgb(234, 179, 8));
-            btnRefreshUsers = MakeBtn("🔄 Làm mới", Color.FromArgb(107, 114, 128));
-            btnAddUser.Location      = new Point(5,  8);
-            btnResetPwd.Location     = new Point(115, 8);
-            btnToggleActive.Location = new Point(225, 8);
-            btnRefreshUsers.Location = new Point(335, 8);
-            toolbar.Controls.AddRange(new Control[] { btnAddUser, btnResetPwd, btnToggleActive, btnRefreshUsers });
+            var flpToolbar = new FlowLayoutPanel
+            {
+                Dock = DockStyle.Fill,
+                FlowDirection = FlowDirection.LeftToRight,
+                Padding = new Padding(5, 7, 5, 5),
+                BackColor = Color.Transparent
+            };
+            
+            btnAddUser      = MakeBtn("➕ Thêm TK", Color.FromArgb(34, 197, 94)); btnAddUser.Width = 110;
+            btnResetPwd     = MakeBtn("🔑 Reset PW", Color.FromArgb(59, 130, 246)); btnResetPwd.Width = 115;
+            btnToggleActive = MakeBtn("🔒 Kích hoạt", Color.FromArgb(234, 179, 8)); btnToggleActive.Width = 115;
+            btnRefreshUsers = MakeBtn("🔄 Làm mới", Color.FromArgb(107, 114, 128)); btnRefreshUsers.Width = 100;
+            
+            flpToolbar.Controls.AddRange(new Control[] { btnAddUser, btnResetPwd, btnToggleActive, btnRefreshUsers });
+            toolbar.Controls.Add(flpToolbar);
 
             // Form thêm
-            var pnlForm = MakePanel(DockStyle.Top, 90);
-            pnlForm.Padding = new Padding(5, 5, 5, 5);
-            txtNewUsername = MakeTxt(); txtNewUsername.Location = new Point(80, 10); txtNewUsername.Size = new Size(140, 26);
+            var pnlForm = MakePanel(DockStyle.Top, 100);
+            var tlpForm = new TableLayoutPanel
+            {
+                Dock = DockStyle.Fill,
+                ColumnCount = 4,
+                RowCount = 2,
+                Padding = new Padding(5)
+            };
+            tlpForm.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 25F));
+            tlpForm.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 25F));
+            tlpForm.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 20F));
+            tlpForm.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 30F));
+            
+            txtNewUsername = MakeTxt(); txtNewUsername.Dock = DockStyle.Top;
             SetWatermark(txtNewUsername, "Tên đăng nhập");
-            txtNewPassword = MakeTxt(); txtNewPassword.Location = new Point(240, 10); txtNewPassword.Size = new Size(120, 26); txtNewPassword.UseSystemPasswordChar = true;
+            
+            txtNewPassword = MakeTxt(); txtNewPassword.Dock = DockStyle.Top; txtNewPassword.UseSystemPasswordChar = true;
             SetWatermark(txtNewPassword, "Mật khẩu");
-            cboNewRole = new ComboBox { Location = new Point(380, 10), Size = new Size(100, 26), DropDownStyle = ComboBoxStyle.DropDownList, Font = new Font("Segoe UI", 9.5F) };
+            
+            cboNewRole = new ComboBox { Dock = DockStyle.Top, DropDownStyle = ComboBoxStyle.DropDownList, Font = new Font("Segoe UI", 9.5F) };
             cboNewRole.Items.AddRange(new[] { "Admin", "Manager", "Employee" });
             cboNewRole.SelectedIndex = 2;
-            cboUserEmployee = new ComboBox { Location = new Point(495, 10), Size = new Size(200, 26), DropDownStyle = ComboBoxStyle.DropDownList, Font = new Font("Segoe UI", 9.5F) };
-            lblUserInfo = new Label { Location = new Point(5, 50), Size = new Size(700, 30), Font = new Font("Segoe UI", 9F), ForeColor = Color.FromArgb(75, 85, 99) };
-            pnlForm.Controls.AddRange(new Control[] {
-                MakeLbl("Tên TK:", new Point(5, 13)), txtNewUsername,
-                MakeLbl("Mật khẩu:", new Point(235, 13)), txtNewPassword,
-                MakeLbl("Vai trò:", new Point(375, 13)), cboNewRole,
-                MakeLbl("Nhân viên:", new Point(490, 13)), cboUserEmployee,
-                lblUserInfo
-            });
+            
+            cboUserEmployee = new ComboBox { Dock = DockStyle.Top, DropDownStyle = ComboBoxStyle.DropDownList, Font = new Font("Segoe UI", 9.5F) };
+            
+            lblUserInfo = new Label { Dock = DockStyle.Fill, Font = new Font("Segoe UI", 9F, FontStyle.Italic), ForeColor = Color.FromArgb(71, 85, 105), TextAlign = ContentAlignment.MiddleLeft };
+            
+            tlpForm.Controls.Add(MakeLbl("Tên TK:", Point.Empty), 0, 0);
+            tlpForm.Controls.Add(MakeLbl("Mật khẩu:", Point.Empty), 1, 0);
+            tlpForm.Controls.Add(MakeLbl("Vai trò:", Point.Empty), 2, 0);
+            tlpForm.Controls.Add(MakeLbl("Nhân viên:", Point.Empty), 3, 0);
+            
+            tlpForm.Controls.Add(txtNewUsername, 0, 1);
+            tlpForm.Controls.Add(txtNewPassword, 1, 1);
+            tlpForm.Controls.Add(cboNewRole, 2, 1);
+            tlpForm.Controls.Add(cboUserEmployee, 3, 1);
+            
+            var pnlInfo = new Panel { Dock = DockStyle.Bottom, Height = 30, Padding = new Padding(10, 0, 0, 0) };
+            pnlInfo.Controls.Add(lblUserInfo);
+
+            pnlForm.Controls.Clear();
+            pnlForm.Controls.Add(tlpForm);
+            pnlForm.Controls.Add(pnlInfo);
 
             // Grid
             dgvUsers = MakeGrid();
@@ -301,12 +332,21 @@ namespace FaceIDApp.UserControls
             var pnl = new Panel { Dock = DockStyle.Fill };
 
             var toolbar = MakePanel(DockStyle.Top, 50);
-            btnSaveConfig   = MakeBtn("💾 Lưu thay đổi", Color.FromArgb(34, 197, 94));
-            btnRefreshConfig = MakeBtn("🔄 Làm mới", Color.FromArgb(107, 114, 128));
-            btnSaveConfig.Location   = new Point(5,  8);
-            btnRefreshConfig.Location = new Point(175, 8);
-            var lblHint = new Label { Text = "Nhấp đúp vào ô Giá trị để sửa trực tiếp. Nhấn Lưu để cập nhật DB.", Font = new Font("Segoe UI", 9F), ForeColor = Color.FromArgb(107, 114, 128), Location = new Point(310, 14), AutoSize = true };
-            toolbar.Controls.AddRange(new Control[] { btnSaveConfig, btnRefreshConfig, lblHint });
+            var flpToolbar = new FlowLayoutPanel
+            {
+                Dock = DockStyle.Fill,
+                FlowDirection = FlowDirection.LeftToRight,
+                Padding = new Padding(5, 7, 5, 5),
+                BackColor = Color.Transparent
+            };
+
+            btnSaveConfig   = MakeBtn("💾 Lưu thay đổi", Color.FromArgb(34, 197, 94)); btnSaveConfig.Width = 140;
+            btnRefreshConfig = MakeBtn("🔄 Làm mới", Color.FromArgb(107, 114, 128)); btnRefreshConfig.Width = 100;
+            
+            var lblHint = new Label { Text = "Nhấp đúp vào ô Giá trị để sửa trực tiếp. Nhấn Lưu để cập nhật DB.", Font = new Font("Segoe UI", 9F, FontStyle.Italic), ForeColor = Color.FromArgb(107, 114, 128), AutoSize = true, Margin = new Padding(10, 8, 0, 0) };
+            
+            flpToolbar.Controls.AddRange(new Control[] { btnSaveConfig, btnRefreshConfig, lblHint });
+            toolbar.Controls.Add(flpToolbar);
 
             dgvConfig = MakeGrid();
             dgvConfig.ReadOnly = false;
@@ -376,22 +416,33 @@ namespace FaceIDApp.UserControls
             var pnl = new Panel { Dock = DockStyle.Fill };
 
             var toolbar = MakePanel(DockStyle.Top, 85);
-            btnRefreshAudit = MakeBtn("🔄 Tải nhật ký", Color.FromArgb(59, 130, 246));
-            btnRefreshAudit.Location = new Point(5, 8);
-            cboAuditTable = new ComboBox { Location = new Point(165, 12), Size = new Size(150, 26), DropDownStyle = ComboBoxStyle.DropDownList, Font = new Font("Segoe UI", 9.5F) };
+            var flpTop = new FlowLayoutPanel { Dock = DockStyle.Top, Height = 42, Padding = new Padding(5, 5, 5, 0), BackColor = Color.Transparent };
+            var flpBottom = new FlowLayoutPanel { Dock = DockStyle.Bottom, Height = 42, Padding = new Padding(5, 0, 5, 5), BackColor = Color.Transparent };
+
+            btnRefreshAudit = MakeBtn("🔄 Tải nhật ký", Color.FromArgb(59, 130, 246)); btnRefreshAudit.Width = 130;
+            
+            cboAuditTable = new ComboBox { Size = new Size(150, 26), DropDownStyle = ComboBoxStyle.DropDownList, Font = new Font("Segoe UI", 9.5F), Margin = new Padding(5, 5, 5, 0) };
             cboAuditTable.Items.AddRange(new[] { "(Tất cả bảng)", "employees", "attendance_records", "leave_requests", "users", "work_shifts", "departments" });
             cboAuditTable.SelectedIndex = 0;
-            cboAuditAction = new ComboBox { Location = new Point(325, 12), Size = new Size(110, 26), DropDownStyle = ComboBoxStyle.DropDownList, Font = new Font("Segoe UI", 9.5F) };
+            
+            cboAuditAction = new ComboBox { Size = new Size(110, 26), DropDownStyle = ComboBoxStyle.DropDownList, Font = new Font("Segoe UI", 9.5F), Margin = new Padding(5, 5, 5, 0) };
             cboAuditAction.Items.AddRange(new[] { "(Tất cả)", "INSERT", "UPDATE", "DELETE" });
             cboAuditAction.SelectedIndex = 0;
+            
+            var lblLimit = new Label { Text = "Hiển thị tối đa 500 bản ghi", ForeColor = Color.FromArgb(107, 114, 128), Font = new Font("Segoe UI", 9F, FontStyle.Italic), AutoSize = true, Margin = new Padding(10, 10, 0, 0) };
+
+            flpTop.Controls.AddRange(new Control[] { btnRefreshAudit, cboAuditTable, cboAuditAction, lblLimit });
 
             // Date range
-            var lblFrom = new Label { Text = "Từ:", Font = new Font("Segoe UI", 9F), Location = new Point(5, 52), AutoSize = true };
-            dtpAuditFrom = new DateTimePicker { Location = new Point(35, 48), Size = new Size(145, 26), Format = DateTimePickerFormat.Short, Value = DateTime.Today.AddDays(-30), Font = new Font("Segoe UI", 9F) };
-            var lblTo = new Label { Text = "Đến:", Font = new Font("Segoe UI", 9F), Location = new Point(190, 52), AutoSize = true };
-            dtpAuditTo = new DateTimePicker { Location = new Point(225, 48), Size = new Size(145, 26), Format = DateTimePickerFormat.Short, Value = DateTime.Today, Font = new Font("Segoe UI", 9F) };
-            var lblLimit = new Label { Text = "Hiển thị tối đa 500 bản ghi", ForeColor = Color.FromArgb(107, 114, 128), Font = new Font("Segoe UI", 9F), Location = new Point(445, 14), AutoSize = true };
-            toolbar.Controls.AddRange(new Control[] { btnRefreshAudit, cboAuditTable, cboAuditAction, lblFrom, dtpAuditFrom, lblTo, dtpAuditTo, lblLimit });
+            var lblFrom = new Label { Text = "Từ:", Font = new Font("Segoe UI", 9F), AutoSize = true, Margin = new Padding(5, 10, 0, 0) };
+            dtpAuditFrom = new DateTimePicker { Size = new Size(145, 26), Format = DateTimePickerFormat.Short, Value = DateTime.Today.AddDays(-30), Font = new Font("Segoe UI", 9F), Margin = new Padding(5, 5, 5, 0) };
+            var lblTo = new Label { Text = "Đến:", Font = new Font("Segoe UI", 9F), AutoSize = true, Margin = new Padding(15, 10, 0, 0) };
+            dtpAuditTo = new DateTimePicker { Size = new Size(145, 26), Format = DateTimePickerFormat.Short, Value = DateTime.Today, Font = new Font("Segoe UI", 9F), Margin = new Padding(5, 5, 5, 0) };
+            
+            flpBottom.Controls.AddRange(new Control[] { lblFrom, dtpAuditFrom, lblTo, dtpAuditTo });
+            
+            toolbar.Controls.Add(flpBottom);
+            toolbar.Controls.Add(flpTop);
 
             dgvAudit = MakeGrid();
             dgvAudit.ColumnHeadersDefaultCellStyle.BackColor = Color.FromArgb(30, 41, 59);
@@ -456,12 +507,21 @@ namespace FaceIDApp.UserControls
             var pnl = new Panel { Dock = DockStyle.Fill };
 
             var toolbar = MakePanel(DockStyle.Top, 50);
-            btnRefreshFaceLog = MakeBtn("🔄 Tải nhật ký", Color.FromArgb(59, 130, 246));
-            btnRefreshFaceLog.Location = new Point(5, 8);
-            cboFaceLogEmp = new ComboBox { Location = new Point(165, 12), Size = new Size(220, 26), DropDownStyle = ComboBoxStyle.DropDownList, Font = new Font("Segoe UI", 9.5F) };
+            var flpToolbar = new FlowLayoutPanel
+            {
+                Dock = DockStyle.Fill,
+                FlowDirection = FlowDirection.LeftToRight,
+                Padding = new Padding(5, 7, 5, 5),
+                BackColor = Color.Transparent
+            };
+            
+            btnRefreshFaceLog = MakeBtn("🔄 Tải nhật ký", Color.FromArgb(59, 130, 246)); btnRefreshFaceLog.Width = 130;
+            cboFaceLogEmp = new ComboBox { Size = new Size(220, 26), DropDownStyle = ComboBoxStyle.DropDownList, Font = new Font("Segoe UI", 9.5F), Margin = new Padding(5, 5, 5, 0) };
             cboFaceLogEmp.Items.Add("(Tất cả nhân viên)");
             cboFaceLogEmp.SelectedIndex = 0;
-            toolbar.Controls.AddRange(new Control[] { btnRefreshFaceLog, cboFaceLogEmp });
+            
+            flpToolbar.Controls.AddRange(new Control[] { btnRefreshFaceLog, cboFaceLogEmp });
+            toolbar.Controls.Add(flpToolbar);
 
             dgvFaceLog = MakeGrid();
             dgvFaceLog.ColumnHeadersDefaultCellStyle.BackColor = Color.FromArgb(168, 85, 247);
@@ -574,7 +634,9 @@ namespace FaceIDApp.UserControls
                 Text = text, Font = new Font("Segoe UI", 9.5F, FontStyle.Bold),
                 ForeColor = Color.White, BackColor = bg,
                 FlatStyle = FlatStyle.Flat, Cursor = Cursors.Hand,
-                Size = new Size(160, 35)
+                Size = new Size(110, 36),
+                TextAlign = ContentAlignment.MiddleCenter,
+                Margin = new Padding(0, 0, 8, 0)
             };
             b.FlatAppearance.BorderSize = 0;
             return b;

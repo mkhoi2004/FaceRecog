@@ -48,6 +48,18 @@ namespace FaceIDApp.UserControls
             btnClearAll.Click += BtnClearAll_Click;
             btnRegister.Click += BtnRegister_Click;
 
+            // --- Fix Title Spacing Issue ---
+            lblTitle.AutoSize = false;
+            lblTitle.Size = new Size(800, 45);
+            lblTitle.Text = "📷 Đăng ký khuôn mặt";
+            lblTitle.TextAlign = ContentAlignment.MiddleLeft;
+            lblTitle.Font = new Font("Segoe UI", 18F, FontStyle.Bold);
+            lblTitle.ForeColor = Color.FromArgb(30, 41, 59); // Slate 800
+            lblTitle.UseCompatibleTextRendering = true;
+
+            lblInstruction.ForeColor = Color.FromArgb(71, 85, 105); // Slate 600
+            lblInstruction.Font = new Font("Segoe UI", 9F, FontStyle.Italic);
+
             // --- Fix the "separated weirdly" layout with TableLayoutPanel ---
             pnlLeft.Dock = DockStyle.None;
             pnlRight.Dock = DockStyle.None;
@@ -57,16 +69,17 @@ namespace FaceIDApp.UserControls
                 Dock = DockStyle.Fill,
                 ColumnCount = 2,
                 RowCount = 1,
-                BackColor = Color.Transparent
+                BackColor = Color.Transparent,
+                Padding = new Padding(0)
             };
             tlpMain.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 50F));
             tlpMain.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 50F));
             tlpMain.RowStyles.Add(new RowStyle(SizeType.Percent, 100F));
             
             pnlLeft.Dock = DockStyle.Fill;
-            pnlLeft.Margin = new Padding(0, 0, 10, 0);
+            pnlLeft.Margin = new Padding(0, 0, 5, 0);
             pnlRight.Dock = DockStyle.Fill;
-            pnlRight.Margin = new Padding(10, 0, 0, 0);
+            pnlRight.Margin = new Padding(5, 0, 0, 0);
             
             tlpMain.Controls.Add(pnlLeft, 0, 0);
             tlpMain.Controls.Add(pnlRight, 1, 0);
@@ -79,15 +92,16 @@ namespace FaceIDApp.UserControls
             {
                 Dock = DockStyle.Fill,
                 ColumnCount = 2,
-                RowCount = 1
+                RowCount = 1,
+                Padding = new Padding(0)
             };
             tlpCamBtns.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 50F));
             tlpCamBtns.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 50F));
             
             btnStartCamera.Dock = DockStyle.Fill;
-            btnStartCamera.Margin = new Padding(10, 5, 5, 5);
+            btnStartCamera.Margin = new Padding(0, 5, 5, 5);
             btnStopCamera.Dock = DockStyle.Fill;
-            btnStopCamera.Margin = new Padding(5, 5, 10, 5);
+            btnStopCamera.Margin = new Padding(5, 5, 0, 5);
             
             tlpCamBtns.Controls.Add(btnStartCamera, 0, 0);
             tlpCamBtns.Controls.Add(btnStopCamera, 1, 0);
@@ -100,18 +114,19 @@ namespace FaceIDApp.UserControls
             {
                 Dock = DockStyle.Fill,
                 ColumnCount = 3,
-                RowCount = 1
+                RowCount = 1,
+                Padding = new Padding(0)
             };
             tlpBtns.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 33.33F));
             tlpBtns.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 33.33F));
             tlpBtns.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 33.33F));
             
             btnCapture.Dock = DockStyle.Fill;
-            btnCapture.Margin = new Padding(5);
+            btnCapture.Margin = new Padding(0, 5, 5, 5);
             btnClearAll.Dock = DockStyle.Fill;
             btnClearAll.Margin = new Padding(5);
             btnRegister.Dock = DockStyle.Fill;
-            btnRegister.Margin = new Padding(5);
+            btnRegister.Margin = new Padding(5, 5, 0, 5);
             
             tlpBtns.Controls.Add(btnCapture, 0, 0);
             tlpBtns.Controls.Add(btnClearAll, 1, 0);
@@ -136,8 +151,43 @@ namespace FaceIDApp.UserControls
             
             // Neo nút vào góc phải trên của GroupBox
             btnViewRegistered.Anchor = AnchorStyles.Top | AnchorStyles.Right;
-            btnViewRegistered.Location = new System.Drawing.Point(grpEmployeeSelect.Width - btnViewRegistered.Width - 15, lblSelectedInfo.Top);
+            btnViewRegistered.Location = new System.Drawing.Point(grpEmployeeSelect.Width - btnViewRegistered.Width - 15, 30);
             grpEmployeeSelect.Controls.Add(btnViewRegistered);
+            btnViewRegistered.BringToFront();
+
+            // Narrow the combobox to make room for the button
+            cboSelectEmployee.Width = grpEmployeeSelect.Width - 250; 
+            cboSelectEmployee.DropDownWidth = 350;
+
+            // Fix Progress Panel
+            pnlProgress.Dock = DockStyle.Bottom;
+            pnlProgress.Height = 55;
+            pnlProgress.Padding = new Padding(10, 5, 10, 5);
+            lblProgress.Dock = DockStyle.Top;
+            lblProgress.Height = 20;
+            progressBar.Dock = DockStyle.Fill;
+            progressBar.Margin = new Padding(0, 5, 0, 5);
+
+            // Fix Instruction
+            lblInstruction.AutoSize = false;
+            lblInstruction.Height = 55;
+            lblInstruction.Padding = new Padding(5);
+
+            // Fix FlowLayoutPanel for images
+            flpCapturedImages.Dock = DockStyle.Fill;
+            flpCapturedImages.AutoScroll = true;
+            flpCapturedImages.BackColor = Color.FromArgb(248, 250, 252);
+            flpCapturedImages.Padding = new Padding(10);
+
+            // Improve PictureBoxes in FlowLayoutPanel
+            foreach (var pb in capturedPictures)
+            {
+                pb.Margin = new Padding(8);
+                pb.BackColor = Color.White;
+                pb.BorderStyle = BorderStyle.FixedSingle;
+                pb.Width = 105; // Slightly smaller to ensure 3 per row if possible
+                pb.Height = 105;
+            }
         }
 
         public async void RefreshData()

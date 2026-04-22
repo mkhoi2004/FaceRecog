@@ -83,9 +83,9 @@ namespace FaceIDApp.UserControls
             this.lblTitle.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(41)))), ((int)(((byte)(128)))), ((int)(((byte)(185)))));
             this.lblTitle.Location = new System.Drawing.Point(20, 17);
             this.lblTitle.Name = "lblTitle";
-            this.lblTitle.Size = new System.Drawing.Size(309, 32);
+            this.lblTitle.Size = new System.Drawing.Size(800, 40);
             this.lblTitle.TabIndex = 0;
-            this.lblTitle.Text = "📷 Đăng ký khuôn mặt";
+            this.lblTitle.Text = "Đăng ký khuôn mặt";
             // 
             // pnlMain
             // 

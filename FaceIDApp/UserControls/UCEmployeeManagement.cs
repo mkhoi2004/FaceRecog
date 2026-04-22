@@ -211,6 +211,39 @@ namespace FaceIDApp.UserControls
         // =============================================
         private void SetupUI()
         {
+            // Fix Title Spacing Issue
+            lblTitle.AutoSize = false;
+            lblTitle.Size = new Size(800, 45);
+            lblTitle.Text = "👥 Quản lý nhân viên";
+            lblTitle.TextAlign = ContentAlignment.MiddleLeft;
+            lblTitle.Font = new Font("Segoe UI", 18F, FontStyle.Bold);
+            lblTitle.ForeColor = Color.FromArgb(30, 41, 59); // Slate 800
+            lblTitle.UseCompatibleTextRendering = true;
+
+            // Standardize Toolbar Buttons
+            var toolbarButtons = new[] { btnAdd, btnEdit, btnDelete, btnRefresh };
+            foreach (var btn in toolbarButtons)
+            {
+                btn.Height = 36;
+                btn.Font = new Font("Segoe UI", 9.5F, FontStyle.Bold);
+                btn.TextAlign = ContentAlignment.MiddleCenter;
+                btn.FlatStyle = FlatStyle.Flat;
+                btn.FlatAppearance.BorderSize = 0;
+                btn.Cursor = Cursors.Hand;
+            }
+
+            btnAdd.Text = "➕ Thêm";
+            btnAdd.Width = 90;
+            
+            btnEdit.Text = "✏️ Sửa";
+            btnEdit.Width = 80;
+            
+            btnDelete.Text = "🗑️ Xóa";
+            btnDelete.Width = 80;
+            
+            btnRefresh.Text = "🔄 Làm mới";
+            btnRefresh.Width = 110;
+
             // Grid styling
             dgvEmployees.ColumnHeadersDefaultCellStyle.BackColor = Color.FromArgb(41, 128, 185);
             dgvEmployees.ColumnHeadersDefaultCellStyle.ForeColor = Color.White;
@@ -258,6 +291,14 @@ namespace FaceIDApp.UserControls
 
         private void ApplyToolbarLayout()
         {
+            // Left buttons alignment
+            var x = 15;
+            btnAdd.Left = x; x += btnAdd.Width + 8;
+            btnEdit.Left = x; x += btnEdit.Width + 8;
+            btnDelete.Left = x; x += btnDelete.Width + 8;
+            btnRefresh.Left = x;
+
+            // Right controls alignment
             var rightPadding = 15;
             cboFilterDepartment.Left = pnlToolbar.ClientSize.Width - cboFilterDepartment.Width - rightPadding;
             btnSearch.Left = cboFilterDepartment.Left - btnSearch.Width - 8;

@@ -29,9 +29,15 @@ namespace FaceIDApp.UserControls
 
             var btnAdd = new Button
             {
-                Text = "＋ Tạo đơn nghỉ phép", Font = new Font("Segoe UI", 10F, FontStyle.Bold),
-                ForeColor = Color.White, BackColor = Color.FromArgb(34, 197, 94),
-                FlatStyle = FlatStyle.Flat, Size = new Size(200, 35), Location = new Point(5, 5), Cursor = Cursors.Hand
+                Text = "＋ Tạo đơn", 
+                Font = new Font("Segoe UI", 9.5F, FontStyle.Bold),
+                ForeColor = Color.White, 
+                BackColor = Color.FromArgb(34, 197, 94),
+                FlatStyle = FlatStyle.Flat, 
+                Size = new Size(110, 36), 
+                Location = new Point(5, 5), 
+                TextAlign = ContentAlignment.MiddleCenter,
+                Cursor = Cursors.Hand
             };
             btnAdd.FlatAppearance.BorderSize = 0;
             btnAdd.Click += BtnAddLeave_Click;
@@ -39,9 +45,15 @@ namespace FaceIDApp.UserControls
 
             var btnApprove = new Button
             {
-                Text = "✓ Duyệt", Font = new Font("Segoe UI", 10F, FontStyle.Bold),
-                ForeColor = Color.White, BackColor = Color.FromArgb(59, 130, 246),
-                FlatStyle = FlatStyle.Flat, Size = new Size(100, 35), Location = new Point(215, 5), Cursor = Cursors.Hand
+                Text = "✓ Duyệt", 
+                Font = new Font("Segoe UI", 9.5F, FontStyle.Bold),
+                ForeColor = Color.White, 
+                BackColor = Color.FromArgb(59, 130, 246),
+                FlatStyle = FlatStyle.Flat, 
+                Size = new Size(95, 36), 
+                Location = new Point(btnAdd.Right + 8, 5), 
+                TextAlign = ContentAlignment.MiddleCenter,
+                Cursor = Cursors.Hand
             };
             btnApprove.FlatAppearance.BorderSize = 0;
             btnApprove.Click += BtnApprove_Click;
@@ -49,9 +61,15 @@ namespace FaceIDApp.UserControls
 
             var btnReject = new Button
             {
-                Text = "✗ Từ chối", Font = new Font("Segoe UI", 10F),
-                ForeColor = Color.White, BackColor = Color.FromArgb(239, 68, 68),
-                FlatStyle = FlatStyle.Flat, Size = new Size(110, 35), Location = new Point(325, 5), Cursor = Cursors.Hand
+                Text = "✗ Từ chối", 
+                Font = new Font("Segoe UI", 9.5F, FontStyle.Bold),
+                ForeColor = Color.White, 
+                BackColor = Color.FromArgb(239, 68, 68),
+                FlatStyle = FlatStyle.Flat, 
+                Size = new Size(100, 36), 
+                Location = new Point(btnApprove.Right + 8, 5), 
+                TextAlign = ContentAlignment.MiddleCenter,
+                Cursor = Cursors.Hand
             };
             btnReject.FlatAppearance.BorderSize = 0;
             btnReject.Click += BtnReject_Click;
@@ -59,9 +77,15 @@ namespace FaceIDApp.UserControls
 
             var btnEdit = new Button
             {
-                Text = "✎ Sửa đơn", Font = new Font("Segoe UI", 10F),
-                ForeColor = Color.White, BackColor = Color.FromArgb(245, 158, 11),
-                FlatStyle = FlatStyle.Flat, Size = new Size(110, 35), Location = new Point(445, 5), Cursor = Cursors.Hand
+                Text = "✎ Sửa đơn", 
+                Font = new Font("Segoe UI", 9.5F, FontStyle.Bold),
+                ForeColor = Color.White, 
+                BackColor = Color.FromArgb(245, 158, 11),
+                FlatStyle = FlatStyle.Flat, 
+                Size = new Size(105, 36), 
+                Location = new Point(btnReject.Right + 8, 5), 
+                TextAlign = ContentAlignment.MiddleCenter,
+                Cursor = Cursors.Hand
             };
             btnEdit.FlatAppearance.BorderSize = 0;
             btnEdit.Click += BtnEditLeave_Click;
@@ -69,9 +93,15 @@ namespace FaceIDApp.UserControls
 
             var btnCancel = new Button
             {
-                Text = "🚫 Rút đơn", Font = new Font("Segoe UI", 10F),
-                ForeColor = Color.White, BackColor = Color.FromArgb(100, 116, 139),
-                FlatStyle = FlatStyle.Flat, Size = new Size(110, 35), Location = new Point(565, 5), Cursor = Cursors.Hand
+                Text = "🚫 Rút đơn", 
+                Font = new Font("Segoe UI", 9.5F, FontStyle.Bold),
+                ForeColor = Color.White, 
+                BackColor = Color.FromArgb(100, 116, 139),
+                FlatStyle = FlatStyle.Flat, 
+                Size = new Size(105, 36), 
+                Location = new Point(btnEdit.Right + 8, 5), 
+                TextAlign = ContentAlignment.MiddleCenter,
+                Cursor = Cursors.Hand
             };
             btnCancel.FlatAppearance.BorderSize = 0;
             btnCancel.Click += BtnCancelLeave_Click;
