@@ -2,35 +2,43 @@
 <html lang="vi">
 <head>
   <meta charset="utf-8" />
-  <title>Gioi thieu he thong</title>
+  <title>Giới thiệu hệ thống FaceIDApp</title>
   <style>
     body { font-family: Segoe UI, Arial, sans-serif; line-height: 1.6; margin: 28px; color: #1f2937; }
-    h1, h2 { color: #0f172a; }
+    h1, h2 { color: #0f172a; border-bottom: 2px solid #e2e8f0; padding-bottom: 8px; }
+    .highlight { color: #0369a1; font-weight: bold; }
+    ul { padding-left: 20px; }
+    li { margin-bottom: 8px; }
   </style>
 </head>
 <body>
-  <h1>1. Gioi thieu he thong</h1>
-  <p>FaceIDApp la ung dung cham cong WinForms su dung nhan dien khuon mat.</p>
+  <h1>1. Giới thiệu hệ thống</h1>
+  <p><strong>FaceIDApp</strong> là giải pháp chấm công hiện đại dành cho doanh nghiệp, sử dụng công nghệ trí tuệ nhân tạo (AI) để nhận diện khuôn mặt qua webcam thay thế cho các phương thức truyền thống như thẻ từ hay vân tay.</p>
 
-  <h2>Muc tieu</h2>
+  <h2>Mục tiêu và Chức năng chính</h2>
   <ul>
-    <li>Cham cong tu dong bang webcam.</li>
-    <li>Quan ly nhan vien, ca lam, nghi phep.</li>
-    <li>Luu audit log va bao cao theo ngay/thang.</li>
+    <li><span class="highlight">Chấm công tự động:</span> Nhận diện khuôn mặt thời gian thực (Real-time) với độ chính xác cao, tự động ghi nhận giờ vào (Check-in) và giờ ra (Check-out).</li>
+    <li><span class="highlight">Quản lý nhân sự:</span> Quản lý thông tin chi tiết nhân viên, phòng ban, và chức vụ.</li>
+    <li><span class="highlight">Đăng ký khuôn mặt:</span> Quy trình đăng ký dễ dàng, hỗ trợ lưu trữ nhiều góc mặt để tăng độ chính xác.</li>
+    <li><span class="highlight">Quản lý nghỉ phép:</span> Số hóa quy trình xin nghỉ phép, tự động tính toán số ngày phép còn lại.</li>
+    <li><span class="highlight">Báo cáo đa dạng:</span> Tổng hợp dữ liệu chấm công theo ngày, tháng hoặc theo từng cá nhân/phòng ban.</li>
+    <li><span class="highlight">Minh bạch (Audit Trail):</span> Lưu trữ nhật ký hệ thống và nhật ký nhận diện chi tiết, phục vụ mục đích đối soát.</li>
   </ul>
 
-  <h2>Cong nghe chinh</h2>
+  <h2>Công nghệ cốt lõi</h2>
+  <p>Hệ thống được xây dựng trên nền tảng công nghệ mạnh mẽ và ổn định:</p>
   <ul>
-    <li>.NET Framework 4.6.1</li>
-    <li>DlibDotNet + OpenCvSharp</li>
-    <li>SQLite</li>
+    <li><strong>Trí tuệ nhân tạo:</strong> Sử dụng mô hình <span class="highlight">ResNet-128</span> từ thư viện Dlib cho khả năng nhận diện khuôn mặt vượt trội.</li>
+    <li><strong>Xử lý hình ảnh:</strong> Tối ưu hóa bằng <span class="highlight">OpenCV</span> (OpenCvSharp4) để đạt tốc độ xử lý mượt mà.</li>
+    <li><strong>Cơ sở dữ liệu:</strong> Sử dụng <span class="highlight">SQLite</span> giúp hệ thống hoạt động độc lập, không cần cài đặt máy chủ phức tạp.</li>
+    <li><strong>Giao diện:</strong> Thiết kế theo phong cách <span class="highlight">Fluent Design</span> hiện đại, trực quan và dễ sử dụng.</li>
   </ul>
 
-  <h2>Luu y quan trong</h2>
+  <h2>Ưu điểm nổi bật</h2>
   <ul>
-    <li>Chi ho tro x64.</li>
-    <li>Can 2 file model .dat trong thu muc models.</li>
-    <li>Khong chay duoc neu thieu native DLL.</li>
+    <li><strong>An toàn & Vệ sinh:</strong> Không tiếp xúc trực tiếp, tránh lây nhiễm dịch bệnh.</li>
+    <li><strong>Chống gian lận:</strong> Ngăn chặn việc chấm công hộ bằng thẻ hoặc mã PIN.</li>
+    <li><strong>Hoạt động Offline:</strong> Không phụ thuộc vào kết nối Internet để chấm công hàng ngày.</li>
   </ul>
 </body>
 </html>

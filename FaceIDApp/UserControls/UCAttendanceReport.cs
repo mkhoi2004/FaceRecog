@@ -21,6 +21,11 @@ namespace FaceIDApp.UserControls
             SetupUI();
         }
 
+        public void RefreshData()
+        {
+            LoadFiltersAsync();
+        }
+
         private void SetupUI()
         {
             // ─── Style cho dgvReport (tab báo cáo tổng hợp) ──────────────────

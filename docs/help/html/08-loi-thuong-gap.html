@@ -2,51 +2,67 @@
 <html lang="vi">
 <head>
   <meta charset="utf-8" />
-  <title>Loi thuong gap va cach xu ly</title>
+  <title>Khắc phục lỗi - FaceIDApp</title>
   <style>
     body { font-family: Segoe UI, Arial, sans-serif; line-height: 1.6; margin: 28px; color: #1f2937; }
-    h1, h2 { color: #0f172a; }
-    table { border-collapse: collapse; width: 100%; }
-    th, td { border: 1px solid #cbd5e1; padding: 8px; text-align: left; }
-    th { background: #f1f5f9; }
+    h1, h2 { color: #0f172a; border-bottom: 2px solid #e2e8f0; padding-bottom: 8px; }
+    table { border-collapse: collapse; width: 100%; margin-bottom: 20px; }
+    th, td { border: 1px solid #cbd5e1; padding: 12px; text-align: left; vertical-align: top; }
+    th { background: #f1f5f9; font-weight: bold; }
+    .solution { color: #059669; font-weight: 500; }
+    .code { font-family: monospace; background: #f1f5f9; padding: 2px 4px; border-radius: 4px; }
   </style>
 </head>
 <body>
-  <h1>9. Loi thuong gap va cach xu ly</h1>
+  <h1>9. Lỗi thường gặp và cách xử lý</h1>
+  <p>Dưới đây là danh sách các vấn đề thường gặp và hướng dẫn khắc phục nhanh cho quản trị viên.</p>
 
   <table>
     <thead>
       <tr>
-        <th>Hien tuong</th>
-        <th>Nguyen nhan pho bien</th>
-        <th>Huong xu ly</th>
+        <th style="width: 25%;">Hiện tượng</th>
+        <th style="width: 35%;">Nguyên nhân</th>
+        <th style="width: 40%;">Cách khắc phục</th>
       </tr>
     </thead>
     <tbody>
       <tr>
-        <td>Mo app bi loi thieu DLL</td>
-        <td>Thieu native dependency trong goi release</td>
-        <td>Copy lai day du thu muc net461</td>
+        <td>Ứng dụng không mở được, báo lỗi "BadImageFormatException" hoặc "Missing DLL"</td>
+        <td>1. Chạy trên Windows 32-bit.<br/>2. Thiếu Visual C++ Redistributable.</td>
+        <td class="solution">1. Đảm bảo dùng Windows 64-bit.<br/>2. Cài đặt <span class="code">vc_redist.x64.exe</span> phiên bản 2015-2022.</td>
       </tr>
       <tr>
-        <td>Khong nhan dien duoc mat</td>
-        <td>Anh sang kem, mat qua xa, du lieu dang ky it</td>
-        <td>Dang ky lai nhieu goc, toi uu anh sang</td>
+        <td>Camera bị đen hoặc báo "Camera in use"</td>
+        <td>Ứng dụng khác (Zalo, Zoom, Browser) đang sử dụng camera.</td>
+        <td class="solution">Tắt các ứng dụng đang dùng camera và khởi động lại FaceIDApp.</td>
       </tr>
       <tr>
-        <td>Luon Unknown</td>
-        <td>Encoding chat luong thap, threshold chua phu hop</td>
-        <td>Dang ky lai va danh gia tham so tolerance</td>
+        <td>Ứng dụng bị treo/văng khi vừa mở camera (Unicode Path Error)</td>
+        <td>Thư mục cài đặt ứng dụng có tên chứa tiếng Việt có dấu.</td>
+        <td class="solution">Đổi tên thư mục hoặc di chuyển ứng dụng sang đường dẫn không dấu (Ví dụ: <span class="code">D:\PhanMem\FaceID\</span>).</td>
       </tr>
       <tr>
-        <td>Khong tao duoc CSDL</td>
-        <td>Khong co quyen ghi thu muc chay</td>
-        <td>Chay bang quyen phu hop hoac doi data path</td>
+        <td>Nhận diện sai người hoặc luôn báo "Unknown"</td>
+        <td>1. Ánh sáng quá yếu hoặc quá mạnh.<br/>2. Chỉ số Tolerance (độ nhạy) quá cao/thấp.</td>
+        <td class="solution">1. Cải thiện ánh sáng.<br/>2. Chụp thêm nhiều góc mặt khi đăng ký.<br/>3. Điều chỉnh <span class="code">Tolerance</span> trong Cài đặt (khuyên dùng 0.5 - 0.6).</td>
+      </tr>
+      <tr>
+        <td>Dữ liệu chấm công không cập nhật vào báo cáo</td>
+        <td>Dữ liệu đang bị kẹt trong bộ nhớ đệm hoặc lỗi kết nối DB.</td>
+        <td class="solution">Nhấn nút "Làm mới" (Refresh) trên màn hình báo cáo hoặc khởi động lại ứng dụng.</td>
       </tr>
     </tbody>
   </table>
 
-  <h2>Luu y</h2>
-  <p>Neu can debug sau, uu tien doi soat log va du lieu attendance_logs/audit_logs.</p>
+  <h2>Lấy dữ liệu Log để hỗ trợ kỹ thuật</h2>
+  <p>Nếu gặp lỗi không nằm trong danh sách trên, vui lòng gửi các thông tin sau cho bộ phận hỗ trợ:</p>
+  <ul>
+    <li>Ảnh chụp màn hình thông báo lỗi.</li>
+    <li>File nhật ký trong thư mục <span class="code">logs/</span> (nếu có).</li>
+    <li>Thông tin phiên bản Windows và loại Webcam đang sử dụng.</li>
+  </ul>
+
+  <h2>Lưu ý về Cơ sở dữ liệu</h2>
+  <p>File <span class="code">face_attendance.db</span> chứa toàn bộ dữ liệu quan trọng. Hãy thực hiện sao lưu định kỳ file này sang ổ cứng khác hoặc lưu trữ đám mây để tránh mất mát dữ liệu khi hỏng phần cứng.</p>
 </body>
 </html>

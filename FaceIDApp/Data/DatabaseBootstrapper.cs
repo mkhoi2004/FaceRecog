@@ -18,6 +18,7 @@ namespace FaceIDApp.Data
         {
             await EnsureDatabaseExistsAsync();
             await EnsureSchemaExistsAsync();
+            await EnsureViewsUpToDateAsync();
             await EnsureDefaultAdminAsync();
         }
 
@@ -318,6 +319,62 @@ CREATE TABLE IF NOT EXISTS leave_requests (
             {
                 cmd.CommandTimeout = 120;
                 await cmd.ExecuteNonQueryAsync();
+            }
+        }
+        private async Task EnsureViewsUpToDateAsync()
+        {
+            var sqlPath = FindSqlFile();
+            if (sqlPath == null) return;
+
+            try
+            {
+                var sql = File.ReadAllText(sqlPath);
+                
+                using (var conn = new SQLiteConnection(this._config.ApplicationConnectionString))
+                {
+                    await conn.OpenAsync();
+                    
+                    var viewNames = new[] { "v_today_attendance", "v_monthly_summary", "v_face_status", "v_attendance_anomalies" };
+                    
+                    foreach (var viewName in viewNames)
+                    {
+                        using (var cmd = new SQLiteCommand($"DROP VIEW IF EXISTS {viewName}", conn))
+                        {
+                            await cmd.ExecuteNonQueryAsync();
+                        }
+                    }
+
+                    // Extract only CREATE VIEW statements from the SQL file
+                    var lines = sql.Split(new[] { "\r\n", "\r", "\n" }, StringSplitOptions.None);
+                    var currentViewSql = new System.Text.StringBuilder();
+                    bool inView = false;
+
+                    foreach (var line in lines)
+                    {
+                        if (line.Trim().StartsWith("CREATE VIEW", StringComparison.OrdinalIgnoreCase))
+                        {
+                            inView = true;
+                            currentViewSql.Clear();
+                        }
+
+                        if (inView)
+                        {
+                            currentViewSql.AppendLine(line);
+                            if (line.Trim().EndsWith(";"))
+                            {
+                                using (var cmd = new SQLiteCommand(currentViewSql.ToString(), conn))
+                                {
+                                    await cmd.ExecuteNonQueryAsync();
+                                }
+                                inView = false;
+                            }
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"View update error: {ex.Message}");
             }
         }
     }

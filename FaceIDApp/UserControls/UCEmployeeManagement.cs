@@ -553,7 +553,35 @@ namespace FaceIDApp.UserControls
             // Avatar
             if (!string.IsNullOrEmpty(emp.AvatarPath) && System.IO.File.Exists(emp.AvatarPath))
             {
-                try { picEmployeePhoto.Image = Image.FromFile(emp.AvatarPath); } catch { picEmployeePhoto.Image = null; }
+                try 
+                {
+                    using (var img = Image.FromFile(emp.AvatarPath))
+                    {
+                        picEmployeePhoto.Image = new Bitmap(img);
+                    }
+                } 
+                catch { picEmployeePhoto.Image = null; }
+            }
+            else if (emp.IsFaceRegistered)
+            {
+                // Fallback: Nếu chưa có avatar_path nhưng đã có Face ID, lấy ảnh đầu tiên trong face_data
+                var faceDataList = await AppDatabase.Repository.GetFaceDataByEmployeeAsync(emp.Id);
+                var firstFace = faceDataList.FirstOrDefault(f => f.IsActive);
+                if (firstFace != null && System.IO.File.Exists(firstFace.ImagePath))
+                {
+                    try
+                    {
+                        using (var img = Image.FromFile(firstFace.ImagePath))
+                        {
+                            picEmployeePhoto.Image = new Bitmap(img);
+                        }
+                    }
+                    catch { picEmployeePhoto.Image = null; }
+                }
+                else
+                {
+                    picEmployeePhoto.Image = null;
+                }
             }
             else
             {
@@ -618,12 +646,24 @@ namespace FaceIDApp.UserControls
         // =============================================
         // CRUD
         // =============================================
-        private void BtnAdd_Click(object sender, EventArgs e)
+        private async void BtnAdd_Click(object sender, EventArgs e)
         {
             _editingEmployeeId = null;
             ClearForm();
             lblDetailTitle.Text = "📝 Thêm nhân viên mới";
-            txtEmployeeCode.Focus();
+
+            try
+            {
+                // Tự động sinh mã nhân viên mới với tiền tố NV
+                var nextCode = await AppDatabase.Repository.GetNextEmployeeCodeAsync("NV");
+                txtEmployeeCode.Text = nextCode;
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Lỗi sinh mã NV: {ex.Message}");
+            }
+
+            txtFullName.Focus();
         }
 
         private void BtnEdit_Click(object sender, EventArgs e)

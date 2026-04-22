@@ -156,7 +156,7 @@ namespace FaceIDApp
 
             int y = 110;
             AddMenuButton("🏠", "Trang chủ", y, () => ShowDashboard()); y += 44;
-            AddMenuButton("📷", "Chấm công", y, () => ShowUC(ucAttendance, "Chấm công nhận diện")); y += 44;
+            AddMenuButton("📷", "Chấm công", y, () => { ucAttendance.RefreshData(); ShowUC(ucAttendance, "Chấm công nhận diện"); }); y += 44;
 
             if (isAdmin)
             {
@@ -164,10 +164,10 @@ namespace FaceIDApp
                 AddMenuButton("📸", "Đăng ký khuôn mặt", y, () => { ucFaceRegistration.RefreshData(); ShowUC(ucFaceRegistration, "Đăng ký khuôn mặt"); }); y += 44;
 
                 AddSectionLabel("QUẢN LÝ", y); y += 28;
-                AddMenuButton("🏢", "Danh mục", y, () => ShowUC(ucCatalog, "Quản lý danh mục")); y += 44;
+                AddMenuButton("🏢", "Danh mục", y, () => { ucCatalog.RefreshData(); ShowUC(ucCatalog, "Quản lý danh mục"); }); y += 44;
                 AddMenuButton("📋", "Nghỉ phép", y, () => ShowUC(ucLeaveManagement, "Quản lý nghỉ phép & Ngày lễ")); y += 44;
                 _btnLeaveMenu = _menuButtons[_menuButtons.Count - 1];
-                AddMenuButton("📊", "Báo cáo", y, () => ShowUC(ucAttendanceReport, "Báo cáo chấm công")); y += 44;
+                AddMenuButton("📊", "Báo cáo", y, () => { ucAttendanceReport.RefreshData(); ShowUC(ucAttendanceReport, "Báo cáo chấm công"); }); y += 44;
 
                 AddSectionLabel("HỆ THỐNG", y); y += 28;
                 AddMenuButton("⚙️", "Cài đặt", y, () => ShowUC(ucSettings, "Cài đặt hệ thống")); y += 44;

@@ -313,3 +313,4 @@ __pycache__/
 src/DlibDotNet.Native/*.bat
 src/DlibDotNet.Native.Dnn/*.bat
 work
+/docs

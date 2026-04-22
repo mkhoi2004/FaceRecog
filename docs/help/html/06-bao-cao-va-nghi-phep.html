@@ -2,33 +2,58 @@
 <html lang="vi">
 <head>
   <meta charset="utf-8" />
-  <title>Bao cao va nghi phep</title>
+  <title>Báo cáo và Nghỉ phép - FaceIDApp</title>
   <style>
     body { font-family: Segoe UI, Arial, sans-serif; line-height: 1.6; margin: 28px; color: #1f2937; }
-    h1, h2 { color: #0f172a; }
+    h1, h2 { color: #0f172a; border-bottom: 2px solid #e2e8f0; padding-bottom: 8px; }
+    .report-box { border: 1px solid #e2e8f0; border-radius: 10px; padding: 15px; margin-bottom: 15px; }
+    .status-item { margin-bottom: 5px; }
+    .approved { color: #166534; font-weight: bold; }
+    .pending { color: #854d0e; font-weight: bold; }
+    .rejected { color: #991b1b; font-weight: bold; }
+    .highlight { color: #0369a1; font-weight: bold; }
   </style>
 </head>
 <body>
-  <h1>7. Bao cao va nghi phep</h1>
+  <h1>7. Báo cáo và nghỉ phép</h1>
 
-  <h2>Bao cao cham cong</h2>
+  <h2>Báo cáo chấm công</h2>
+  <p>Hệ thống cung cấp các bộ lọc mạnh mẽ để bạn có thể trích xuất dữ liệu chính xác cho việc tính lương:</p>
+  <div class="report-box">
+    <ul>
+      <li><strong>Lọc theo thời gian:</strong> Xem dữ liệu theo ngày cụ thể, khoảng ngày hoặc theo tháng.</li>
+      <li><strong>Lọc theo đối tượng:</strong> Xem báo cáo của một nhân viên hoặc toàn bộ một phòng ban.</li>
+      <li><strong>Trang thái hiển thị:</strong>
+        <ul>
+          <li><span class="highlight">P (Present):</span> Có mặt.</li>
+          <li><span class="highlight">L (Late):</span> Đi muộn.</li>
+          <li><span class="highlight">A (Absent):</span> Vắng mặt không lý do.</li>
+          <li><span class="highlight">Off (Leave):</span> Nghỉ phép.</li>
+        </ul>
+      </li>
+    </ul>
+  </div>
+  <p>Dữ liệu báo cáo có thể xuất ra file Excel để phục vụ công tác kế toán và lưu trữ bên ngoài.</p>
+
+  <h2>Quản lý đơn nghỉ phép</h2>
+  <p>Quy trình xin nghỉ phép được thực hiện hoàn toàn trên ứng dụng:</p>
+  <ol>
+    <li><strong>Gửi đơn:</strong> Nhân viên chọn loại nghỉ (Phep nam, Om, Viec rieng), chọn ngày bắt đầu, ngày kết thúc và lý do.</li>
+    <li><strong>Xét duyệt:</strong> Quản lý bộ phận hoặc HR nhận được thông báo và thực hiện duyệt đơn.</li>
+  </ol>
+
+  <h2>Các trạng thái đơn nghỉ phép</h2>
   <ul>
-    <li>Loc theo ngay, thang, nhan vien, phong ban.</li>
-    <li>Theo doi cac trang thai: Present, Late, Absent, Leave.</li>
-    <li>Uu tien doi soat voi attendance_logs khi can kiem toan.</li>
+    <li class="status-item"><span class="pending">Chờ duyệt (Pending):</span> Đơn mới gửi, đang đợi quản lý xử lý.</li>
+    <li class="status-item"><span class="approved">Đã duyệt (Approved):</span> Đơn được chấp nhận. <span style="font-style: italic;">Hệ thống sẽ tự động trừ số ngày nghỉ vào quỹ phép năm của nhân viên.</span></li>
+    <li class="status-item"><span class="rejected">Từ chối (Rejected):</span> Đơn không được chấp nhận.</li>
+    <li class="status-item"><strong>Hủy bỏ (Cancelled):</strong> Nhân viên tự hủy đơn khi kế hoạch thay đổi.</li>
   </ul>
 
-  <h2>Nghi phep</h2>
-  <ul>
-    <li>Tao don nghi theo khoang ngay.</li>
-    <li>Trang thai: Pending, Approved, Rejected, Cancelled.</li>
-    <li>Khi duyet, he thong cap nhat so ngay phep da su dung.</li>
-  </ul>
-
-  <h2>Khuyen nghi van hanh</h2>
-  <ul>
-    <li>Co quy trinh duyet ro rang theo vai tro.</li>
-    <li>Giu lai lich su audit cho moi thao tac.</li>
-  </ul>
+  <h2>Quỹ phép năm</h2>
+  <p>Mỗi nhân viên có một quỹ phép năm nhất định (mặc định là 12 ngày/năm). Hệ thống sẽ tự động tính toán:</p>
+  <p style="text-align: center; font-size: 1.1em; background: #f1f5f9; padding: 10px; border-radius: 8px;">
+    <strong>Số ngày phép còn lại = Quỹ phép gốc - Tổng số ngày nghỉ đã được DUYỆT</strong>
+  </p>
 </body>
 </html>

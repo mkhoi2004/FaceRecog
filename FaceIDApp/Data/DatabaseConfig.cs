@@ -27,7 +27,7 @@ namespace FaceIDApp.Data
             if (string.IsNullOrWhiteSpace(sqliteConnectionString))
             {
                 // Fallback to a default
-                sqliteConnectionString = "Data Source=face_attendance.db;Version=3;";
+                sqliteConnectionString = "Data Source=Database/face_attendance_v3.db;Version=3;";
             }
 
             return new DatabaseConfig(sqliteConnectionString);

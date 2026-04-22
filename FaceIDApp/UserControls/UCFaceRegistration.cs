@@ -384,6 +384,12 @@ namespace FaceIDApp.UserControls
                     await AppDatabase.Repository.InsertFaceDataAsync(
                         emp.Id, _capturedEncodings[i], storedPath,
                         i + 1, _angles[i], 0.8f, AppSession.CurrentUser?.EmployeeId);
+
+                    // Lấy ảnh đầu tiên (thường là mặt thẳng) làm ảnh đại diện nhân viên
+                    if (i == 0)
+                    {
+                        await AppDatabase.Repository.UpdateEmployeeAvatarAsync(emp.Id, storedPath);
+                    }
                 }
 
                 // Ghi face_registration_logs
