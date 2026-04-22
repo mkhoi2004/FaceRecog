@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8" />
+  <title>Dong goi Release x64</title>
+  <style>
+    body { font-family: Segoe UI, Arial, sans-serif; line-height: 1.6; margin: 28px; color: #1f2937; }
+    h1, h2 { color: #0f172a; }
+    .warn { background: #fff7ed; border: 1px solid #fdba74; padding: 10px; border-radius: 8px; }
+  </style>
+</head>
+<body>
+  <h1>8. Dong goi Release x64</h1>
+
+  <h2>Lenh build</h2>
+  <p>dotnet build .\FaceIDApp\FaceIDApp.csproj -c Release -p:Platform=x64 --nologo</p>
+
+  <h2>Thu muc dong goi de xuat</h2>
+  <p>Lay nguyen thu muc output:</p>
+  <p>FaceIDApp/bin/x64/Release/net461/</p>
+
+  <h2>Thanh phan bat buoc</h2>
+  <ul>
+    <li>FaceIDApp.exe, FaceIDApp.exe.config</li>
+    <li>Dlib/OpenCV native DLL</li>
+    <li>models/*.dat</li>
+    <li>Database/face_attendance_v3.sql</li>
+  </ul>
+
+  <div class="warn">
+    Khong dong goi du lieu test: face_attendance.db, img/, face/, file tam.
+  </div>
+
+  <h2>Tham khao</h2>
+  <p>Xem checklist day du trong file CHECKLIST_DONG_GOI.md cua project.</p>
+</body>
+</html>

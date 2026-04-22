@@ -981,12 +981,65 @@ VALUES
 ('NV007', 'Võ Ngọc Trâm',           'F', '1995-04-18', '0901000007', 'tram.vn@company.com', '079195007007', 4, 5, 1, 'FullTime', '2020-06-10', 14),
 ('NV008', 'Huỳnh Đức Trí',          'M', '1998-09-30', '0901000008', 'tri.hd@company.com',  '079198008008', 5, 5, 1, 'FullTime', '2021-11-01', 13),
 ('NV009', 'Đặng Thùy Linh',         'F', '2000-02-14', '0901000009', 'linh.dt@company.com', '079200009009', 6, 6, 1, 'FullTime', '2022-07-20', 12),
-('NV010', 'Bùi Thanh Tùng',         'M', '2001-06-05', '0901000010', 'tung.bt@company.com', '079201010010', 7, 7, 1, 'PartTime', '2025-01-15', 10);
+('NV010', 'Bùi Thanh Tùng',         'M', '2001-06-05', '0901000010', 'tung.bt@company.com', '079201010010', 7, 7, 1, 'PartTime', '2025-01-15', 10),
+('NV011', 'Đoàn Ngọc Linh', 'F', '1994-12-16', '0901207089', 'linh.dn@company.com', '079104111842', 4, 4, 1, 'FullTime', '2022-09-27', 12),
+('NV012', 'Hồ Nhật Anh', 'F', '1999-09-12', '0901965730', 'anh.hn@company.com', '079132599779', 6, 7, 1, 'FullTime', '2024-11-19', 14),
+('NV013', 'Nguyễn Vũ Gia Bảo', 'M', '2005-11-01', '0901364857', 'bao.nvg@company.com', '079194299400', 2, 7, 1, 'FullTime', '2024-01-10', 16),
+('NV014', 'Nguyễn Hữu Bình', 'M', '2001-07-14', '0901614094', 'binh.nh@company.com', '079135107313', 4, 7, 1, 'FullTime', '2023-07-28', 15),
+('NV015', 'Trần Lê Anh Đại', 'F', '1991-12-06', '0901454196', 'dai.tla@company.com', '079166260980', 4, 4, 1, 'FullTime', '2021-04-20', 15),
+('NV016', 'Nguyễn Thành Đạt', 'M', '1996-03-03', '0901104739', 'dat.nt@company.com', '079108896132', 3, 7, 1, 'FullTime', '2022-10-14', 12),
+('NV017', 'Nguyễn Hoàng Tiến Đạt', 'M', '1994-07-18', '0901571068', 'dat.nht@company.com', '079104492177', 4, 6, 1, 'FullTime', '2020-03-24', 12),
+('NV018', 'Bùi Hải Đường', 'M', '1992-01-27', '0901688802', 'duong.bh@company.com', '079125933155', 2, 7, 1, 'FullTime', '2023-03-05', 16),
+('NV019', 'Trương Đại Hải', 'M', '1993-07-24', '0901105276', 'hai.td@company.com', '079185686429', 5, 4, 1, 'FullTime', '2022-05-22', 15),
+('NV020', 'Hà Chí Hân', 'M', '1995-11-03', '0901912225', 'han.hc@company.com', '079185372333', 5, 5, 1, 'FullTime', '2023-08-12', 12),
+('NV021', 'Đặng Ngọc Châu', 'M', '2002-02-19', '0901624941', 'chau.dn@company.com', '079128401461', 7, 6, 1, 'FullTime', '2020-02-07', 14),
+('NV022', 'Trương Văn Huế', 'M', '2001-11-12', '0901525631', 'hue.tv@company.com', '079178166149', 6, 4, 1, 'FullTime', '2022-08-03', 15),
+('NV023', 'Nguyễn Tấn Hưng', 'M', '1996-10-25', '0901382472', 'hung.nt@company.com', '079144348328', 6, 5, 1, 'FullTime', '2023-02-15', 12),
+('NV024', 'Lê Thanh Khải', 'M', '1996-10-10', '0901425030', 'khai.lt@company.com', '079178440514', 2, 7, 1, 'FullTime', '2023-02-23', 15),
+('NV025', 'Lê Tuấn Kiệt', 'M', '2000-02-16', '0901705111', 'kiet.lt@company.com', '079195731097', 2, 4, 1, 'FullTime', '2021-01-22', 12),
+('NV026', 'Nguyễn Hoàng Kỳ', 'M', '1991-11-18', '0901910492', 'ky.nh@company.com', '079146803029', 2, 4, 1, 'FullTime', '2020-11-06', 16),
+('NV027', 'Nguyễn Thị Kim Liên', 'F', '1997-09-04', '0901557405', 'lien.ntk@company.com', '079159640477', 4, 7, 1, 'FullTime', '2024-06-02', 14),
+('NV028', 'Nguyễn Văn Toàn', 'M', '2004-05-12', '0901329782', 'toan.nv@company.com', '079111765625', 4, 7, 1, 'FullTime', '2020-12-01', 12),
+('NV029', 'Trần Anh Nhân', 'F', '1997-12-06', '0901650437', 'nhan.ta@company.com', '079154737949', 7, 5, 1, 'FullTime', '2023-02-24', 15),
+('NV030', 'Đặng Minh Nhật', 'M', '1997-04-23', '0901118939', 'nhat.dm@company.com', '079121543964', 4, 4, 1, 'FullTime', '2023-12-08', 15),
+('NV031', 'Nguyễn Văn Phú', 'M', '1998-11-02', '0901395679', 'phu.nv@company.com', '079179731823', 3, 7, 1, 'FullTime', '2021-06-08', 14),
+('NV032', 'Đoàn Phúc', 'M', '1992-12-12', '0901130960', 'phuc.d@company.com', '079115136797', 7, 7, 1, 'FullTime', '2021-05-17', 12),
+('NV033', 'Bùi Đắc Quí', 'M', '1999-01-22', '0901351204', 'qui.bd@company.com', '079168652495', 5, 4, 1, 'FullTime', '2024-11-25', 14),
+('NV034', 'Nguyễn Thành Thái', 'M', '1996-09-17', '0901677981', 'thai.nt@company.com', '079131541936', 4, 4, 1, 'FullTime', '2020-08-03', 14),
+('NV035', 'Hồ Hữu Thịnh', 'F', '2003-09-26', '0901920354', 'thinh.hh@company.com', '079118350421', 4, 4, 1, 'FullTime', '2022-04-28', 16),
+('NV036', 'Lâm Diệu Tinh', 'F', '2005-10-04', '0901883557', 'tinh.ld@company.com', '079122345251', 7, 6, 1, 'FullTime', '2020-03-26', 16),
+('NV037', 'Trần Thanh Phương', 'M', '1993-04-02', '0901974389', 'phuong.tt@company.com', '079121251414', 2, 4, 1, 'FullTime', '2024-10-08', 16),
+('NV038', 'Phạm Gia Bảo', 'M', '1999-09-03', '0901835971', 'bao.pg@company.com', '079154997403', 7, 5, 1, 'FullTime', '2023-09-08', 16),
+('NV039', 'Nguyễn Trần Hữu Đức', 'M', '2005-12-28', '0901464031', 'duc.nth@company.com', '079178354917', 5, 6, 1, 'FullTime', '2021-08-27', 15),
+('NV040', 'Triệu Ngọc Hào', 'M', '1999-03-04', '0901706069', 'hao.tn@company.com', '079184482350', 2, 6, 1, 'FullTime', '2024-05-01', 16),
+('NV041', 'Trần Trung Hiếu', 'M', '2005-03-11', '0901663980', 'hieu.tt@company.com', '079142674087', 3, 7, 1, 'FullTime', '2022-08-11', 12),
+('NV042', 'Lâm Thái Hòa', 'M', '2004-09-09', '0901444251', 'hoa.lt@company.com', '079112876963', 7, 5, 1, 'FullTime', '2022-05-02', 14),
+('NV043', 'Huỳnh Đông Huy', 'M', '1995-09-07', '0901552496', 'huy.hd@company.com', '079199509373', 3, 5, 1, 'FullTime', '2024-09-08', 12),
+('NV044', 'Nguyễn Quốc Khánh', 'M', '1996-09-10', '0901232611', 'khanh.nq@company.com', '079144801745', 5, 5, 1, 'FullTime', '2022-11-22', 14),
+('NV045', 'Đặng Văn Khoa', 'M', '2005-06-27', '0901582681', 'khoa.dv@company.com', '079158634238', 4, 4, 1, 'FullTime', '2021-01-23', 12),
+('NV046', 'Lê Trung Kiên', 'M', '2002-01-23', '0901848806', 'kien.lt@company.com', '079175733988', 7, 7, 1, 'FullTime', '2022-01-11', 12),
+('NV047', 'Nguyễn Tấn Kiệt', 'M', '1999-07-04', '0901884574', 'kiet.nt@company.com', '079109619039', 3, 7, 1, 'FullTime', '2023-10-01', 15),
+('NV048', 'Hoàng Công Trường Lộc', 'M', '2001-09-05', '0901748651', 'loc.hct@company.com', '079165131085', 5, 5, 1, 'FullTime', '2024-04-23', 12),
+('NV049', 'Lưu Gia Luân', 'M', '2000-05-07', '0901577919', 'luan.lg@company.com', '079138862633', 3, 5, 1, 'FullTime', '2024-03-09', 15),
+('NV050', 'Lương Hào Minh', 'M', '1992-10-28', '0901359107', 'minh.lh@company.com', '079197113679', 5, 7, 1, 'FullTime', '2024-02-07', 12),
+('NV051', 'Nguyễn Hoàng Phúc', 'M', '2000-11-25', '0901657951', 'phuc.nh@company.com', '079176943958', 4, 7, 1, 'FullTime', '2022-01-27', 14),
+('NV052', 'Võ Xuân Thắng', 'M', '1991-08-16', '0901469188', 'thang.vx@company.com', '079174769868', 4, 7, 1, 'FullTime', '2023-03-22', 16),
+('NV053', 'Hồ Ngọc Thái Thông', 'M', '1998-11-08', '0901487363', 'thong.hnt@company.com', '079168158615', 5, 5, 1, 'FullTime', '2021-01-14', 15),
+('NV054', 'Nguyễn Lê Anh Trúc', 'F', '2002-04-26', '0901854407', 'truc.nla@company.com', '079172736107', 4, 4, 1, 'FullTime', '2022-11-13', 12),
+('NV055', 'Nguyễn Văn Trường', 'M', '1990-06-07', '0901497071', 'truong.nv@company.com', '079193506468', 5, 4, 1, 'FullTime', '2021-06-01', 15),
+('NV056', 'Nguyễn Thanh Tú', 'M', '2005-09-09', '0901124859', 'tu.nt@company.com', '079118589802', 2, 7, 1, 'FullTime', '2020-04-02', 15),
+('NV057', 'Nguyễn Hoàng Vĩ', 'M', '2004-12-15', '0901985062', 'vi.nh@company.com', '079170796862', 5, 6, 1, 'FullTime', '2021-10-01', 15),
+('NV058', 'Trần Hồ Quang Vinh', 'M', '2002-01-04', '0901530620', 'vinh.thq@company.com', '079121300210', 5, 7, 1, 'FullTime', '2021-07-02', 16),
+('NV059', 'Đinh Thị Thảo An', 'F', '1996-01-16', '0901321158', 'an.dtt@company.com', '079182628871', 2, 7, 1, 'FullTime', '2023-09-03', 14),
+('NV060', 'Phạm Hữu Ân', 'M', '2000-09-08', '0901388445', 'an.ph@company.com', '079147436466', 3, 6, 1, 'FullTime', '2021-07-08', 15),
+('NV061', 'Lê Văn Bình', 'M', '2003-06-09', '0901765104', 'binh.lv@company.com', '079173253225', 4, 6, 1, 'FullTime', '2020-01-18', 14),
+('NV062', 'Nguyễn Ngọc Thùy Dương', 'F', '1997-05-26', '0901968247', 'duong.nnt@company.com', '079178944019', 7, 4, 1, 'FullTime', '2021-07-19', 12);
 
 -- Quản lý trực tiếp
-UPDATE employees SET manager_id = 4 WHERE id IN (1, 2, 3, 5, 6);
-UPDATE employees SET manager_id = 6 WHERE id IN (1, 3);
-UPDATE employees SET manager_id = 5 WHERE id = 2;
+UPDATE employees SET manager_id = 4 WHERE id IN (1, 2, 3, 5, 6, 7, 8, 9, 10);
+UPDATE employees SET manager_id = 4 WHERE id BETWEEN 11 AND 62; -- Tạm thời gán CEO quản lý hết để dễ test
+UPDATE employees SET manager_id = 6 WHERE id IN (1, 3) OR (id BETWEEN 11 AND 62 AND department_id = 3);
+UPDATE employees SET manager_id = 5 WHERE id = 2 OR (id BETWEEN 11 AND 62 AND department_id = 2);
 
 -- ── Tài khoản đăng nhập (hash sẽ được DatabaseBootstrapper cập nhật) ──
 INSERT INTO users (username, password_hash, role, employee_id, must_change_password) VALUES

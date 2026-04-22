@@ -24,7 +24,7 @@ namespace FaceIDApp.UserControls
         private ComboBox cboEmploymentType;
         private NumericUpDown nudAnnualLeave;
         private TextBox txtIdentityCard;
-        private TextBox txtGender;
+        private ComboBox cboGender;
         private DataGridView dgvAttHistory;
         private ComboBox cboManager;
         private Label lblLeaveBalance;
@@ -113,9 +113,19 @@ namespace FaceIDApp.UserControls
 
             // Giới tính
             var lblGender = new Label { Text = "Giới tính:", Font = new Font("Segoe UI", 9.5F), Location = new Point(15, 413), AutoSize = true };
-            txtGender = new TextBox { Font = new Font("Segoe UI", 9.5F), Location = new Point(100, 410), Size = new Size(100, 24) };
+            cboGender = new ComboBox
+            {
+                DropDownStyle = ComboBoxStyle.DropDownList,
+                Font = new Font("Segoe UI", 9.5F),
+                Location = new Point(100, 410),
+                Size = new Size(120, 25)
+            };
+            cboGender.Items.Add(new ComboItem<string>("M", "Nam"));
+            cboGender.Items.Add(new ComboItem<string>("F", "Nữ"));
+            cboGender.Items.Add(new ComboItem<string>("O", "Khác"));
+            cboGender.SelectedIndex = 0;
             pnlEmployeeDetail.Controls.Add(lblGender);
-            pnlEmployeeDetail.Controls.Add(txtGender);
+            pnlEmployeeDetail.Controls.Add(cboGender);
 
             // Quản lý trực tiếp
             var lblMgr = new Label { Text = "Quản lý:", Font = new Font("Segoe UI", 9.5F), Location = new Point(15, 441), AutoSize = true };
@@ -333,8 +343,8 @@ namespace FaceIDApp.UserControls
             SetFieldWidth(dtpDateOfBirth, available);
             SetFieldWidth(dtpHireDate, available);
 
-            if (txtGender != null)
-                txtGender.Width = Math.Min(120, available);
+            if (cboGender != null)
+                cboGender.Width = Math.Min(120, available);
 
             if (nudAnnualLeave != null)
                 nudAnnualLeave.Width = Math.Min(90, available);
@@ -500,7 +510,15 @@ namespace FaceIDApp.UserControls
             txtEmail.Text         = emp.Email ?? "";
             txtPhone.Text         = emp.Phone ?? "";
             txtIdentityCard.Text  = emp.IdentityCard ?? "";
-            txtGender.Text        = emp.Gender ?? "";
+            
+            // Gender dropdown
+            int gIdx = 0;
+            for (int i = 0; i < cboGender.Items.Count; i++)
+            {
+                var item = cboGender.Items[i] as ComboItem<string>;
+                if (item != null && item.Value == emp.Gender) { gIdx = i; break; }
+            }
+            cboGender.SelectedIndex = gIdx;
 
             if (emp.DateOfBirth.HasValue) dtpDateOfBirth.Value = emp.DateOfBirth.Value;
             dtpHireDate.Value = emp.HireDate;
@@ -704,7 +722,7 @@ namespace FaceIDApp.UserControls
                     Phone            = NullIfEmpty(txtPhone.Text),
                     Email            = NullIfEmpty(txtEmail.Text),
                     IdentityCard     = NullIfEmpty(txtIdentityCard.Text),
-                    Gender           = NullIfEmpty(txtGender.Text),
+                    Gender           = (cboGender.SelectedItem as ComboItem<string>)?.Value ?? "M",
                     DateOfBirth      = dtpDateOfBirth.Value.Date,
                     HireDate         = dtpHireDate.Value.Date,
                     IsActive         = chkIsActive.Checked,
@@ -757,7 +775,7 @@ namespace FaceIDApp.UserControls
             txtEmail.Text         = "";
             txtPhone.Text         = "";
             txtIdentityCard.Text  = "";
-            txtGender.Text        = "";
+            cboGender.SelectedIndex = 0;
             cboDepartment.SelectedIndex  = 0;
             cboPosition.SelectedIndex    = 0;
             cboShift.SelectedIndex       = 0;
