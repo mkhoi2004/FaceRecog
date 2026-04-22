@@ -57,15 +57,35 @@ namespace FaceIDApp.UserControls
             btnReject.Click += BtnReject_Click;
             toolbar.Controls.Add(btnReject);
 
-            var lblFilter = new Label { Text = "Lọc:", Font = new Font("Segoe UI", 10F), Location = new Point(460, 10), AutoSize = true };
+            var btnEdit = new Button
+            {
+                Text = "✎ Sửa đơn", Font = new Font("Segoe UI", 10F),
+                ForeColor = Color.White, BackColor = Color.FromArgb(245, 158, 11),
+                FlatStyle = FlatStyle.Flat, Size = new Size(110, 35), Location = new Point(445, 5), Cursor = Cursors.Hand
+            };
+            btnEdit.FlatAppearance.BorderSize = 0;
+            btnEdit.Click += BtnEditLeave_Click;
+            toolbar.Controls.Add(btnEdit);
+
+            var btnCancel = new Button
+            {
+                Text = "🚫 Rút đơn", Font = new Font("Segoe UI", 10F),
+                ForeColor = Color.White, BackColor = Color.FromArgb(100, 116, 139),
+                FlatStyle = FlatStyle.Flat, Size = new Size(110, 35), Location = new Point(565, 5), Cursor = Cursors.Hand
+            };
+            btnCancel.FlatAppearance.BorderSize = 0;
+            btnCancel.Click += BtnCancelLeave_Click;
+            toolbar.Controls.Add(btnCancel);
+
+            var lblFilter = new Label { Text = "Lọc:", Font = new Font("Segoe UI", 10F), Location = new Point(695, 10), AutoSize = true };
             toolbar.Controls.Add(lblFilter);
 
             cboFilter = new ComboBox
             {
                 Font = new Font("Segoe UI", 10F), DropDownStyle = ComboBoxStyle.DropDownList,
-                Size = new Size(130, 30), Location = new Point(500, 6)
+                Size = new Size(130, 30), Location = new Point(730, 6)
             };
-            cboFilter.Items.AddRange(new[] { "Tất cả", "Pending", "Approved", "Rejected" });
+            cboFilter.Items.AddRange(new[] { "Tất cả", "Pending", "Approved", "Rejected", "Cancelled" });
             cboFilter.SelectedIndex = 0;
             cboFilter.SelectedIndexChanged += async (s, e) => await LoadLeaveAsync();
             toolbar.Controls.Add(cboFilter);
@@ -82,7 +102,8 @@ namespace FaceIDApp.UserControls
                 new DataGridViewTextBoxColumn { Name = "TotalDays", HeaderText = "Số ngày", Width = 70 },
                 new DataGridViewTextBoxColumn { Name = "Reason", HeaderText = "Lý do", Width = 200 },
                 new DataGridViewTextBoxColumn { Name = "Status", HeaderText = "Trạng thái", Width = 90 },
-                new DataGridViewTextBoxColumn { Name = "ApprovedBy", HeaderText = "Người duyệt", Width = 120 }
+                new DataGridViewTextBoxColumn { Name = "ApprovedBy", HeaderText = "Người duyệt", Width = 120 },
+                new DataGridViewTextBoxColumn { Name = "RawStatus", Visible = false }  // hidden — raw DB value for logic
             });
             dgvLeave.ReadOnly = true;
 
@@ -102,7 +123,8 @@ namespace FaceIDApp.UserControls
                 {
                     var row = dgvLeave.Rows.Add(lr.Id, lr.EmployeeCode, lr.EmployeeName, TranslateLeaveType(lr.LeaveType),
                         lr.StartDate.ToString("dd/MM/yyyy"), lr.EndDate.ToString("dd/MM/yyyy"),
-                        lr.TotalDays, lr.Reason, TranslateStatus(lr.Status), lr.ApprovedByName ?? "");
+                        lr.TotalDays, lr.Reason, TranslateStatus(lr.Status), lr.ApprovedByName ?? "",
+                        lr.Status); // RawStatus hidden column
                     // Color code status
                     var statusCell = dgvLeave.Rows[row].Cells["Status"];
                     switch (lr.Status)
@@ -136,14 +158,21 @@ namespace FaceIDApp.UserControls
         {
             if (dgvLeave.CurrentRow == null) return;
             var id = (int)dgvLeave.CurrentRow.Cells["Id"].Value;
-            var statusVal = dgvLeave.CurrentRow.Cells["Status"].Value?.ToString();
-            if (statusVal == "Đã duyệt") { MessageBox.Show("Đơn này đã được duyệt rồi!", "Thông báo"); return; }
+            var rawStatus = dgvLeave.CurrentRow.Cells["RawStatus"].Value?.ToString();
+            if (rawStatus == "Approved") { MessageBox.Show("Đơn này đã được duyệt rồi!", "Thông báo"); return; }
 
-            // Lấy approver từ session (fallback về nhân viên đầu tiên nếu chưa có)
-            int approverId = AppSession.CurrentEmployeeId ?? 1;
+            if (!AppSession.CurrentEmployeeId.HasValue)
+            {
+                MessageBox.Show("Không xác định được người duyệt. Vui lòng đăng nhập lại!", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return;
+            }
+            int approverId = AppSession.CurrentEmployeeId.Value;
             try
             {
                 await AppDatabase.Repository.ApproveLeaveRequestAsync(id, approverId);
+                await AppDatabase.Repository.InsertAuditLogAsync(
+                    AppSession.CurrentUser?.Id, null, "APPROVE", "leave_requests", id.ToString(),
+                    $"Duyệt đơn nghỉ phép ID={id}");
                 await LoadLeaveAsync();
                 MessageBox.Show("✅ Đã duyệt đơn nghỉ phép!", "Thành công", MessageBoxButtons.OK, MessageBoxIcon.Information);
             }
@@ -157,12 +186,87 @@ namespace FaceIDApp.UserControls
             var reason = Microsoft.VisualBasic.Interaction.InputBox("Lý do từ chối:", "Từ chối đơn", "");
             if (string.IsNullOrWhiteSpace(reason)) return;
 
-            int approverId = AppSession.CurrentEmployeeId ?? 1;
+            if (!AppSession.CurrentEmployeeId.HasValue)
+            {
+                MessageBox.Show("Không xác định được người từ chối. Vui lòng đăng nhập lại!", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return;
+            }
+            int approverId = AppSession.CurrentEmployeeId.Value;
             try
             {
                 await AppDatabase.Repository.RejectLeaveRequestAsync(id, approverId, reason);
+                await AppDatabase.Repository.InsertAuditLogAsync(
+                    AppSession.CurrentUser?.Id, null, "REJECT", "leave_requests", id.ToString(),
+                    $"Từ chối đơn nghỉ phép ID={id}: {reason}");
                 await LoadLeaveAsync();
                 MessageBox.Show("Đã từ chối đơn.", "Thông báo");
+            }
+            catch (Exception ex) { MessageBox.Show(ex.Message, "Lỗi"); }
+        }
+
+        private async void BtnEditLeave_Click(object sender, EventArgs e)
+        {
+            if (dgvLeave.CurrentRow == null) return;
+            var rawStatus = dgvLeave.CurrentRow.Cells["RawStatus"].Value?.ToString();
+            if (rawStatus != "Pending") { MessageBox.Show("Chỉ sửa được đơn đang chờ duyệt!", "Thông báo"); return; }
+
+            var id = (int)dgvLeave.CurrentRow.Cells["Id"].Value;
+            var empCode = dgvLeave.CurrentRow.Cells["EmpCode"].Value?.ToString();
+            var empName = dgvLeave.CurrentRow.Cells["EmpName"].Value?.ToString();
+
+            DateTime.TryParse(dgvLeave.CurrentRow.Cells["StartDate"].Value?.ToString(), out var startDate);
+            DateTime.TryParse(dgvLeave.CurrentRow.Cells["EndDate"].Value?.ToString(), out var endDate);
+            var reason = dgvLeave.CurrentRow.Cells["Reason"].Value?.ToString();
+            var leaveTypeDisplay = dgvLeave.CurrentRow.Cells["LeaveType"].Value?.ToString();
+
+            var existing = new LeaveRequestDto
+            {
+                Id = id,
+                LeaveType = ReverseTranslateLeaveType(leaveTypeDisplay),
+                StartDate = startDate == default ? DateTime.Today : startDate,
+                EndDate = endDate == default ? DateTime.Today : endDate,
+                Reason = reason ?? ""
+            };
+
+            using (var dlg = new LeaveRequestDialog(existing))
+            {
+                if (dlg.ShowDialog() == DialogResult.OK && dlg.Result != null)
+                {
+                    dlg.Result.Id = id;
+                    try
+                    {
+                        await AppDatabase.Repository.UpdateLeaveRequestAsync(dlg.Result);
+                        await AppDatabase.Repository.InsertAuditLogAsync(
+                            AppSession.CurrentUser?.Id, null, "UPDATE", "leave_requests", id.ToString(),
+                            $"Sửa đơn nghỉ phép ID={id} của {empName} ({empCode})");
+                        await LoadLeaveAsync();
+                        MessageBox.Show("✅ Đã cập nhật đơn nghỉ phép!", "Thành công", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    }
+                    catch (Exception ex) { MessageBox.Show(ex.Message, "Lỗi"); }
+                }
+            }
+        }
+
+        private async void BtnCancelLeave_Click(object sender, EventArgs e)
+        {
+            if (dgvLeave.CurrentRow == null) return;
+            var rawStatus = dgvLeave.CurrentRow.Cells["RawStatus"].Value?.ToString();
+            if (rawStatus != "Pending") { MessageBox.Show("Chỉ rút được đơn đang chờ duyệt!", "Thông báo"); return; }
+
+            var id = (int)dgvLeave.CurrentRow.Cells["Id"].Value;
+            var empName = dgvLeave.CurrentRow.Cells["EmpName"].Value?.ToString();
+
+            if (MessageBox.Show($"Xác nhận rút đơn nghỉ phép của {empName}?", "Xác nhận",
+                MessageBoxButtons.YesNo, MessageBoxIcon.Question) != DialogResult.Yes) return;
+
+            try
+            {
+                await AppDatabase.Repository.CancelLeaveRequestAsync(id);
+                await AppDatabase.Repository.InsertAuditLogAsync(
+                    AppSession.CurrentUser?.Id, null, "CANCEL", "leave_requests", id.ToString(),
+                    $"Rút đơn nghỉ phép ID={id} của {empName}");
+                await LoadLeaveAsync();
+                MessageBox.Show("Đã rút đơn nghỉ phép.", "Thông báo");
             }
             catch (Exception ex) { MessageBox.Show(ex.Message, "Lỗi"); }
         }
@@ -307,10 +411,24 @@ namespace FaceIDApp.UserControls
         {
             switch (status)
             {
-                case "Pending": return "Chờ duyệt";
-                case "Approved": return "Đã duyệt";
-                case "Rejected": return "Từ chối";
-                default: return status;
+                case "Pending":   return "Chờ duyệt";
+                case "Approved":  return "Đã duyệt";
+                case "Rejected":  return "Từ chối";
+                case "Cancelled": return "Đã rút";
+                default:          return status;
+            }
+        }
+
+        private string ReverseTranslateLeaveType(string display)
+        {
+            switch (display)
+            {
+                case "Phép năm":   return "Annual";
+                case "Ốm đau":     return "Sick";
+                case "Việc riêng": return "Personal";
+                case "Thai sản":   return "Maternity";
+                case "Không lương":return "Unpaid";
+                default:           return display ?? "Annual";
             }
         }
         #endregion
@@ -325,10 +443,12 @@ namespace FaceIDApp.UserControls
         private ComboBox cboEmployee, cboType;
         private DateTimePicker dtpStart, dtpEnd;
         private TextBox txtReason;
+        private readonly LeaveRequestDto _editExisting;
 
-        public LeaveRequestDialog()
+        public LeaveRequestDialog(LeaveRequestDto editExisting = null)
         {
-            this.Text = "Tạo đơn nghỉ phép";
+            _editExisting = editExisting;
+            this.Text = editExisting == null ? "Tạo đơn nghỉ phép" : "Sửa đơn nghỉ phép";
             this.Size = new Size(450, 380);
             this.StartPosition = FormStartPosition.CenterParent;
             this.FormBorderStyle = FormBorderStyle.FixedDialog;
@@ -362,7 +482,7 @@ namespace FaceIDApp.UserControls
 
             var btnOk = new Button
             {
-                Text = "Tạo đơn", DialogResult = DialogResult.OK,
+                Text = _editExisting == null ? "Tạo đơn" : "Lưu thay đổi", DialogResult = DialogResult.OK,
                 Font = new Font("Segoe UI", 10F, FontStyle.Bold),
                 ForeColor = Color.White, BackColor = Color.FromArgb(59, 130, 246),
                 FlatStyle = FlatStyle.Flat, Size = new Size(130, 38), Location = new Point(155, y += 65), Cursor = Cursors.Hand
@@ -370,21 +490,47 @@ namespace FaceIDApp.UserControls
             btnOk.FlatAppearance.BorderSize = 0;
             btnOk.Click += (s, e) =>
             {
-                if (cboEmployee.SelectedItem == null) { MessageBox.Show("Chọn nhân viên!"); this.DialogResult = DialogResult.None; return; }
-                var emp = (EmployeeComboItem)cboEmployee.SelectedItem;
-                Result = new LeaveRequestDto
+                if (_editExisting == null)
                 {
-                    EmployeeId = emp.Id, LeaveType = cboType.SelectedItem.ToString(),
-                    StartDate = dtpStart.Value.Date, EndDate = dtpEnd.Value.Date,
-                    TotalDays = (decimal)(dtpEnd.Value.Date - dtpStart.Value.Date).TotalDays + 1,
-                    Reason = txtReason.Text
-                };
+                    if (cboEmployee.SelectedItem == null) { MessageBox.Show("Chọn nhân viên!"); this.DialogResult = DialogResult.None; return; }
+                    var emp = (EmployeeComboItem)cboEmployee.SelectedItem;
+                    Result = new LeaveRequestDto
+                    {
+                        EmployeeId = emp.Id, LeaveType = cboType.SelectedItem.ToString(),
+                        StartDate = dtpStart.Value.Date, EndDate = dtpEnd.Value.Date,
+                        TotalDays = (decimal)(dtpEnd.Value.Date - dtpStart.Value.Date).TotalDays + 1,
+                        Reason = txtReason.Text
+                    };
+                }
+                else
+                {
+                    Result = new LeaveRequestDto
+                    {
+                        Id = _editExisting.Id,
+                        EmployeeId = _editExisting.EmployeeId,
+                        LeaveType = cboType.SelectedItem.ToString(),
+                        StartDate = dtpStart.Value.Date, EndDate = dtpEnd.Value.Date,
+                        TotalDays = (decimal)(dtpEnd.Value.Date - dtpStart.Value.Date).TotalDays + 1,
+                        Reason = txtReason.Text
+                    };
+                }
             };
             this.Controls.Add(btnOk);
             this.AcceptButton = btnOk;
 
             this.Load += async (s, e) =>
             {
+                if (_editExisting != null)
+                {
+                    // Edit mode: hide employee picker, pre-fill fields
+                    cboEmployee.Visible = false;
+                    var leaveTypeIndex = cboType.Items.IndexOf(_editExisting.LeaveType);
+                    if (leaveTypeIndex >= 0) cboType.SelectedIndex = leaveTypeIndex;
+                    dtpStart.Value = _editExisting.StartDate;
+                    dtpEnd.Value = _editExisting.EndDate;
+                    txtReason.Text = _editExisting.Reason ?? "";
+                    return;
+                }
                 var emps = await AppDatabase.Repository.GetEmployeesAsync();
                 foreach (var emp in emps)
                     cboEmployee.Items.Add(new EmployeeComboItem { Id = emp.Id, Display = $"{emp.Code} — {emp.FullName}" });

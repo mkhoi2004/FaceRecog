@@ -543,10 +543,14 @@ namespace FaceIDApp.UserControls
             btnAssign.Click += async (s, e) =>
             {
                 if (cboEmp.SelectedIndex == 0 || cboShiftSel.SelectedIndex == 0) { MessageBox.Show("Chọn nhân viên và ca!"); return; }
+                if (_empListSched == null || _shiftListSched == null) { MessageBox.Show("Dữ liệu chưa tải xong, vui lòng thử lại!"); return; }
+                int empIdx = cboEmp.SelectedIndex - 1;
+                int shiftIdx = cboShiftSel.SelectedIndex - 1;
+                if (empIdx < 0 || empIdx >= _empListSched.Count || shiftIdx < 0 || shiftIdx >= _shiftListSched.Count) { MessageBox.Show("Lỗi lựa chọn, vui lòng tải lại trang!"); return; }
                 try
                 {
-                    var emp   = _empListSched[cboEmp.SelectedIndex - 1];
-                    var shift = _shiftListSched[cboShiftSel.SelectedIndex - 1];
+                    var emp   = _empListSched[empIdx];
+                    var shift = _shiftListSched[shiftIdx];
                     await AppDatabase.Repository.UpsertShiftScheduleAsync(emp.Id, dtpDate.Value, shift.Id, chkOverride.Checked, null);
                     MessageBox.Show($"✅ Đã gán ca '{shift.Name}' cho {emp.FullName} ngày {dtpDate.Value:dd/MM/yyyy}", "Thành công");
                     await LoadShiftScheduleAsync();

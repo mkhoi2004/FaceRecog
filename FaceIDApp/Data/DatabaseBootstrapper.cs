@@ -67,6 +67,9 @@ namespace FaceIDApp.Data
                         cmd.CommandTimeout = 120;
                         await cmd.ExecuteNonQueryAsync();
                     }
+                    
+                    // Re-hash all seed user passwords with BCrypt (the SQL file may have static/test hashes)
+                    await RehashSeedPasswordsAsync(conn);
                     return;
                 }
 
@@ -151,6 +154,31 @@ VALUES ('admin', @hash, 'Admin', 0)", conn))
             }
 
             return null;
+        }
+
+        /// <summary>
+        /// After running seed SQL, re-hash user passwords to valid BCrypt.
+        /// admin → admin123  |  user → user123
+        /// </summary>
+        private static async Task RehashSeedPasswordsAsync(SQLiteConnection conn)
+        {
+            // Hash admin password
+            var adminHash = AuthPasswordHasher.Hash("admin123");
+            using (var cmd = new SQLiteCommand(
+                "UPDATE users SET password_hash = @hash WHERE lower(username) = 'admin'", conn))
+            {
+                cmd.Parameters.AddWithValue("@hash", adminHash);
+                await cmd.ExecuteNonQueryAsync();
+            }
+
+            // Hash user password
+            var userHash = AuthPasswordHasher.Hash("user123");
+            using (var cmd = new SQLiteCommand(
+                "UPDATE users SET password_hash = @hash WHERE lower(username) = 'user'", conn))
+            {
+                cmd.Parameters.AddWithValue("@hash", userHash);
+                await cmd.ExecuteNonQueryAsync();
+            }
         }
 
         private static async Task CreateMinimalSchemaAsync(SQLiteConnection conn)

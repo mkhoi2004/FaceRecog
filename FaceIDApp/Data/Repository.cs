@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using System.Data.SQLite;
@@ -220,7 +220,7 @@ INSERT INTO employees (code, full_name, gender, date_of_birth, phone, email, ide
                        department_id, position_id, default_shift_id, manager_id, hire_date, employment_type, avatar_path, annual_leave_days)
 VALUES (@code, @full_name, @gender, @dob, @phone, @email, @idcard,
         @dept_id, @pos_id, @shift_id, @mgr_id, @hire_date, @emp_type, @avatar, @annual_leave)
-RETURNING id", conn))
+; SELECT last_insert_rowid()", conn))
                 {
                     cmd.Parameters.AddWithValue("code", emp.Code);
                     cmd.Parameters.AddWithValue("full_name", emp.FullName);
@@ -453,8 +453,8 @@ VALUES (@emp_id, @encoding, @image_path, @image_index, @angle, @quality_score, @
 ON CONFLICT (employee_id, image_index) DO UPDATE SET
     encoding = EXCLUDED.encoding, image_path = EXCLUDED.image_path,
     angle = EXCLUDED.angle, quality_score = EXCLUDED.quality_score,
-    is_active = TRUE, registered_by = EXCLUDED.registered_by
-RETURNING id", conn))
+    is_active = 1, registered_by = EXCLUDED.registered_by
+; SELECT last_insert_rowid()", conn))
                 {
                     cmd.Parameters.AddWithValue("emp_id", employeeId);
                     cmd.Parameters.AddWithValue("encoding", encoding);
@@ -556,7 +556,7 @@ VALUES (@emp_id, CURRENT_DATE, @shift_id, @check_in, @image_path,
 ON CONFLICT (employee_id, attendance_date) DO UPDATE SET
     check_in = EXCLUDED.check_in, check_in_image_path = EXCLUDED.check_in_image_path,
     check_in_method = EXCLUDED.check_in_method, check_in_confidence = EXCLUDED.check_in_confidence
-RETURNING id", conn))
+; SELECT last_insert_rowid()", conn))
                 {
                     cmd.Parameters.AddWithValue("emp_id", employeeId);
                     cmd.Parameters.AddWithValue("shift_id", (object)shiftId ?? DBNull.Value);
@@ -855,7 +855,7 @@ VALUES (@att_id, @emp_id, @dev_id, @log_type, @method,
             {
                 await conn.OpenAsync();
                 using (var cmd = new SQLiteCommand(@"
-INSERT INTO departments (code, name, description, is_active) VALUES (@code, @name, @desc, 1) RETURNING id", conn))
+INSERT INTO departments (code, name, description, is_active) VALUES (@code, @name, @desc, 1) ; SELECT last_insert_rowid()", conn))
                 {
                     cmd.Parameters.AddWithValue("code", dept.Code);
                     cmd.Parameters.AddWithValue("name", dept.Name);
@@ -904,7 +904,7 @@ INSERT INTO departments (code, name, description, is_active) VALUES (@code, @nam
             {
                 await conn.OpenAsync();
                 using (var cmd = new SQLiteCommand(@"
-INSERT INTO positions (code, name, level, is_active) VALUES (@code, @name, @level, 1) RETURNING id", conn))
+INSERT INTO positions (code, name, level, is_active) VALUES (@code, @name, @level, 1) ; SELECT last_insert_rowid()", conn))
                 {
                     cmd.Parameters.AddWithValue("code", pos.Code);
                     cmd.Parameters.AddWithValue("name", pos.Name);
@@ -956,7 +956,7 @@ INSERT INTO positions (code, name, level, is_active) VALUES (@code, @name, @leve
 INSERT INTO work_shifts (code, name, shift_type, start_time, end_time, break_minutes, standard_hours,
     late_threshold, early_threshold, is_overnight, color_code, is_active)
 VALUES (@code, @name, @type, @start, @end, @break, @hours, @late, @early, @overnight, @color, 1)
-RETURNING id", conn))
+; SELECT last_insert_rowid()", conn))
                 {
                     cmd.Parameters.AddWithValue("code", ws.Code);
                     cmd.Parameters.AddWithValue("name", ws.Name);
@@ -1051,7 +1051,7 @@ WHERE id=@id", conn))
                 await conn.OpenAsync();
                 using (var cmd = new SQLiteCommand(@"
 INSERT INTO holidays (holiday_date, name, holiday_type, is_recurring, year)
-VALUES (@date, @name, @type, @recurring, @year) RETURNING id", conn))
+VALUES (@date, @name, @type, @recurring, @year) ; SELECT last_insert_rowid()", conn))
                 {
                     cmd.Parameters.AddWithValue("date", h.HolidayDate.Date);
                     cmd.Parameters.AddWithValue("name", h.Name);
@@ -1103,7 +1103,7 @@ VALUES (@date, @name, @type, @recurring, @year) RETURNING id", conn))
                 await conn.OpenAsync();
                 using (var cmd = new SQLiteCommand(@"
 INSERT INTO leave_requests (employee_id, leave_type, start_date, end_date, total_days, is_half_day, half_day_period, reason, status)
-VALUES (@emp_id, @type, @start, @end, @days, @half, @period, @reason, 'Pending') RETURNING id", conn))
+VALUES (@emp_id, @type, @start, @end, @days, @half, @period, @reason, 'Pending') ; SELECT last_insert_rowid()", conn))
                 {
                     cmd.Parameters.AddWithValue("emp_id", lr.EmployeeId);
                     cmd.Parameters.AddWithValue("type", lr.LeaveType);
@@ -1187,7 +1187,7 @@ FROM users u LEFT JOIN employees e ON u.employee_id = e.id ORDER BY u.username",
             {
                 await conn.OpenAsync();
                 using (var cmd = new SQLiteCommand(@"
-INSERT INTO users (username, password_hash, employee_id, role, is_active) VALUES (@user, @hash, @emp_id, @role, 1) RETURNING id", conn))
+INSERT INTO users (username, password_hash, employee_id, role, is_active) VALUES (@user, @hash, @emp_id, @role, 1) ; SELECT last_insert_rowid()", conn))
                 {
                     cmd.Parameters.AddWithValue("user", username);
                     cmd.Parameters.AddWithValue("hash", passwordHash);
@@ -1282,10 +1282,10 @@ INSERT INTO users (username, password_hash, employee_id, role, is_active) VALUES
                 var sql = legacyColumns
                     ? @"
 INSERT INTO attendance_devices (code, name, device_type, location, ip_address, is_active)
-VALUES (@code, @name, @type, @loc, @ip, 1) RETURNING id"
+VALUES (@code, @name, @type, @loc, @ip, 1) ; SELECT last_insert_rowid()"
                     : @"
 INSERT INTO attendance_devices (device_code, device_name, device_type, location_name, ip_address, is_active)
-VALUES (@code, @name, @type, @loc, @ip, 1) RETURNING id";
+VALUES (@code, @name, @type, @loc, @ip, 1) ; SELECT last_insert_rowid()";
 
                 using (var cmd = new SQLiteCommand(sql, conn))
                 {
@@ -1392,13 +1392,13 @@ ORDER BY effective_from DESC, name";
                     ? (hasIsActive
                         ? @"
 INSERT INTO work_calendars (name, year, monday, tuesday, wednesday, thursday, friday, saturday, sunday, is_default, is_active)
-VALUES (@name, @year, @mon, @tue, @wed, @thu, @fri, @sat, @sun, @default, 1) RETURNING id"
+VALUES (@name, @year, @mon, @tue, @wed, @thu, @fri, @sat, @sun, @default, 1) ; SELECT last_insert_rowid()"
                         : @"
 INSERT INTO work_calendars (name, year, monday, tuesday, wednesday, thursday, friday, saturday, sunday, is_default)
-VALUES (@name, @year, @mon, @tue, @wed, @thu, @fri, @sat, @sun, @default) RETURNING id")
+VALUES (@name, @year, @mon, @tue, @wed, @thu, @fri, @sat, @sun, @default) ; SELECT last_insert_rowid()")
                     : @"
 INSERT INTO work_calendars (name, monday, tuesday, wednesday, thursday, friday, saturday, sunday, is_default, effective_from)
-VALUES (@name, @mon, @tue, @wed, @thu, @fri, @sat, @sun, @default, @effective_from) RETURNING id";
+VALUES (@name, @mon, @tue, @wed, @thu, @fri, @sat, @sun, @default, @effective_from) ; SELECT last_insert_rowid()";
 
                 using (var cmd = new SQLiteCommand(sql, conn))
                 {
@@ -1680,6 +1680,201 @@ ORDER BY ar.attendance_date DESC", conn))
             return list;
         }
 
+        public async Task<string> GetSystemSettingAsync(string key, string defaultValue = null)
+        {
+            using (var conn = CreateConnection())
+            {
+                await conn.OpenAsync();
+                using (var cmd = new SQLiteCommand(
+                    "SELECT value FROM system_settings WHERE key = @key", conn))
+                {
+                    cmd.Parameters.AddWithValue("key", key);
+                    var obj = await cmd.ExecuteScalarAsync();
+                    if (obj == null || obj == DBNull.Value) return defaultValue;
+                    return Convert.ToString(obj);
+                }
+            }
+        }
+
+        public async Task<double> GetSystemSettingDoubleAsync(string key, double defaultValue)
+        {
+            var raw = await GetSystemSettingAsync(key, null);
+            if (string.IsNullOrWhiteSpace(raw)) return defaultValue;
+            return double.TryParse(raw, System.Globalization.NumberStyles.Float,
+                System.Globalization.CultureInfo.InvariantCulture, out var v) ? v : defaultValue;
+        }
+
+        public async Task<int> GetSystemSettingIntAsync(string key, int defaultValue)
+        {
+            var raw = await GetSystemSettingAsync(key, null);
+            if (string.IsNullOrWhiteSpace(raw)) return defaultValue;
+            return int.TryParse(raw, System.Globalization.NumberStyles.Integer,
+                System.Globalization.CultureInfo.InvariantCulture, out var v) ? v : defaultValue;
+        }
+
+        public async Task<DateTime?> GetLastSuccessLogTimeAsync(int employeeId, string logType)
+        {
+            using (var conn = CreateConnection())
+            {
+                await conn.OpenAsync();
+                using (var cmd = new SQLiteCommand(@"
+SELECT MAX(created_at)
+FROM attendance_logs
+WHERE employee_id = @emp AND log_type = @lt AND result = 'Success'", conn))
+                {
+                    cmd.Parameters.AddWithValue("emp", employeeId);
+                    cmd.Parameters.AddWithValue("lt", logType);
+                    var obj = await cmd.ExecuteScalarAsync();
+                    if (obj == null || obj == DBNull.Value) return null;
+                    if (DateTime.TryParse(Convert.ToString(obj), System.Globalization.CultureInfo.InvariantCulture,
+                        System.Globalization.DateTimeStyles.AssumeLocal, out var dt))
+                        return dt;
+                    return null;
+                }
+            }
+        }
+
+        // =============================================
+        // AUDIT LOGS (write)
+        // =============================================
+        public async Task InsertAuditLogAsync(int? userId, int? employeeId, string action,
+            string tableName, string recordId, string description,
+            string oldValues = null, string newValues = null)
+        {
+            using (var conn = CreateConnection())
+            {
+                await conn.OpenAsync();
+                using (var cmd = new SQLiteCommand(@"
+INSERT INTO audit_logs
+    (user_id, employee_id, action, table_name, record_id,
+     old_values, new_values, description)
+VALUES (@uid, @eid, @action, @table, @rid, @old, @new, @desc)", conn))
+                {
+                    cmd.Parameters.AddWithValue("uid",    (object)userId ?? DBNull.Value);
+                    cmd.Parameters.AddWithValue("eid",    (object)employeeId ?? DBNull.Value);
+                    cmd.Parameters.AddWithValue("action", action);
+                    cmd.Parameters.AddWithValue("table",  (object)tableName ?? DBNull.Value);
+                    cmd.Parameters.AddWithValue("rid",    (object)recordId ?? DBNull.Value);
+                    cmd.Parameters.AddWithValue("old",    (object)oldValues ?? DBNull.Value);
+                    cmd.Parameters.AddWithValue("new",    (object)newValues ?? DBNull.Value);
+                    cmd.Parameters.AddWithValue("desc",   (object)description ?? DBNull.Value);
+                    await cmd.ExecuteNonQueryAsync();
+                }
+            }
+        }
+
+        // =============================================
+        // LEAVE REQUESTS — Update & Cancel
+        // =============================================
+        public async Task UpdateLeaveRequestAsync(LeaveRequestDto dto)
+        {
+            using (var conn = CreateConnection())
+            {
+                await conn.OpenAsync();
+                using (var cmd = new SQLiteCommand(@"
+UPDATE leave_requests
+SET leave_type   = @lt,
+    start_date   = @sd,
+    end_date     = @ed,
+    total_days   = @td,
+    reason       = @reason,
+    updated_at   = CURRENT_TIMESTAMP
+WHERE id = @id AND status = 'Pending'", conn))
+                {
+                    cmd.Parameters.AddWithValue("lt",     dto.LeaveType);
+                    cmd.Parameters.AddWithValue("sd",     dto.StartDate.ToString("yyyy-MM-dd"));
+                    cmd.Parameters.AddWithValue("ed",     dto.EndDate.ToString("yyyy-MM-dd"));
+                    cmd.Parameters.AddWithValue("td",     dto.TotalDays);
+                    cmd.Parameters.AddWithValue("reason", (object)dto.Reason ?? DBNull.Value);
+                    cmd.Parameters.AddWithValue("id",     dto.Id);
+                    await cmd.ExecuteNonQueryAsync();
+                }
+            }
+        }
+
+        public async Task CancelLeaveRequestAsync(int id)
+        {
+            using (var conn = CreateConnection())
+            {
+                await conn.OpenAsync();
+                using (var cmd = new SQLiteCommand(@"
+UPDATE leave_requests
+SET status = 'Cancelled', updated_at = CURRENT_TIMESTAMP
+WHERE id = @id AND status = 'Pending'", conn))
+                {
+                    cmd.Parameters.AddWithValue("id", id);
+                    await cmd.ExecuteNonQueryAsync();
+                }
+            }
+        }
+
+        // =============================================
+        // ATTENDANCE RECORDS — Manual edit
+        // =============================================
+        public async Task UpdateAttendanceRecordManualAsync(long id,
+            DateTime? checkIn, DateTime? checkOut, string status,
+            int lateMin, int earlyMin, int workMin,
+            string reason, int? editByUserId)
+        {
+            if (string.IsNullOrWhiteSpace(reason))
+                throw new ArgumentException("Bắt buộc nhập lý do khi sửa thủ công.");
+
+            using (var conn = CreateConnection())
+            {
+                await conn.OpenAsync();
+                using (var cmd = new SQLiteCommand(@"
+UPDATE attendance_records
+SET check_in            = @ci,
+    check_out           = @co,
+    status              = @status,
+    late_minutes        = @late,
+    early_minutes       = @early,
+    working_minutes     = @work,
+    is_manual_edit      = 1,
+    manual_edit_by      = @editby,
+    manual_edit_at      = CURRENT_TIMESTAMP,
+    manual_edit_reason  = @reason,
+    updated_at          = CURRENT_TIMESTAMP
+WHERE id = @id", conn))
+                {
+                    cmd.Parameters.AddWithValue("ci",     (object)checkIn ?? DBNull.Value);
+                    cmd.Parameters.AddWithValue("co",     (object)checkOut ?? DBNull.Value);
+                    cmd.Parameters.AddWithValue("status", status);
+                    cmd.Parameters.AddWithValue("late",   lateMin);
+                    cmd.Parameters.AddWithValue("early",  earlyMin);
+                    cmd.Parameters.AddWithValue("work",   workMin);
+                    cmd.Parameters.AddWithValue("editby", (object)editByUserId ?? DBNull.Value);
+                    cmd.Parameters.AddWithValue("reason", reason);
+                    cmd.Parameters.AddWithValue("id",     id);
+                    await cmd.ExecuteNonQueryAsync();
+                }
+            }
+        }
+
+        // =============================================
+        // FACE DATA — Verification
+        // =============================================
+        public async Task UpdateFaceDataVerificationAsync(int faceDataId, bool isVerified, int? verifiedBy)
+        {
+            using (var conn = CreateConnection())
+            {
+                await conn.OpenAsync();
+                using (var cmd = new SQLiteCommand(@"
+UPDATE face_data
+SET is_verified = @v,
+    verified_by = @vby,
+    verified_at = CASE WHEN @v = 1 THEN CURRENT_TIMESTAMP ELSE NULL END,
+    updated_at  = CURRENT_TIMESTAMP
+WHERE id = @id", conn))
+                {
+                    cmd.Parameters.AddWithValue("v",   isVerified ? 1 : 0);
+                    cmd.Parameters.AddWithValue("vby", (object)verifiedBy ?? DBNull.Value);
+                    cmd.Parameters.AddWithValue("id",  faceDataId);
+                    await cmd.ExecuteNonQueryAsync();
+                }
+            }
+        }
+
         public async Task UpsertSystemSettingAsync(string key, string value)
         {
             using (var conn = CreateConnection())
@@ -1727,7 +1922,7 @@ ORDER BY al.created_at DESC LIMIT @limit", conn))
                                 UserId = r.IsDBNull(1) ? (int?)null : r.GetInt32(1),
                                 Action = r.GetString(2),
                                 TableName = r.GetString(3),
-                                RecordId = r.IsDBNull(4) ? (int?)null : r.GetInt32(4),
+                                RecordId = r.IsDBNull(4) ? null : r.GetString(4),
                                 OldValues = r.IsDBNull(5) ? null : r.GetString(5),
                                 NewValues = r.IsDBNull(6) ? null : r.GetString(6),
                                 IpAddress = r.IsDBNull(7) ? null : r.GetString(7),

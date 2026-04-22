@@ -914,26 +914,30 @@ INSERT INTO system_settings (key, value, value_type, category, description) VALU
 
 -- ============================================================
 --  DỮ LIỆU MẪU (Seed)
+--  Mật khẩu mặc định: admin / admin123  |  user / user123
 -- ============================================================
 
--- Phòng ban
-INSERT INTO departments (code, name, sort_order) VALUES
-('BOD',   'Ban Giám đốc',      1),
-('HR',    'Phòng Nhân sự',     2),
-('IT',    'Phòng Công nghệ',   3),
-('SALES', 'Phòng Kinh doanh',  4),
-('ACCT',  'Phòng Kế toán',     5);
+-- Phòng ban (7 phòng)
+INSERT INTO departments (code, name, description, sort_order) VALUES
+('BOD',   'Ban Giám đốc',           'Điều hành chung công ty',          1),
+('HR',    'Phòng Nhân sự',          'Quản lý nhân sự, tuyển dụng',     2),
+('IT',    'Phòng Công nghệ',        'Phát triển và vận hành hệ thống', 3),
+('SALES', 'Phòng Kinh doanh',       'Bán hàng và chăm sóc khách',     4),
+('ACCT',  'Phòng Kế toán',          'Quản lý tài chính, kế toán',     5),
+('MKT',   'Phòng Marketing',        'Truyền thông và quảng cáo',      6),
+('QA',    'Phòng Kiểm thử',         'Đảm bảo chất lượng sản phẩm',   7);
 
--- Chức vụ
+-- Chức vụ (7 cấp)
 INSERT INTO positions (code, name, level) VALUES
 ('CEO',  'Giám đốc điều hành', 10),
+('VP',   'Phó giám đốc',        9),
 ('DIR',  'Trưởng phòng',        7),
 ('LEAD', 'Trưởng nhóm',         5),
 ('SR',   'Nhân viên cao cấp',   4),
 ('JR',   'Nhân viên',           3),
 ('INT',  'Thực tập sinh',       1);
 
--- Ca làm việc
+-- Ca làm việc (5 ca)
 INSERT INTO work_shifts
     (code, name, shift_type, start_time, end_time,
      break_minutes, standard_hours, late_threshold, early_threshold, is_overnight, color_code)
@@ -941,60 +945,66 @@ VALUES
 ('MAIN',  'Ca hành chính', 'Fixed',    '08:00', '17:00', 60, 8.0, 15, 15, 0, '#4A90D9'),
 ('MORN',  'Ca sáng',       'Shift',    '06:00', '14:00', 30, 8.0, 10, 10, 0, '#F5A623'),
 ('AFT',   'Ca chiều',      'Shift',    '14:00', '22:00', 30, 8.0, 10, 10, 0, '#7ED321'),
-('NIGHT', 'Ca đêm',        'Shift',    '22:00', '06:00', 30, 8.0, 10, 10, 1,  '#9B59B6'),
+('NIGHT', 'Ca đêm',        'Shift',    '22:00', '06:00', 30, 8.0, 10, 10, 1, '#9B59B6'),
 ('FLEX',  'Ca linh hoạt',  'Flexible', '07:00', '19:00', 60, 8.0,  0,  0, 0, '#1ABC9C');
 
--- Lịch làm tuần
+-- Lịch làm tuần (3 loại)
 INSERT INTO work_calendars (name, saturday, sunday, is_default) VALUES
 ('Hành chính T2-T6', 0, 0, 1),
-('Vận hành T2-T7',   1,  0, 0),
-('Sản xuất 7 ngày',  1,  1,  0);
+('Vận hành T2-T7',   1, 0, 0),
+('Sản xuất 7 ngày',  1, 1, 0);
 
 -- Ngày lễ 2026
 INSERT INTO holidays (holiday_date, name, holiday_type, is_recurring, year) VALUES
-('2026-01-01', 'Tết Dương lịch',             'National', 1,  2026),
-('2026-02-17', 'Nghỉ Tết Nguyên đán (bù)',   'National', 0, 2026),
-('2026-02-18', 'Tết Nguyên đán – Mùng 1',   'National', 0, 2026),
-('2026-02-19', 'Tết Nguyên đán – Mùng 2',   'National', 0, 2026),
-('2026-02-20', 'Tết Nguyên đán – Mùng 3',   'National', 0, 2026),
-('2026-04-06', 'Giỗ Tổ Hùng Vương',          'National', 0, 2026),
-('2026-04-30', 'Ngày Giải phóng miền Nam',   'National', 1,  2026),
-('2026-05-01', 'Quốc tế Lao động',           'National', 1,  2026),
-('2026-09-02', 'Quốc khánh',                 'National', 1,  2026);
+('2026-01-01', 'Tết Dương lịch',              'National', 1, 2026),
+('2026-02-17', 'Nghỉ Tết Nguyên đán (bù)',    'National', 0, 2026),
+('2026-02-18', 'Tết Nguyên đán – Mùng 1',     'National', 0, 2026),
+('2026-02-19', 'Tết Nguyên đán – Mùng 2',     'National', 0, 2026),
+('2026-02-20', 'Tết Nguyên đán – Mùng 3',     'National', 0, 2026),
+('2026-04-06', 'Giỗ Tổ Hùng Vương (10/3 ÂL)', 'National', 0, 2026),
+('2026-04-30', 'Ngày Giải phóng miền Nam',     'National', 1, 2026),
+('2026-05-01', 'Quốc tế Lao động',             'National', 1, 2026),
+('2026-09-02', 'Quốc khánh',                   'National', 1, 2026),
+('2026-09-03', 'Nghỉ bù Quốc khánh',          'National', 0, 2026);
 
--- Nhân viên mẫu
+-- ── Nhân viên mẫu (10 người) ──
 INSERT INTO employees
-    (code, full_name, gender, phone, email, department_id, position_id,
-     default_shift_id, employment_type, hire_date, annual_leave_days)
+    (code, full_name, gender, date_of_birth, phone, email, identity_card,
+     department_id, position_id, default_shift_id, employment_type, hire_date, annual_leave_days)
 VALUES
-('NV001', 'Nguyễn Văn An',   'M', '0901234561', 'an@company.com',     3, 2, 1, 'FullTime', '2022-06-01', 14),
-('NV002', 'Trần Thị Bình',   'F', '0901234562', 'binh@company.com',   2, 2, 1, 'FullTime', '2021-01-10', 14),
-('NV003', 'Lê Văn Cường',    'M', '0901234563', 'cuong@company.com',  3, 5, 1, 'FullTime', '2023-03-15', 12),
-('NV004', 'Phạm Thị Dung',   'F', '0901234564', 'dung@company.com',   4, 4, 1, 'FullTime', '2023-09-01', 12),
-('NV005', 'Hoàng Văn Em',    'M', '0901234565', 'em@company.com',     3, 6, 1, 'FullTime', '2025-02-01', 12);
+('NV001', 'Trần Minh Nhật',         'M', '2004-08-15', '0901000001', 'nhat.tm@company.com',  '079204001001', 3, 4, 1, 'FullTime', '2023-06-01', 14),
+('NV002', 'Trần Dương Yến Nhi',     'F', '2003-12-25', '0901000002', 'nhi.tdy@company.com',  '079203002002', 2, 5, 1, 'FullTime', '2023-01-10', 14),
+('NV003', 'Trần Nguyễn Minh Khôi',  'M', '2004-03-20', '0901000003', 'khoi.tnm@company.com', '079204003003', 3, 6, 1, 'FullTime', '2024-02-15', 12),
+('NV004', 'Nguyễn Văn An',          'M', '1985-05-10', '0901000004', 'an.nv@company.com',    '079185004004', 1, 1, 1, 'FullTime', '2015-01-01', 18),
+('NV005', 'Lê Thị Hồng Nhung',      'F', '1990-11-08', '0901000005', 'nhung.lth@company.com','079190005005', 2, 3, 1, 'FullTime', '2018-03-15', 16),
+('NV006', 'Phạm Quốc Bảo',          'M', '1992-07-22', '0901000006', 'bao.pq@company.com',  '079192006006', 3, 3, 1, 'FullTime', '2019-08-01', 15),
+('NV007', 'Võ Ngọc Trâm',           'F', '1995-04-18', '0901000007', 'tram.vn@company.com', '079195007007', 4, 5, 1, 'FullTime', '2020-06-10', 14),
+('NV008', 'Huỳnh Đức Trí',          'M', '1998-09-30', '0901000008', 'tri.hd@company.com',  '079198008008', 5, 5, 1, 'FullTime', '2021-11-01', 13),
+('NV009', 'Đặng Thùy Linh',         'F', '2000-02-14', '0901000009', 'linh.dt@company.com', '079200009009', 6, 6, 1, 'FullTime', '2022-07-20', 12),
+('NV010', 'Bùi Thanh Tùng',         'M', '2001-06-05', '0901000010', 'tung.bt@company.com', '079201010010', 7, 7, 1, 'PartTime', '2025-01-15', 10);
 
 -- Quản lý trực tiếp
-UPDATE employees SET manager_id = 1 WHERE id IN (3, 4, 5);
+UPDATE employees SET manager_id = 4 WHERE id IN (1, 2, 3, 5, 6);
+UPDATE employees SET manager_id = 6 WHERE id IN (1, 3);
+UPDATE employees SET manager_id = 5 WHERE id = 2;
 
--- Tài khoản (BCrypt hash — thay bằng hash thật trong app)
+-- ── Tài khoản đăng nhập (hash sẽ được DatabaseBootstrapper cập nhật) ──
 INSERT INTO users (username, password_hash, role, employee_id, must_change_password) VALUES
-('superadmin', '$2a$12$REPLACE_SUPERADMIN_HASH', 'SuperAdmin', NULL,  0),
-('hr.binh',    '$2a$12$REPLACE_HR_HASH',          'HR',         2,     0),
-('mgr.an',     '$2a$12$REPLACE_MGR_HASH',          'Manager',   1,     0),
-('nv.cuong',   '$2a$12$REPLACE_EMP_HASH',          'Employee',  3,     1),
-('nv.dung',    '$2a$12$REPLACE_EMP_HASH2',         'Employee',  4,     1);
+('admin', 'SEED_WILL_BE_REHASHED', 'Admin',    NULL, 0),
+('user',  'SEED_WILL_BE_REHASHED', 'Employee', 1,    0);
 
--- Thiết bị
+-- ── Thiết bị (5 thiết bị) ──
 INSERT INTO attendance_devices
     (device_code, device_name, device_type, location_name, ip_address,
      latitude, longitude, radius_meters, min_confidence, camera_url)
 VALUES
-('CAM-GATE-01', 'Camera Cổng chính',   'Camera', 'Cổng chính – Tầng 1', '192.168.1.101', 10.77690, 106.70090,  50, 0.72, 'rtsp://192.168.1.101:554/stream'),
-('CAM-IT-01',   'Camera Phòng IT',     'Camera', 'Phòng IT – Tầng 3',   '192.168.1.102', 10.77700, 106.70100,  30, 0.70, 'rtsp://192.168.1.102:554/stream'),
-('KSK-HR-01',   'Kiosk Phòng HR',      'Kiosk',  'HR – Tầng 2',          '192.168.1.103', 10.77680, 106.70080,  30, 0.70, NULL),
-('MOB-APP',     'Mobile Application',  'Mobile', 'Di động / WFH',         NULL,            NULL,     NULL,      100, 0.68, NULL);
+('CAM-GATE-01', 'Camera Cổng chính',  'Camera', 'Cổng chính – Tầng 1', '192.168.1.101', 10.77690, 106.70090,  50, 0.72, 'rtsp://192.168.1.101:554/stream'),
+('CAM-IT-01',   'Camera Phòng IT',    'Camera', 'Phòng IT – Tầng 3',   '192.168.1.102', 10.77700, 106.70100,  30, 0.70, 'rtsp://192.168.1.102:554/stream'),
+('CAM-SALES',   'Camera Phòng KD',    'Camera', 'Phòng KD – Tầng 2',   '192.168.1.103', 10.77680, 106.70080,  30, 0.70, 'rtsp://192.168.1.103:554/stream'),
+('KSK-HR-01',   'Kiosk Phòng HR',     'Kiosk',  'HR – Tầng 2',         '192.168.1.110', 10.77685, 106.70085,  30, 0.70, NULL),
+('MOB-APP',     'Mobile Application', 'Mobile', 'Di động / WFH',        NULL,            NULL,     NULL,       100, 0.68, NULL);
 
--- Bản ghi chấm công mẫu
+-- ── Bản ghi chấm công mẫu ──
 INSERT INTO attendance_records
     (employee_id, attendance_date, shift_id,
      check_in, check_out, check_in_device_id, check_out_device_id,
@@ -1002,85 +1012,66 @@ INSERT INTO attendance_records
      check_in_confidence, check_out_confidence,
      status, late_minutes, early_minutes, working_minutes)
 VALUES
-    (3, CURRENT_DATE, 1,
-     datetime('now', 'start of day', '+7 hours', '+56 minutes'), datetime('now', 'start of day', '+17 hours', '+15 minutes'),
-     1, 1, 'Face', 'Face', 0.95, 0.93,
-     'Present', 0, 0, 499);
-    -- working_minutes = (17:15 - 07:56) - 60 break = 559 - 60 = 499 phút ≈ 8h19m
+(1, date('now'), 1,
+ datetime('now', 'start of day', '+7 hours', '+55 minutes'), datetime('now', 'start of day', '+17 hours', '+10 minutes'),
+ 2, 2, 'Face', 'Face', 0.96, 0.94, 'Present', 0, 0, 495),
+(2, date('now'), 1,
+ datetime('now', 'start of day', '+8 hours', '+22 minutes'), datetime('now', 'start of day', '+17 hours', '+5 minutes'),
+ 1, 1, 'Face', 'Face', 0.93, 0.91, 'Late', 22, 0, 463),
+(3, date('now'), 1,
+ datetime('now', 'start of day', '+7 hours', '+58 minutes'), datetime('now', 'start of day', '+16 hours', '+30 minutes'),
+ 2, 2, 'Face', 'Face', 0.95, 0.92, 'EarlyLeave', 0, 30, 452),
+(4, date('now'), 1,
+ datetime('now', 'start of day', '+7 hours', '+50 minutes'), datetime('now', 'start of day', '+17 hours', '+20 minutes'),
+ 1, 1, 'Face', 'Face', 0.97, 0.96, 'Present', 0, 0, 510),
+(7, date('now'), 1,
+ datetime('now', 'start of day', '+8 hours', '+0 minutes'), datetime('now', 'start of day', '+17 hours', '+0 minutes'),
+ 3, 3, 'Face', 'Face', 0.90, 0.88, 'Present', 0, 0, 480),
+(1, date('now', '-1 day'), 1,
+ datetime('now', '-1 day', 'start of day', '+7 hours', '+52 minutes'), datetime('now', '-1 day', 'start of day', '+17 hours', '+8 minutes'),
+ 2, 2, 'Face', 'Face', 0.95, 0.93, 'Present', 0, 0, 496),
+(2, date('now', '-1 day'), 1,
+ datetime('now', '-1 day', 'start of day', '+8 hours', '+0 minutes'), datetime('now', '-1 day', 'start of day', '+17 hours', '+0 minutes'),
+ 1, 1, 'Face', 'Face', 0.92, 0.90, 'Present', 0, 0, 480),
+(3, date('now', '-1 day'), 1,
+ datetime('now', '-1 day', 'start of day', '+8 hours', '+5 minutes'), datetime('now', '-1 day', 'start of day', '+17 hours', '+15 minutes'),
+ 2, 2, 'Face', 'Face', 0.94, 0.91, 'Present', 5, 0, 490),
+(5, date('now', '-1 day'), 1,
+ datetime('now', '-1 day', 'start of day', '+7 hours', '+45 minutes'), datetime('now', '-1 day', 'start of day', '+17 hours', '+30 minutes'),
+ 1, 1, 'Face', 'Face', 0.96, 0.95, 'Present', 0, 0, 525),
+(6, date('now', '-2 days'), 1, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'Absent', 0, 0, 0);
 
--- Log nhận diện tương ứng
+-- ── Log nhận diện ──
 INSERT INTO attendance_logs
     (attendance_id, employee_id, device_id, log_type, method,
      matched_face_id, confidence, face_distance, result)
 VALUES
-    (1, 3, 1, 'CheckIn',  'Face', NULL, 0.95, 0.28, 'Success'),
-    (1, 3, 1, 'CheckOut', 'Face', NULL, 0.93, 0.31, 'Success');
+(1, 1, 2, 'CheckIn',  'Face', NULL, 0.96, 0.25, 'Success'),
+(1, 1, 2, 'CheckOut', 'Face', NULL, 0.94, 0.28, 'Success'),
+(2, 2, 1, 'CheckIn',  'Face', NULL, 0.93, 0.30, 'Success'),
+(2, 2, 1, 'CheckOut', 'Face', NULL, 0.91, 0.32, 'Success'),
+(3, 3, 2, 'CheckIn',  'Face', NULL, 0.95, 0.27, 'Success'),
+(3, 3, 2, 'CheckOut', 'Face', NULL, 0.92, 0.29, 'Success');
 
--- Đơn nghỉ phép mẫu
+-- ── Đơn nghỉ phép mẫu (3 đơn) ──
 INSERT INTO leave_requests
-    (employee_id, leave_type, start_date, end_date, total_days, reason)
+    (employee_id, leave_type, start_date, end_date, total_days, reason, status, approved_by, approved_at)
 VALUES
-    (3, 'Annual', date('now', '+10 days'), date('now', '+11 days'), 2, 'Nghỉ phép cá nhân');
+(3, 'Annual',   date('now', '+10 days'), date('now', '+11 days'), 2, 'Nghỉ phép về quê',                    'Pending', NULL, NULL),
+(2, 'Sick',     date('now', '-3 days'),  date('now', '-3 days'),  1, 'Khám sức khỏe định kỳ',               'Approved', 5, datetime('now', '-2 days')),
+(9, 'Other',    date('now', '+5 days'),  date('now', '+5 days'),  1, 'Có việc gia đình cần giải quyết',     'Pending', NULL, NULL);
 
 
 -- ============================================================
---  GHI CHÚ TÍCH HỢP .NET 8
+-- ============================================================
+--  GHI CHÚ KỸ THUẬT
 -- ============================================================
 --
--- 1. EF CORE (Npgsql.EntityFrameworkCore.PostgreSQL 8.x)
---    ─ HasColumnType("bytea")    → face_data.encoding
---    ─ HasColumnType("jsonb")    → audit_logs.old_values / new_values
---    ─ HasConversion<string>()   → mọi cột TEXT CHECK (enum giả)
---    ─ ValueGeneratedOnAdd()     → INTEGER PRIMARY KEY AUTOINCREMENT / INTEGER PRIMARY KEY AUTOINCREMENT columns
---
--- 2. FACE RECOGNITION PIPELINE (.NET)
---    ─ Thư viện   : FaceRecognitionDotNet (wrapper dlib)
---                   hoặc Microsoft.ML.OnnxRuntime + ArcFace model
---    ─ Encode     : float[128] → BitConverter.GetBytes() × 128 → byte[512]
---    ─ Decode     : byte[512]  → MemoryMarshal.Cast<byte,float>()
---    ─ So sánh    : Euclidean distance < face.max_distance (system_settings)
---    ─ Cache      : IMemoryCache / IDistributedCache (Redis)
---                   Key: "face_encodings" → List<FaceEncoding>
---                   Invalidate khi face_data INSERT/UPDATE/DELETE
---
--- 3. JWT / AUTH
---    ─ Access Token  : claim {userId, employeeId, role, deptId}, exp = 60 min
---    ─ Refresh Token : SHA-256 hash lưu users.refresh_token_hash
---    ─ Khóa tài khoản: failed_login_count >= security.max_login_attempts
---                      → set locked_until = NOW() + lockout_minutes
---
--- 4. BACKGROUND JOBS (Hangfire hoặc Quartz.NET)
---    ─ Mỗi 22:00  : AutoAbsentJob  — NotYet → Absent cho ngày hôm nay
---    ─ Mỗi 1 phút : DeviceHeartbeat — cập nhật attendance_devices.is_online
---    ─ Đầu năm    : HolidayClone   — nhân bản holidays.is_recurring = 1
---    ─ Đầu tháng  : LeaveReset     — reset used_leave_days nếu cần
---
--- 5. SIGNALR (Realtime Dashboard)
---    ─ Hub    : AttendanceHub
---    ─ Groups : "dept_{departmentId}", "all_hr"
---    ─ Broadcast khi: check-in/out mới, đơn mới, bất thường phát hiện
---
--- 6. BUSINESS LOGIC — Tính status chấm công
---    var shiftStart  = shift.StartTime.Add(TimeSpan.FromMinutes(shift.LateThreshold));
---    var shiftEnd    = shift.EndTime.Subtract(TimeSpan.FromMinutes(shift.EarlyThreshold));
---    bool isLate     = checkIn.TimeOfDay  > shiftStart.ToTimeSpan();
---    bool isEarly    = checkOut.TimeOfDay < shiftEnd.ToTimeSpan();
---    status = (isLate, isEarly) switch {
---        (1,  1)  => AttendanceStatus.LateAndEarly,
---        (1,  0) => AttendanceStatus.Late,
---        (0, 1)  => AttendanceStatus.EarlyLeave,
---        _              => AttendanceStatus.Present
---    };
---    workingMinutes = (int)(checkOut - checkIn).TotalMinutes - shift.BreakMinutes;
---
--- 7. GEOFENCING (Mobile)
---    double dist = GeoUtils.HaversineMeters(userLat, userLng, dev.Latitude, dev.Longitude);
---    if (dist > device.RadiusMeters) throw new GeofenceViolationException();
---
--- 8. FACE ANTI-SPOOFING
---    ─ Kiểm tra liveness: FaceAntiSpoofing ONNX model (MiniFASNet)
---    ─ Nếu phát hiện ảnh giả → attendance_logs.result = 'Spoofing'
---    ─ Ghi audit_logs.action = 'SPOOFING_DETECTED'
+-- Database   : SQLite 3.x (System.Data.SQLite.Core)
+-- Framework  : .NET Framework 4.6.1 / WinForms
+-- Password   : BCrypt.Net-Next (AuthPasswordHasher)
+-- Face AI    : FaceRecognitionDotNet (dlib wrapper) — float[128] encoding
+-- Mật khẩu mặc định tất cả tài khoản mẫu: admin123
 --
 -- ============================================================
 -- KẾT THÚC SCRIPT

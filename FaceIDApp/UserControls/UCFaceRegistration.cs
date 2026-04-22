@@ -48,6 +48,78 @@ namespace FaceIDApp.UserControls
             btnClearAll.Click += BtnClearAll_Click;
             btnRegister.Click += BtnRegister_Click;
 
+            // --- Fix the "separated weirdly" layout with TableLayoutPanel ---
+            pnlLeft.Dock = DockStyle.None;
+            pnlRight.Dock = DockStyle.None;
+            
+            var tlpMain = new TableLayoutPanel
+            {
+                Dock = DockStyle.Fill,
+                ColumnCount = 2,
+                RowCount = 1,
+                BackColor = Color.Transparent
+            };
+            tlpMain.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 50F));
+            tlpMain.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 50F));
+            tlpMain.RowStyles.Add(new RowStyle(SizeType.Percent, 100F));
+            
+            pnlLeft.Dock = DockStyle.Fill;
+            pnlLeft.Margin = new Padding(0, 0, 10, 0);
+            pnlRight.Dock = DockStyle.Fill;
+            pnlRight.Margin = new Padding(10, 0, 0, 0);
+            
+            tlpMain.Controls.Add(pnlLeft, 0, 0);
+            tlpMain.Controls.Add(pnlRight, 1, 0);
+            
+            pnlMain.Controls.Clear();
+            pnlMain.Controls.Add(tlpMain);
+
+            // --- Fix Camera Buttons to be uniform ---
+            var tlpCamBtns = new TableLayoutPanel
+            {
+                Dock = DockStyle.Fill,
+                ColumnCount = 2,
+                RowCount = 1
+            };
+            tlpCamBtns.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 50F));
+            tlpCamBtns.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 50F));
+            
+            btnStartCamera.Dock = DockStyle.Fill;
+            btnStartCamera.Margin = new Padding(10, 5, 5, 5);
+            btnStopCamera.Dock = DockStyle.Fill;
+            btnStopCamera.Margin = new Padding(5, 5, 10, 5);
+            
+            tlpCamBtns.Controls.Add(btnStartCamera, 0, 0);
+            tlpCamBtns.Controls.Add(btnStopCamera, 1, 0);
+            
+            pnlCameraButtons.Controls.Clear();
+            pnlCameraButtons.Controls.Add(tlpCamBtns);
+
+            // --- Fix Action Buttons to be uniform ---
+            var tlpBtns = new TableLayoutPanel
+            {
+                Dock = DockStyle.Fill,
+                ColumnCount = 3,
+                RowCount = 1
+            };
+            tlpBtns.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 33.33F));
+            tlpBtns.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 33.33F));
+            tlpBtns.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 33.33F));
+            
+            btnCapture.Dock = DockStyle.Fill;
+            btnCapture.Margin = new Padding(5);
+            btnClearAll.Dock = DockStyle.Fill;
+            btnClearAll.Margin = new Padding(5);
+            btnRegister.Dock = DockStyle.Fill;
+            btnRegister.Margin = new Padding(5);
+            
+            tlpBtns.Controls.Add(btnCapture, 0, 0);
+            tlpBtns.Controls.Add(btnClearAll, 1, 0);
+            tlpBtns.Controls.Add(btnRegister, 2, 0);
+            
+            pnlButtons.Controls.Clear();
+            pnlButtons.Controls.Add(tlpBtns);
+
             // Nút xem ảnh đã đăng ký
             var btnViewRegistered = new System.Windows.Forms.Button
             {
@@ -61,10 +133,11 @@ namespace FaceIDApp.UserControls
             };
             btnViewRegistered.FlatAppearance.BorderSize = 0;
             btnViewRegistered.Click += BtnViewRegistered_Click;
-            // Đặt bên phải lblSelectedInfo
-            btnViewRegistered.Location = new System.Drawing.Point(lblSelectedInfo.Right + 10, lblSelectedInfo.Top);
-            btnViewRegistered.Anchor = System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left;
-            lblSelectedInfo.Parent.Controls.Add(btnViewRegistered);
+            
+            // Neo nút vào góc phải trên của GroupBox
+            btnViewRegistered.Anchor = AnchorStyles.Top | AnchorStyles.Right;
+            btnViewRegistered.Location = new System.Drawing.Point(grpEmployeeSelect.Width - btnViewRegistered.Width - 15, lblSelectedInfo.Top);
+            grpEmployeeSelect.Controls.Add(btnViewRegistered);
         }
 
         public async void RefreshData()
@@ -271,6 +344,11 @@ namespace FaceIDApp.UserControls
                 // Cập nhật trạng thái is_face_registered
                 await AppDatabase.Repository.UpdateEmployeeFaceStatusAsync(emp.Id, true);
 
+                await AppDatabase.Repository.InsertAuditLogAsync(
+                    AppSession.CurrentUser?.Id, emp.Id,
+                    "FACE_REGISTER", "face_data", emp.Id.ToString(),
+                    $"Đăng ký Face ID cho {emp.FullName} — {capturedCount} ảnh");
+
                 MessageBox.Show($"✅ Đăng ký Face ID thành công cho {emp.FullName}!\n{capturedCount} ảnh đã được lưu.", "Thành công", MessageBoxButtons.OK, MessageBoxIcon.Information);
                 ClearAllCaptures();
                 cboSelectEmployee.SelectedIndex = 0;
@@ -324,10 +402,11 @@ namespace FaceIDApp.UserControls
                     MessageBox.Show($"{emp.FullName} chưa có ảnh Face ID nào!", "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Information);
                     return;
                 }
+                int dlgWidth = Math.Max(550, faceList.Count * 130 + 30);
                 using (var dlg = new Form
                 {
                     Text = $"Ảnh Face ID — {emp.FullName} ({faceList.Count} ảnh)",
-                    Size = new System.Drawing.Size(650, 220),
+                    Size = new System.Drawing.Size(dlgWidth, 260),
                     StartPosition = FormStartPosition.CenterParent,
                     FormBorderStyle = FormBorderStyle.FixedDialog,
                     MaximizeBox = false, MinimizeBox = false, BackColor = Color.White
@@ -336,29 +415,74 @@ namespace FaceIDApp.UserControls
                     int x = 10;
                     foreach (var fd in faceList)
                     {
+                        var fdRef = fd; // capture for async lambda
+                        bool verified = fdRef.IsVerified;
+
                         var pic = new PictureBox
                         {
-                            Size = new System.Drawing.Size(110, 140),
+                            Size = new System.Drawing.Size(110, 130),
                             Location = new System.Drawing.Point(x, 15),
                             SizeMode = PictureBoxSizeMode.Zoom,
                             BorderStyle = BorderStyle.FixedSingle,
                             BackColor = Color.FromArgb(241, 245, 249)
                         };
-                        if (!string.IsNullOrEmpty(fd.ImagePath) && System.IO.File.Exists(fd.ImagePath))
+                        if (!string.IsNullOrEmpty(fdRef.ImagePath) && System.IO.File.Exists(fdRef.ImagePath))
                         {
-                            try { pic.Image = System.Drawing.Image.FromFile(fd.ImagePath); } catch { }
+                            try { pic.Image = System.Drawing.Image.FromFile(fdRef.ImagePath); } catch { }
                         }
-                        var lbl = new Label
+
+                        var lblInfo = new Label
                         {
-                            Text = $"#{fd.ImageIndex} {fd.Angle ?? ""}",
-                            Location = new System.Drawing.Point(x, 160),
-                            Size = new System.Drawing.Size(110, 18),
+                            Text = $"#{fdRef.ImageIndex} {fdRef.Angle ?? ""}",
+                            Location = new System.Drawing.Point(x, 150),
+                            Size = new System.Drawing.Size(110, 16),
                             TextAlign = System.Drawing.ContentAlignment.MiddleCenter,
-                            Font = new Font("Segoe UI", 8F),
+                            Font = new Font("Segoe UI", 7.5F),
                             ForeColor = Color.FromArgb(71, 85, 105)
                         };
-                        dlg.Controls.Add(pic);
-                        dlg.Controls.Add(lbl);
+
+                        var btnVerify = new Button
+                        {
+                            Text = verified ? "✓ Đã xác nhận" : "? Xác nhận",
+                            Size = new System.Drawing.Size(110, 26),
+                            Location = new System.Drawing.Point(x, 170),
+                            Font = new Font("Segoe UI", 8F, FontStyle.Bold),
+                            ForeColor = Color.White,
+                            BackColor = verified ? Color.FromArgb(34, 197, 94) : Color.FromArgb(59, 130, 246),
+                            FlatStyle = FlatStyle.Flat,
+                            Cursor = Cursors.Hand,
+                            Tag = fdRef.Id
+                        };
+                        btnVerify.FlatAppearance.BorderSize = 0;
+                        btnVerify.Click += async (s2, e2) =>
+                        {
+                            var btn = (Button)s2;
+                            int faceId = (int)btn.Tag;
+                            bool nowVerified = btn.BackColor != Color.FromArgb(34, 197, 94); // toggle
+                            try
+                            {
+                                await AppDatabase.Repository.UpdateFaceDataVerificationAsync(
+                                    faceId, nowVerified, AppSession.CurrentUser?.Id);
+                                await AppDatabase.Repository.InsertFaceRegistrationLogAsync(
+                                    emp.Id, nowVerified ? "Verify" : "Deactivate",
+                                    AppSession.CurrentUser?.EmployeeId,
+                                    nowVerified ? "HR xác nhận ảnh đủ chất lượng" : "HR huỷ xác nhận ảnh");
+                                await AppDatabase.Repository.InsertAuditLogAsync(
+                                    AppSession.CurrentUser?.Id, emp.Id,
+                                    nowVerified ? "FACE_VERIFY" : "FACE_UNVERIFY",
+                                    "face_data", faceId.ToString(),
+                                    $"{(nowVerified ? "Xác nhận" : "Huỷ xác nhận")} ảnh Face ID #{faceId} của {emp.FullName}");
+
+                                btn.Text = nowVerified ? "✓ Đã xác nhận" : "? Xác nhận";
+                                btn.BackColor = nowVerified ? Color.FromArgb(34, 197, 94) : Color.FromArgb(59, 130, 246);
+                            }
+                            catch (Exception ex2)
+                            {
+                                MessageBox.Show($"Lỗi xác nhận: {ex2.Message}", "Lỗi");
+                            }
+                        };
+
+                        dlg.Controls.AddRange(new Control[] { pic, lblInfo, btnVerify });
                         x += 120;
                     }
                     dlg.ShowDialog(this.FindForm());

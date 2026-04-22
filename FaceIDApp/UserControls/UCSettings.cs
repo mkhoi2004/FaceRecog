@@ -427,7 +427,7 @@ namespace FaceIDApp.UserControls
                         l.CreatedAt.ToString("dd/MM/yyyy HH:mm:ss"),
                         l.Username ?? (l.UserId.HasValue ? $"#{l.UserId}" : "System"),
                         l.Action, l.TableName,
-                        l.RecordId.HasValue ? l.RecordId.ToString() : "—",
+                        l.RecordId != null ? l.RecordId : "—",
                         Truncate(l.OldValues, 60),
                         Truncate(l.NewValues, 60),
                         l.IpAddress ?? "—");
