@@ -1233,8 +1233,7 @@ INSERT INTO SYSTEM_SETTINGS (
 
 -- ============================================================
 --  DỮ LIỆU MẪU (Seed)
---  Mật khẩu mặc định: admin / admin123  |  user / user123
---  Mật khẩu mặc định: admin / admin123  |  user / user123
+-- Mật khẩu mặc định: admin / admin123  |  user / user123
 -- ============================================================
 
 -- Phòng ban (7 phòng)
@@ -1286,56 +1285,7 @@ INSERT INTO DEPARTMENTS (
     7
 );
 
--- Phòng ban (7 phòng)
-INSERT INTO DEPARTMENTS (
-    CODE,
-    NAME,
-    DESCRIPTION,
-    SORT_ORDER
-) VALUES (
-    'BOD',
-    'Ban Giám đốc',
-    'Điều hành chung công ty',
-    1
-),
-(
-    'HR',
-    'Phòng Nhân sự',
-    'Quản lý nhân sự, tuyển dụng',
-    2
-),
-(
-    'IT',
-    'Phòng Công nghệ',
-    'Phát triển và vận hành hệ thống',
-    3
-),
-(
-    'SALES',
-    'Phòng Kinh doanh',
-    'Bán hàng và chăm sóc khách',
-    4
-),
-(
-    'ACCT',
-    'Phòng Kế toán',
-    'Quản lý tài chính, kế toán',
-    5
-),
-(
-    'MKT',
-    'Phòng Marketing',
-    'Truyền thông và quảng cáo',
-    6
-),
-(
-    'QA',
-    'Phòng Kiểm thử',
-    'Đảm bảo chất lượng sản phẩm',
-    7
-);
 
--- Chức vụ (7 cấp)
 -- Chức vụ (7 cấp)
 INSERT INTO POSITIONS (
     CODE,
@@ -1349,12 +1299,7 @@ INSERT INTO POSITIONS (
 (
     'VP',
     'Phó giám đốc',
-    9
-),
-(
-    'VP',
-    'Phó giám đốc',
-    9
+    '9'
 ),
 (
     'DIR',
@@ -1382,7 +1327,6 @@ INSERT INTO POSITIONS (
     1
 );
 
--- Ca làm việc (5 ca)
 -- Ca làm việc (5 ca)
 INSERT INTO WORK_SHIFTS (
     CODE,
