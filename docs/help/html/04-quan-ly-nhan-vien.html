@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8" />
+  <title>Quản lý Nhân viên - FaceIDApp</title>
+  <style>
+    body { font-family: Segoe UI, Arial, sans-serif; line-height: 1.6; margin: 28px; color: #1f2937; }
+    h1, h2 { color: #0f172a; border-bottom: 2px solid #e2e8f0; padding-bottom: 8px; }
+    .field-list { background: #f8fafc; border-radius: 10px; padding: 15px; }
+    .field-name { font-weight: bold; color: #0369a1; min-width: 120px; display: inline-block; }
+    .important { background: #fff7ed; border-left: 4px solid #f97316; padding: 10px; margin-bottom: 15px; }
+  </style>
+</head>
+<body>
+  <h1>5. Quản lý nhân viên</h1>
+  <p>Module này cho phép quản lý hồ sơ nhân sự tập trung. Mọi thay đổi tại đây sẽ được cập nhật tức thời tới các bộ phận liên quan (Chấm công, Báo cáo).</p>
+
+  <h2>Các thông tin quản lý chính</h2>
+  <div class="field-list">
+    <ul>
+      <li><span class="field-name">Mã nhân viên:</span> Mã định danh duy nhất (Ví dụ: NV001). Không thể trùng lặp.</li>
+      <li><span class="field-name">Họ và tên:</span> Tên đầy đủ của nhân viên.</li>
+      <li><span class="field-name">Phòng ban:</span> Gán nhân viên vào sơ đồ tổ chức để dễ dàng quản lý và báo cáo.</li>
+      <li><span class="field-name">Ca làm việc:</span> Thiết lập ca làm mặc định (Sáng/Chiều/Hành chính) để làm căn cứ tính đi muộn/về sớm.</li>
+      <li><span class="field-name">FaceID Status:</span> Trạng thái cho biết nhân viên đã được đăng ký khuôn mặt hay chưa.</li>
+      <li><span class="field-name">Thông tin liên hệ:</span> Email, Số điện thoại để gửi thông báo hoặc liên lạc khi cần.</li>
+    </ul>
+  </div>
+
+  <h2>Thao tác cơ bản</h2>
+  <ul>
+    <li><strong>Thêm mới:</strong> Tạo hồ sơ cho nhân viên mới vào công ty.</li>
+    <li><strong>Chỉnh sửa:</strong> Cập nhật thông tin khi nhân viên thay đổi phòng ban, chức vụ hoặc thông tin cá nhân.</li>
+    <li><strong>Vô hiệu hóa (Soft Delete):</strong> Thay vì xóa vĩnh viễn, bạn nên sử dụng tùy chọn "Hoạt động = Sai" để giữ lại lịch sử chấm công của nhân viên đó nhưng không cho phép họ chấm công tiếp.</li>
+  </ul>
+
+  <div class="important">
+    <strong>🛡️ Quy tắc bảo mật dữ liệu:</strong><br/>
+    - Hệ thống sẽ ghi lại ai đã sửa đổi thông tin nhân viên nào vào <strong>Audit Log</strong>.<br/>
+    - Chỉ người dùng có vai trò <strong>Admin</strong> hoặc <strong>HR</strong> mới có quyền thực hiện các thao tác thêm/sửa/vô hiệu hóa nhân viên.
+  </div>
+
+  <h2>Quản lý lịch sử chấm công cá nhân</h2>
+  <p>Khi chọn một nhân viên trong danh sách, hệ thống sẽ hiển thị nhanh bảng lịch sử chấm công 30 ngày gần nhất của người đó ở phía dưới màn hình để HR/Quản lý tiện theo dõi.</p>
+
+  <h2>Tìm kiếm và Lọc</h2>
+  <ul>
+    <li>Tìm kiếm nhanh theo Tên, Mã nhân viên, Số điện thoại hoặc CMND.</li>
+    <li>Lọc danh sách theo Phòng ban để thu hẹp phạm vi quản lý.</li>
+  </ul>
+</body>
+</html>

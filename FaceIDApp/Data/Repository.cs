@@ -2013,6 +2013,47 @@ WHERE id = @id", conn))
             }
         }
 
+        public async Task UpdateEmployeeAvatarAsync(int employeeId, string avatarPath)
+        {
+            using (var conn = CreateConnection())
+            {
+                await conn.OpenAsync();
+                using (var cmd = new SQLiteCommand("UPDATE employees SET avatar_path = @path WHERE id = @id", conn))
+                {
+                    cmd.Parameters.AddWithValue("id", employeeId);
+                    cmd.Parameters.AddWithValue("path", (object)avatarPath ?? DBNull.Value);
+                    await cmd.ExecuteNonQueryAsync();
+                }
+            }
+        }
+
+        public async Task<string> GetNextEmployeeCodeAsync(string prefix = "NV")
+        {
+            using (var conn = CreateConnection())
+            {
+                await conn.OpenAsync();
+                // Sắp xếp theo chiều dài và sau đó theo mã để xử lý đúng thứ tự số (ví dụ NV9 < NV10)
+                using (var cmd = new SQLiteCommand(@"
+SELECT code FROM employees 
+WHERE code LIKE @prefix || '%' 
+ORDER BY length(code) DESC, code DESC 
+LIMIT 1", conn))
+                {
+                    cmd.Parameters.AddWithValue("prefix", prefix);
+                    var lastCode = await cmd.ExecuteScalarAsync() as string;
+                    if (string.IsNullOrEmpty(lastCode)) return prefix + "001";
+
+                    // Trích xuất phần số từ mã cuối cùng
+                    var numericPart = lastCode.Substring(prefix.Length);
+                    if (int.TryParse(numericPart, out int number))
+                    {
+                        return prefix + (number + 1).ToString("D3");
+                    }
+                    return prefix + "001";
+                }
+            }
+        }
+
         // =============================================
         // EMPLOYEE SHIFT SCHEDULES
         // =============================================

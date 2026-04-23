@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8" />
+  <title>Đăng ký khuôn mặt - FaceIDApp</title>
+  <style>
+    body { font-family: Segoe UI, Arial, sans-serif; line-height: 1.6; margin: 28px; color: #1f2937; }
+    h1, h2 { color: #0f172a; border-bottom: 2px solid #e2e8f0; padding-bottom: 8px; }
+    .step-box { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 15px; margin-bottom: 15px; }
+    .tip { background: #ecfdf5; border-left: 4px solid #10b981; padding: 10px; margin-bottom: 15px; }
+    .warning { background: #fef2f2; border-left: 4px solid #ef4444; padding: 10px; margin-bottom: 15px; }
+    .highlight { font-weight: bold; color: #0369a1; }
+  </style>
+</head>
+<body>
+  <h1>6. Đăng ký khuôn mặt</h1>
+  <p>Đăng ký khuôn mặt là bước quan trọng nhất để hệ thống có thể nhận diện chính xác. Một bộ dữ liệu khuôn mặt tốt sẽ giúp giảm thiểu sai sót khi chấm công.</p>
+
+  <div class="step-box">
+    <h2>Quy trình đăng ký chuẩn</h2>
+    <ol>
+      <li><strong>Chọn nhân viên:</strong> Tìm và chọn nhân viên chưa đăng ký FaceID trong danh sách.</li>
+      <li><strong>Mở màn hình đăng ký:</strong> Nhấn nút "Đăng ký khuôn mặt" để mở giao diện camera.</li>
+      <li><strong>Chụp ảnh:</strong> Nhân viên đứng trước camera. Hệ thống sẽ tự động detect khuôn mặt. Nhấn "Chụp ảnh" khi khuôn mặt nằm trong khung hình.</li>
+      <li><strong>Lưu dữ liệu:</strong> Sau khi chụp đủ số ảnh cần thiết, nhấn "Lưu khuôn mặt" để hệ thống tạo Vector đặc trưng (Face Encoding).</li>
+    </ol>
+  </div>
+
+  <h2>Kỹ thuật chụp ảnh tăng độ chính xác</h2>
+  <p>Hệ thống hỗ trợ lưu tối đa <span class="highlight">5 ảnh khuôn mặt</span> cho mỗi nhân viên. Bạn nên chụp ở các góc độ khác nhau:</p>
+  <ol>
+    <li><strong>Ảnh 1:</strong> Nhìn thẳng trực diện vào camera.</li>
+    <li><strong>Ảnh 2:</strong> Nghiêng đầu nhẹ sang trái.</li>
+    <li><strong>Ảnh 3:</strong> Nghiêng đầu nhẹ sang phải.</li>
+    <li><strong>Ảnh 4:</strong> Ngẩng đầu nhẹ lên trên.</li>
+    <li><strong>Ảnh 5:</strong> Cúi đầu nhẹ xuống dưới.</li>
+  </ol>
+
+  <div class="tip">
+    <strong>💡 Mẹo nhỏ:</strong> Nếu nhân viên thường xuyên đeo kính, hãy chụp 3 ảnh có đeo kính và 2 ảnh không đeo kính để hệ thống nhận diện tốt trong cả hai trường hợp.
+  </div>
+
+  <div class="warning">
+    <strong>⚠️ Các trường hợp cần tránh khi đăng ký:</strong>
+    <ul>
+      <li>Không đeo khẩu trang hoặc dùng tay che mặt.</li>
+      <li>Không đăng ký ở nơi có ánh sáng quá yếu hoặc ánh sáng nhấp nháy.</li>
+      <li>Đảm bảo trong khung hình chỉ có duy nhất 1 khuôn mặt của nhân viên đang đăng ký.</li>
+    </ul>
+  </div>
+
+  <h2>Kiểm tra sau khi đăng ký</h2>
+  <p>Sau khi lưu thành công, hãy yêu cầu nhân viên thử chấm công tại tab "Chấm công". Nếu hệ thống hiện đúng tên và thời gian chấm công tức là việc đăng ký đã hoàn tất và thành công.</p>
+</body>
+</html>

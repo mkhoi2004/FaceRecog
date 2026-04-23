@@ -151,6 +151,11 @@ namespace FaceIDApp.UserControls
             timerDateTime.Start();
         }
 
+        public void RefreshData()
+        {
+            LoadTodayAttendanceAsync();
+        }
+
         private async void LoadTodayAttendanceAsync()
         {
             try
@@ -305,11 +310,33 @@ namespace FaceIDApp.UserControls
                 UpdateEmployeeInfo(match.EmployeeName, match.EmployeeCode, "", "");
                 UpdateStatus($"✅ Nhận dạng: {match.EmployeeName} ({confidence:P0})", Color.FromArgb(46, 204, 113));
 
-                // Load employee photo if exists
-                var faceData = _faceDataCache.FirstOrDefault(f => f.EmployeeId == match.EmployeeId);
-                if (faceData != null && File.Exists(faceData.ImagePath))
+                // Load employee photo if exists (Prefer AvatarPath, fallback to face image)
+                var emp = await AppDatabase.Repository.GetEmployeeByIdAsync(match.EmployeeId.Value);
+                string photoPath = null;
+
+                if (emp != null && !string.IsNullOrEmpty(emp.AvatarPath) && File.Exists(emp.AvatarPath))
+                    photoPath = emp.AvatarPath;
+                else
                 {
-                    try { picEmployeePhoto.Image = System.Drawing.Image.FromFile(faceData.ImagePath); } catch { }
+                    var faceData = _faceDataCache.FirstOrDefault(f => f.EmployeeId == match.EmployeeId);
+                    if (faceData != null && File.Exists(faceData.ImagePath))
+                        photoPath = faceData.ImagePath;
+                }
+
+                if (!string.IsNullOrEmpty(photoPath))
+                {
+                    try 
+                    {
+                        using (var img = System.Drawing.Image.FromFile(photoPath))
+                        {
+                            picEmployeePhoto.Image = new Bitmap(img);
+                        }
+                    } 
+                    catch { picEmployeePhoto.Image = null; }
+                }
+                else
+                {
+                    picEmployeePhoto.Image = null;
                 }
 
                 // Store match info for CheckIn/CheckOut

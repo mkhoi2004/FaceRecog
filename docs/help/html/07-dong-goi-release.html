@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8" />
+  <title>Đóng gói và Triển khai - FaceIDApp</title>
+  <style>
+    body { font-family: Segoe UI, Arial, sans-serif; line-height: 1.6; margin: 28px; color: #1f2937; }
+    h1, h2 { color: #0f172a; border-bottom: 2px solid #e2e8f0; padding-bottom: 8px; }
+    .code-block { background: #1e293b; color: #f8fafc; padding: 15px; border-radius: 8px; font-family: 'Consolas', monospace; font-size: 0.9em; margin-bottom: 15px; }
+    .warn-box { background: #fff7ed; border: 1px solid #fdba74; padding: 15px; border-radius: 8px; margin-bottom: 15px; }
+    .check-list { list-style-type: none; padding-left: 0; }
+    .check-list li::before { content: "✅ "; }
+  </style>
+</head>
+<body>
+  <h1>8. Đóng gói Release x64</h1>
+  <p>Hướng dẫn này dành cho kỹ thuật viên hoặc quản trị viên khi cần triển khai ứng dụng sang máy tính khác hoặc tạo bản cài đặt chính thức.</p>
+
+  <h2>Quy trình build bản Release</h2>
+  <p>Nếu bạn có mã nguồn, hãy sử dụng lệnh sau trong Terminal (hoặc Developer PowerShell) để tối ưu hóa hiệu năng:</p>
+  <div class="code-block">
+    dotnet build .\FaceIDApp\FaceIDApp.csproj -c Release -p:Platform=x64 --nologo
+  </div>
+
+  <h2>Các thành phần bắt buộc khi triển khai</h2>
+  <p>Sau khi build, bạn cần thu thập đủ các file sau để bộ cài hoạt động ổn định:</p>
+  <ul class="check-list">
+    <li><strong>FaceIDApp.exe:</strong> File chạy chính.</li>
+    <li><strong>FaceIDApp.exe.config:</strong> File cấu hình hệ thống (Chuỗi kết nối, Tolerance).</li>
+    <li><strong>Thư mục models/:</strong> Phải chứa 2 file <span style="font-family: monospace;">.dat</span> (ResNet model và Shape Predictor).</li>
+    <li><strong>Thư mục net461/:</strong> Chứa các file thư viện trung gian và native DLL (<span style="font-family: monospace;">DlibDotNetNative.dll</span>, <span style="font-family: monospace;">OpenCvSharpExtern.dll</span>,...).</li>
+    <li><strong>Database/face_attendance_v3.sql:</strong> Dùng để hệ thống tự tạo cấu trúc CSDL nếu máy mới chưa có dữ liệu.</li>
+  </ul>
+
+  <div class="warn-box">
+    <strong>⚠️ LƯU Ý KHI DỌN DẸP DỮ LIỆU:</strong><br/>
+    Trước khi gửi bộ cài cho khách hàng hoặc nhân viên, hãy đảm bảo <strong>KHÔNG</strong> bao gồm các file dữ liệu test sau:
+    <ul>
+      <li><span style="font-family: monospace;">face_attendance.db</span> (Database đang dùng thử).</li>
+      <li>Thư mục <span style="font-family: monospace;">face/</span> hoặc <span style="font-family: monospace;">img/</span> (Chứa ảnh đăng ký của bạn).</li>
+      <li>Các file <span style="font-family: monospace;">.log</span> trong thư mục logs.</li>
+    </ul>
+  </div>
+
+  <h2>Yêu cầu máy trạm (Client)</h2>
+  <ul>
+    <li>Cài sẵn <strong>Microsoft .NET Framework 4.6.1</strong> trở lên.</li>
+    <li>Cài đặt <strong>Visual C++ Redistributable 2015-2022 (x64)</strong>.</li>
+    <li>Webcam có độ phân giải tối thiểu 720p để đảm bảo độ chính xác của AI.</li>
+  </ul>
+
+  <h2>Checklist triển khai thành công</h2>
+  <ul class="check-list">
+    <li>App mở lên không báo lỗi "Missing DLL".</li>
+    <li>Camera khởi động thành công và hiển thị mượt mà (640x480).</li>
+    <li>Thử đăng ký 1 khuôn mặt và chấm công thành công.</li>
+    <li>Xuất báo cáo thử để kiểm tra quyền ghi file vào thư mục.</li>
+  </ul>
+</body>
+</html>

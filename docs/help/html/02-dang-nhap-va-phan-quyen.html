@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8" />
+  <title>Đăng nhập và Phân quyền - FaceIDApp</title>
+  <style>
+    body { font-family: Segoe UI, Arial, sans-serif; line-height: 1.6; margin: 28px; color: #1f2937; }
+    h1, h2 { color: #0f172a; border-bottom: 2px solid #e2e8f0; padding-bottom: 8px; }
+    .role-box { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 12px; margin-bottom: 10px; }
+    .role-name { font-weight: bold; color: #0369a1; }
+    .important { background: #fff7ed; border-left: 4px solid #f97316; padding: 10px; margin-bottom: 15px; }
+  </style>
+</head>
+<body>
+  <h1>3. Đăng nhập và phân quyền</h1>
+
+  <h2>Quy trình đăng nhập</h2>
+  <ol>
+    <li>Khởi động ứng dụng.</li>
+    <li>Nhập <strong>Tên đăng nhập</strong> và <strong>Mật khẩu</strong>.</li>
+    <li>Nhấn "Đăng nhập" để truy cập vào hệ thống.</li>
+  </ol>
+
+  <div class="important">
+    <strong>Tài khoản mặc định:</strong><br/>
+    Đối với hệ thống mới cài đặt, tài khoản quản trị cao nhất là:<br/>
+    - User: <span style="font-family: monospace;">admin</span><br/>
+    - Pass: <span style="font-family: monospace;">admin123</span>
+  </div>
+
+  <h2>Phân quyền và Vai trò (Roles)</h2>
+  <p>Hệ thống hỗ trợ phân quyền chi tiết để đảm bảo an toàn dữ liệu:</p>
+
+  <div class="role-box">
+    <p><span class="role-name">1. Quản trị viên (Admin):</span></p>
+    <ul>
+      <li>Toàn quyền truy cập tất cả các tính năng.</li>
+      <li>Cấu hình hệ thống (Camera, Tolerance, CSDL).</li>
+      <li>Quản lý tài khoản người dùng khác.</li>
+    </ul>
+  </div>
+
+  <div class="role-box">
+    <p><span class="role-name">2. Nhân sự (HR):</span></p>
+    <ul>
+      <li>Quản lý hồ sơ nhân viên, phòng ban, chức vụ.</li>
+      <li>Thực hiện đăng ký khuôn mặt cho nhân viên.</li>
+      <li>Xem và xuất báo cáo chấm công toàn công ty.</li>
+    </ul>
+  </div>
+
+  <div class="role-box">
+    <p><span class="role-name">3. Quản lý bộ phận (Manager):</span></p>
+    <ul>
+      <li>Xem danh sách nhân viên thuộc bộ phận mình quản lý.</li>
+      <li>Phê duyệt hoặc từ chối các đơn nghỉ phép của nhân viên cấp dưới.</li>
+    </ul>
+  </div>
+
+  <div class="role-box">
+    <p><span class="role-name">4. Nhân viên (Employee):</span></p>
+    <ul>
+      <li>Xem lịch sử chấm công cá nhân.</li>
+      <li>Gửi đơn xin nghỉ phép qua hệ thống.</li>
+      <li>Tự theo dõi số ngày phép còn lại.</li>
+    </ul>
+  </div>
+
+  <h2>Bảo mật tài khoản</h2>
+  <ul>
+    <li>Mật khẩu được mã hóa một chiều bằng thuật toán <strong>BCrypt</strong>, đảm bảo ngay cả quản trị viên cũng không thể đọc được mật khẩu gốc.</li>
+    <li>Mọi thao tác quan trọng đều được ghi lại vào <strong>Audit Log</strong> để truy vết khi cần thiết.</li>
+    <li>Hệ thống sẽ ghi lại lịch sử các lần đăng nhập không thành công để cảnh báo nguy cơ bị tấn công.</li>
+  </ul>
+</body>
+</html>

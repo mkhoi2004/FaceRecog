@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8" />
+  <title>Cài đặt và Khởi động FaceIDApp</title>
+  <style>
+    body { font-family: Segoe UI, Arial, sans-serif; line-height: 1.6; margin: 28px; color: #1f2937; }
+    h1, h2 { color: #0f172a; border-bottom: 2px solid #e2e8f0; padding-bottom: 8px; }
+    .step { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 15px; margin-bottom: 15px; }
+    .important { background: #fff7ed; border-left: 4px solid #f97316; padding: 10px; margin-bottom: 15px; font-weight: 500; }
+    .code { font-family: Consolas, monospace; background: #f1f5f9; padding: 2px 4px; border-radius: 4px; color: #e11d48; }
+  </style>
+</head>
+<body>
+  <h1>2. Cài đặt và khởi động lần đầu</h1>
+
+  <div class="important">
+    <strong>⚠️ LƯU Ý QUAN TRỌNG:</strong> Ứng dụng chỉ chạy trên nền tảng <span class="code">Windows 64-bit (x64)</span>. Vui lòng không cài đặt trên Windows 32-bit.
+  </div>
+
+  <div class="step">
+    <h2>Bước 1: Kiểm tra môi trường hệ thống</h2>
+    <ul>
+      <li><strong>Hệ điều hành:</strong> Windows 10 hoặc Windows 11 (phiên bản 64-bit).</li>
+      <li><strong>Thư viện bổ sung:</strong> Yêu cầu cài đặt <span class="code">Visual C++ Redistributable 2015-2022 x64</span> để các thư viện AI có thể hoạt động.</li>
+      <li><strong>Phần cứng:</strong> Webcam (tích hợp hoặc USB) đang hoạt động bình thường và không bị ứng dụng khác chiếm dụng.</li>
+    </ul>
+  </div>
+
+  <div class="step">
+    <h2>Bước 2: Cấu trúc thư mục ứng dụng</h2>
+    <p>Khi giải nén/cài đặt, hãy đảm bảo thư mục ứng dụng có đầy đủ các thành phần sau:</p>
+    <ul>
+      <li><span class="code">FaceIDApp.exe</span>: File thực thi chính.</li>
+      <li><span class="code">models/</span>: Thư mục chứa 2 file dữ liệu AI (<span class="code">.dat</span>). Đây là "bộ não" của hệ thống nhận diện.</li>
+      <li><span class="code">net461/</span>: Chứa các thư viện native (DLL) cần thiết.</li>
+    </ul>
+  </div>
+
+  <div class="important">
+    <strong>📍 LƯU Ý VỀ ĐƯỜNG DẪN (Unicode Bug):</strong><br/>
+    Các thư viện nhận diện khuôn mặt (Dlib) <strong>không hỗ trợ</strong> đường dẫn có chứa ký tự tiếng Việt có dấu. 
+    <p>Ví dụ:<br/>
+    ❌ <span class="code">D:\Dự án\FaceIDApp\</span> (KHÔNG CHẠY ĐƯỢC)<br/>
+    ✅ <span class="code">D:\Projects\FaceIDApp\</span> (CHẠY TỐT)</p>
+  </div>
+
+  <div class="step">
+    <h2>Bước 3: Khởi động và Cấu hình</h2>
+    <ol>
+      <li>Chạy file <span class="code">FaceIDApp.exe</span>.</li>
+      <li>Trong lần đầu tiên, hệ thống sẽ tự động khởi tạo Cơ sở dữ liệu SQLite (<span class="code">face_attendance.db</span>).</li>
+      <li>Nếu ứng dụng yêu cầu quyền Admin để tạo file, hãy chuột phải vào file EXE và chọn "Run as Administrator".</li>
+    </ol>
+  </div>
+
+  <div class="step">
+    <h2>Bước 4: Kiểm tra nhanh (Smoke Test)</h2>
+    <p>Sau khi mở ứng dụng, hãy thực hiện các bước sau để đảm bảo mọi thứ đã sẵn sàng:</p>
+    <ol>
+      <li>Đăng nhập bằng tài khoản mặc định (admin/admin123).</li>
+      <li>Vào tab "Chấm công" để kiểm tra camera đã lên hình chưa.</li>
+      <li>Thử đăng ký khuôn mặt cho 1 nhân viên mẫu.</li>
+    </ol>
+  </div>
+</body>
+</html>

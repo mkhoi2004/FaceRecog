@@ -24,7 +24,7 @@ namespace FaceIDApp.UserControls
         private ComboBox cboEmploymentType;
         private NumericUpDown nudAnnualLeave;
         private TextBox txtIdentityCard;
-        private TextBox txtGender;
+        private ComboBox cboGender;
         private DataGridView dgvAttHistory;
         private ComboBox cboManager;
         private Label lblLeaveBalance;
@@ -113,9 +113,19 @@ namespace FaceIDApp.UserControls
 
             // Giới tính
             var lblGender = new Label { Text = "Giới tính:", Font = new Font("Segoe UI", 9.5F), Location = new Point(15, 413), AutoSize = true };
-            txtGender = new TextBox { Font = new Font("Segoe UI", 9.5F), Location = new Point(100, 410), Size = new Size(100, 24) };
+            cboGender = new ComboBox
+            {
+                DropDownStyle = ComboBoxStyle.DropDownList,
+                Font = new Font("Segoe UI", 9.5F),
+                Location = new Point(100, 410),
+                Size = new Size(120, 25)
+            };
+            cboGender.Items.Add(new ComboItem<string>("M", "Nam"));
+            cboGender.Items.Add(new ComboItem<string>("F", "Nữ"));
+            cboGender.Items.Add(new ComboItem<string>("O", "Khác"));
+            cboGender.SelectedIndex = 0;
             pnlEmployeeDetail.Controls.Add(lblGender);
-            pnlEmployeeDetail.Controls.Add(txtGender);
+            pnlEmployeeDetail.Controls.Add(cboGender);
 
             // Quản lý trực tiếp
             var lblMgr = new Label { Text = "Quản lý:", Font = new Font("Segoe UI", 9.5F), Location = new Point(15, 441), AutoSize = true };
@@ -333,8 +343,8 @@ namespace FaceIDApp.UserControls
             SetFieldWidth(dtpDateOfBirth, available);
             SetFieldWidth(dtpHireDate, available);
 
-            if (txtGender != null)
-                txtGender.Width = Math.Min(120, available);
+            if (cboGender != null)
+                cboGender.Width = Math.Min(120, available);
 
             if (nudAnnualLeave != null)
                 nudAnnualLeave.Width = Math.Min(90, available);
@@ -500,7 +510,15 @@ namespace FaceIDApp.UserControls
             txtEmail.Text         = emp.Email ?? "";
             txtPhone.Text         = emp.Phone ?? "";
             txtIdentityCard.Text  = emp.IdentityCard ?? "";
-            txtGender.Text        = emp.Gender ?? "";
+            
+            // Gender dropdown
+            int gIdx = 0;
+            for (int i = 0; i < cboGender.Items.Count; i++)
+            {
+                var item = cboGender.Items[i] as ComboItem<string>;
+                if (item != null && item.Value == emp.Gender) { gIdx = i; break; }
+            }
+            cboGender.SelectedIndex = gIdx;
 
             if (emp.DateOfBirth.HasValue) dtpDateOfBirth.Value = emp.DateOfBirth.Value;
             dtpHireDate.Value = emp.HireDate;
@@ -535,7 +553,35 @@ namespace FaceIDApp.UserControls
             // Avatar
             if (!string.IsNullOrEmpty(emp.AvatarPath) && System.IO.File.Exists(emp.AvatarPath))
             {
-                try { picEmployeePhoto.Image = Image.FromFile(emp.AvatarPath); } catch { picEmployeePhoto.Image = null; }
+                try 
+                {
+                    using (var img = Image.FromFile(emp.AvatarPath))
+                    {
+                        picEmployeePhoto.Image = new Bitmap(img);
+                    }
+                } 
+                catch { picEmployeePhoto.Image = null; }
+            }
+            else if (emp.IsFaceRegistered)
+            {
+                // Fallback: Nếu chưa có avatar_path nhưng đã có Face ID, lấy ảnh đầu tiên trong face_data
+                var faceDataList = await AppDatabase.Repository.GetFaceDataByEmployeeAsync(emp.Id);
+                var firstFace = faceDataList.FirstOrDefault(f => f.IsActive);
+                if (firstFace != null && System.IO.File.Exists(firstFace.ImagePath))
+                {
+                    try
+                    {
+                        using (var img = Image.FromFile(firstFace.ImagePath))
+                        {
+                            picEmployeePhoto.Image = new Bitmap(img);
+                        }
+                    }
+                    catch { picEmployeePhoto.Image = null; }
+                }
+                else
+                {
+                    picEmployeePhoto.Image = null;
+                }
             }
             else
             {
@@ -600,12 +646,24 @@ namespace FaceIDApp.UserControls
         // =============================================
         // CRUD
         // =============================================
-        private void BtnAdd_Click(object sender, EventArgs e)
+        private async void BtnAdd_Click(object sender, EventArgs e)
         {
             _editingEmployeeId = null;
             ClearForm();
             lblDetailTitle.Text = "📝 Thêm nhân viên mới";
-            txtEmployeeCode.Focus();
+
+            try
+            {
+                // Tự động sinh mã nhân viên mới với tiền tố NV
+                var nextCode = await AppDatabase.Repository.GetNextEmployeeCodeAsync("NV");
+                txtEmployeeCode.Text = nextCode;
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Lỗi sinh mã NV: {ex.Message}");
+            }
+
+            txtFullName.Focus();
         }
 
         private void BtnEdit_Click(object sender, EventArgs e)
@@ -704,7 +762,7 @@ namespace FaceIDApp.UserControls
                     Phone            = NullIfEmpty(txtPhone.Text),
                     Email            = NullIfEmpty(txtEmail.Text),
                     IdentityCard     = NullIfEmpty(txtIdentityCard.Text),
-                    Gender           = NullIfEmpty(txtGender.Text),
+                    Gender           = (cboGender.SelectedItem as ComboItem<string>)?.Value ?? "M",
                     DateOfBirth      = dtpDateOfBirth.Value.Date,
                     HireDate         = dtpHireDate.Value.Date,
                     IsActive         = chkIsActive.Checked,
@@ -757,7 +815,7 @@ namespace FaceIDApp.UserControls
             txtEmail.Text         = "";
             txtPhone.Text         = "";
             txtIdentityCard.Text  = "";
-            txtGender.Text        = "";
+            cboGender.SelectedIndex = 0;
             cboDepartment.SelectedIndex  = 0;
             cboPosition.SelectedIndex    = 0;
             cboShift.SelectedIndex       = 0;

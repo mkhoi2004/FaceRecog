@@ -25,6 +25,11 @@ namespace FaceIDApp.UserControls
             this.Load += async (s, e) => await RefreshAllAsync();
         }
 
+        public void RefreshData()
+        {
+            _ = RefreshAllAsync();
+        }
+
         private async System.Threading.Tasks.Task RefreshAllAsync()
         {
             await LoadDepartmentsAsync();
@@ -67,7 +72,8 @@ namespace FaceIDApp.UserControls
         {
             try
             {
-                var id = await AppDatabase.Repository.CreateDepartmentAsync(new DepartmentDto { Code = "PB_NEW", Name = "Phòng ban mới", IsActive = true });
+                var code = "PB_" + DateTime.Now.ToString("HHmmss");
+                var id = await AppDatabase.Repository.CreateDepartmentAsync(new DepartmentDto { Code = code, Name = "Phòng ban mới", IsActive = true });
                 await LoadDepartmentsAsync();
             }
             catch (Exception ex) { ShowError(ex); }
@@ -133,7 +139,8 @@ namespace FaceIDApp.UserControls
         {
             try
             {
-                await AppDatabase.Repository.CreatePositionAsync(new PositionDto { Code = "CV_NEW", Name = "Chức vụ mới", Level = 1, IsActive = true });
+                var code = "CV_" + DateTime.Now.ToString("HHmmss");
+                await AppDatabase.Repository.CreatePositionAsync(new PositionDto { Code = code, Name = "Chức vụ mới", Level = 1, IsActive = true });
                 await LoadPositionsAsync();
             }
             catch (Exception ex) { ShowError(ex); }
@@ -209,9 +216,10 @@ namespace FaceIDApp.UserControls
         {
             try
             {
+                var code = "CA_" + DateTime.Now.ToString("HHmmss");
                 await AppDatabase.Repository.CreateWorkShiftAsync(new WorkShiftDto
                 {
-                    Code = "CA_NEW", Name = "Ca mới", ShiftType = "Fixed",
+                    Code = code, Name = "Ca mới", ShiftType = "Fixed",
                     StartTime = TimeSpan.FromHours(8), EndTime = TimeSpan.FromHours(17),
                     BreakMinutes = 60, StandardHours = 8, LateThreshold = 15, EarlyThreshold = 15
                 });
@@ -290,7 +298,8 @@ namespace FaceIDApp.UserControls
         {
             try
             {
-                await AppDatabase.Repository.CreateDeviceAsync(new AttendanceDeviceDto { Code = "DEV_NEW", Name = "Thiết bị mới", DeviceType = "Camera" });
+                var code = "DEV_" + DateTime.Now.ToString("HHmmss");
+                await AppDatabase.Repository.CreateDeviceAsync(new AttendanceDeviceDto { Code = code, Name = "Thiết bị mới", DeviceType = "Camera" });
                 await LoadDevicesAsync();
             }
             catch (Exception ex) { ShowError(ex); }

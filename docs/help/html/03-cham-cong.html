@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8" />
+  <title>Quy trình Chấm công - FaceIDApp</title>
+  <style>
+    body { font-family: Segoe UI, Arial, sans-serif; line-height: 1.6; margin: 28px; color: #1f2937; }
+    h1, h2 { color: #0f172a; border-bottom: 2px solid #e2e8f0; padding-bottom: 8px; }
+    .status-badge { display: inline-block; padding: 2px 8px; border-radius: 4px; font-weight: bold; font-size: 0.9em; }
+    .present { background: #dcfce7; color: #166534; }
+    .late { background: #fef9c3; color: #854d0e; }
+    .highlight { background: #eff6ff; border-left: 4px solid #3b82f6; padding: 10px; margin-bottom: 15px; }
+  </style>
+</head>
+<body>
+  <h1>4. Quy trình chấm công</h1>
+
+  <h2>Nguyên lý hoạt động</h2>
+  <p>Hệ thống sử dụng webcam để quét khuôn mặt liên tục. Khi phát hiện khuôn mặt, AI sẽ trích xuất đặc điểm (Face Encoding) và so sánh với kho dữ liệu nhân viên đã đăng ký.</p>
+
+  <div class="highlight">
+    <strong>⏱️ Thời gian giãn cách (Cooldown):</strong> Để tránh việc ghi nhận nhiều lần liên tiếp cho cùng một người, hệ thống có thời gian giãn cách mặc định là <strong>3 giây</strong> giữa các lần nhận diện thành công.
+  </div>
+
+  <h2>Các trạng thái ghi nhận</h2>
+  <ul>
+    <li><span class="status-badge present">Đúng giờ (Present):</span> Nhân viên Check-in trước hoặc đúng giờ bắt đầu ca làm việc.</li>
+    <li><span class="status-badge late">Đi muộn (Late):</span> Nhân viên Check-in sau giờ bắt đầu ca làm (có tính đến thời gian cho phép đi muộn trong cấu hình).</li>
+    <li><strong>Về sớm (Early Leave):</strong> Nhân viên Check-out trước khi kết thúc ca làm việc.</li>
+    <li><strong>Nghỉ phép (Leave):</strong> Nếu nhân viên có đơn nghỉ phép được duyệt, hệ thống sẽ tự động cập nhật trạng thái này thay vì báo "Vắng mặt".</li>
+  </ul>
+
+  <h2>Quy trình trong ngày</h2>
+  <ol>
+    <li><strong>Lần quét đầu tiên:</strong> Hệ thống ghi nhận là giờ <span style="color: #0369a1; font-weight: bold;">Vào (Check-in)</span>.</li>
+    <li><strong>Lần quét thứ hai:</strong> Hệ thống ghi nhận là giờ <span style="color: #c2410c; font-weight: bold;">Ra (Check-out)</span>.</li>
+    <li><strong>Các lần quét sau:</strong> Nếu đã có đủ cả giờ Vào và giờ Ra, hệ thống sẽ chỉ cập nhật lại giờ Ra mới nhất (tùy cấu hình) hoặc bỏ qua để giữ nguyên dữ liệu.</li>
+  </ol>
+
+  <h2>Lưu ý để nhận diện tốt nhất</h2>
+  <ul>
+    <li><strong>Ánh sáng:</strong> Đảm bảo khuôn mặt được chiếu sáng đầy đủ, tránh ngược sáng mạnh (ví dụ đặt camera đối diện cửa sổ).</li>
+    <li><strong>Vị trí:</strong> Đứng cách camera từ 0.5m đến 1.5m. Nhìn trực diện vào camera.</li>
+    <li><strong>Vật cản:</strong> Không nên đeo khẩu trang, kính đen quá đậm hoặc che khuất các bộ phận chính trên khuôn mặt khi chấm công.</li>
+  </ul>
+
+  <h2>Chấm công thủ công</h2>
+  <p>Trong trường hợp camera hỏng hoặc sự cố kỹ thuật, Quản trị viên có thể sử dụng chức năng <strong>"Chấm công thủ công"</strong> bằng cách nhập mã nhân viên để ghi nhận giờ làm việc.</p>
+</body>
+</html>
