@@ -529,9 +529,10 @@ SELECT id, employee_id, attendance_date, shift_id, check_in, check_out,
        check_in_confidence, check_out_confidence,
        status, late_minutes, early_minutes, working_minutes, is_manual_edit, note
 FROM attendance_records
-WHERE employee_id = @emp_id AND attendance_date = CURRENT_DATE LIMIT 1", conn))
+WHERE employee_id = @emp_id AND attendance_date = @today LIMIT 1", conn))
                 {
                     cmd.Parameters.AddWithValue("emp_id", employeeId);
+                    cmd.Parameters.AddWithValue("today", DateTime.Now.ToString("yyyy-MM-dd"));
                     using (var r = await cmd.ExecuteReaderAsync())
                     {
                         if (!await r.ReadAsync()) return null;
@@ -551,7 +552,7 @@ WHERE employee_id = @emp_id AND attendance_date = CURRENT_DATE LIMIT 1", conn))
 INSERT INTO attendance_records
     (employee_id, attendance_date, shift_id, check_in, check_in_image_path,
      check_in_method, check_in_confidence, status)
-VALUES (@emp_id, CURRENT_DATE, @shift_id, @check_in, @image_path,
+VALUES (@emp_id, @today, @shift_id, @check_in, @image_path,
         @method, @confidence, 'NotYet')
 ON CONFLICT (employee_id, attendance_date) DO UPDATE SET
     check_in = EXCLUDED.check_in, check_in_image_path = EXCLUDED.check_in_image_path,
@@ -559,6 +560,7 @@ ON CONFLICT (employee_id, attendance_date) DO UPDATE SET
 ; SELECT last_insert_rowid()", conn))
                 {
                     cmd.Parameters.AddWithValue("emp_id", employeeId);
+                    cmd.Parameters.AddWithValue("today", DateTime.Now.ToString("yyyy-MM-dd"));
                     cmd.Parameters.AddWithValue("shift_id", (object)shiftId ?? DBNull.Value);
                     cmd.Parameters.AddWithValue("check_in", checkInTime);
                     cmd.Parameters.AddWithValue("image_path", (object)imagePath ?? DBNull.Value);
@@ -581,9 +583,10 @@ UPDATE attendance_records SET
     check_out_method = @method, check_out_confidence = @confidence,
     status = @status, late_minutes = @late_min, early_minutes = @early_min,
     working_minutes = @work_min
-WHERE employee_id = @emp_id AND attendance_date = CURRENT_DATE", conn))
+WHERE employee_id = @emp_id AND attendance_date = @today", conn))
                 {
                     cmd.Parameters.AddWithValue("emp_id", employeeId);
+                    cmd.Parameters.AddWithValue("today", DateTime.Now.ToString("yyyy-MM-dd"));
                     cmd.Parameters.AddWithValue("check_out", checkOutTime);
                     cmd.Parameters.AddWithValue("image_path", (object)imagePath ?? DBNull.Value);
                     cmd.Parameters.AddWithValue("method", method);
@@ -607,9 +610,10 @@ WHERE employee_id = @emp_id AND attendance_date = CURRENT_DATE", conn))
                 await conn.OpenAsync();
                 using (var cmd = new SQLiteCommand(@"
 UPDATE attendance_records SET status = @status, late_minutes = @late_min
-WHERE employee_id = @emp_id AND attendance_date = CURRENT_DATE", conn))
+WHERE employee_id = @emp_id AND attendance_date = @today", conn))
                 {
                     cmd.Parameters.AddWithValue("emp_id", employeeId);
+                    cmd.Parameters.AddWithValue("today", DateTime.Now.ToString("yyyy-MM-dd"));
                     cmd.Parameters.AddWithValue("status", status);
                     cmd.Parameters.AddWithValue("late_min", (short)lateMinutes);
                     await cmd.ExecuteNonQueryAsync();
