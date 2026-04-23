@@ -87,6 +87,17 @@ DROP TABLE IF EXISTS WORK_SHIFTS;
 DROP TABLE IF EXISTS POSITIONS;
 
 DROP TABLE IF EXISTS DEPARTMENTS;
+-- ============================================================
+--  DROP VIEWS
+-- ============================================================
+DROP VIEW IF EXISTS V_TODAY_ATTENDANCE;
+DROP VIEW IF EXISTS V_MONTHLY_SUMMARY;
+DROP VIEW IF EXISTS V_FACE_STATUS;
+DROP VIEW IF EXISTS V_ATTENDANCE_ANOMALIES;
+DROP VIEW IF EXISTS V_PENDING_LEAVES;
+DROP VIEW IF EXISTS V_LEAVE_BALANCE;
+DROP VIEW IF EXISTS V_SUSPICIOUS_RECOGNITION;
+
 
 -- ============================================================
 --  NHÓM A: DANH MỤC
@@ -1511,74 +1522,9 @@ INSERT INTO HOLIDAYS (
     2026
 );
 
-('2026-01-01',
-'Tết Dương lịch',
-'National',
-1,
-2026),
-('2026-02-17',
-'Nghỉ Tết Nguyên đán (bù)',
-'National',
-0,
-2026),
-('2026-02-18',
-'Tết Nguyên đán – Mùng 1',
-'National',
-0,
-2026),
-('2026-02-19',
-'Tết Nguyên đán – Mùng 2',
-'National',
-0,
-2026),
-('2026-02-20',
-'Tết Nguyên đán – Mùng 3',
-'National',
-0,
-2026),
-('2026-04-06',
-'Giỗ Tổ Hùng Vương (10/3 ÂL)',
-'National',
-0,
-2026),
-('2026-04-30',
-'Ngày Giải phóng miền Nam',
-'National',
-1,
-2026),
-('2026-05-01',
-'Quốc tế Lao động',
-'National',
-1,
-2026),
-('2026-09-02',
-'Quốc khánh',
-'National',
-1,
-2026),
-('2026-09-03',
-'Nghỉ bù Quốc khánh',
-'National',
-0,
-2026);
-
 -- ── Nhân viên mẫu (10 người) ──
 -- ── Nhân viên mẫu (10 người) ──
 INSERT INTO EMPLOYEES (
-    CODE,
-    FULL_NAME,
-    GENDER,
-    DATE_OF_BIRTH,
-    PHONE,
-    EMAIL,
-    IDENTITY_CARD,
-    DEPARTMENT_ID,
-    POSITION_ID,
-    DEFAULT_SHIFT_ID,
-    EMPLOYMENT_TYPE,
-    HIRE_DATE,
-    ANNUAL_LEAVE_DAYS
-) (
     CODE,
     FULL_NAME,
     GENDER,
@@ -2727,17 +2673,6 @@ INSERT INTO USERS (
     0
 );
 
-('admin',
-'SEED_WILL_BE_REHASHED',
-'Admin',
-NULL,
-0),
-('user',
-'SEED_WILL_BE_REHASHED',
-'Employee',
-1,
-0);
-
 -- ── Thiết bị (5 thiết bị) ──
 -- ── Thiết bị (5 thiết bị) ──
 INSERT INTO ATTENDANCE_DEVICES (
@@ -2811,57 +2746,6 @@ INSERT INTO ATTENDANCE_DEVICES (
     0.68,
     NULL
 );
-
-('CAM-GATE-01',
-'Camera Cổng chính',
-'Camera',
-'Cổng chính – Tầng 1',
-'192.168.1.101',
-10.77690,
-106.70090,
-50,
-0.72,
-'rtsp://192.168.1.101:554/stream'),
-('CAM-IT-01',
-'Camera Phòng IT',
-'Camera',
-'Phòng IT – Tầng 3',
-'192.168.1.102',
-10.77700,
-106.70100,
-30,
-0.70,
-'rtsp://192.168.1.102:554/stream'),
-('CAM-SALES',
-'Camera Phòng KD',
-'Camera',
-'Phòng KD – Tầng 2',
-'192.168.1.103',
-10.77680,
-106.70080,
-30,
-0.70,
-'rtsp://192.168.1.103:554/stream'),
-('KSK-HR-01',
-'Kiosk Phòng HR',
-'Kiosk',
-'HR – Tầng 2',
-'192.168.1.110',
-10.77685,
-106.70085,
-30,
-0.70,
-NULL),
-('MOB-APP',
-'Mobile Application',
-'Mobile',
-'Di động / WFH',
-NULL,
-NULL,
-NULL,
-100,
-0.68,
-NULL);
 
 -- ── Bản ghi chấm công mẫu ──
 -- ── Bản ghi chấm công mẫu ──
@@ -3349,74 +3233,9 @@ INSERT INTO ATTENDANCE_LOGS (
     'Success'
 );
 
-(1,
-1,
-2,
-'CheckIn',
-'Face',
-NULL,
-0.96,
-0.25,
-'Success'),
-(1,
-1,
-2,
-'CheckOut',
-'Face',
-NULL,
-0.94,
-0.28,
-'Success'),
-(2,
-2,
-1,
-'CheckIn',
-'Face',
-NULL,
-0.93,
-0.30,
-'Success'),
-(2,
-2,
-1,
-'CheckOut',
-'Face',
-NULL,
-0.91,
-0.32,
-'Success'),
-(3,
-3,
-2,
-'CheckIn',
-'Face',
-NULL,
-0.95,
-0.27,
-'Success'),
-(3,
-3,
-2,
-'CheckOut',
-'Face',
-NULL,
-0.92,
-0.29,
-'Success');
-
 -- ── Đơn nghỉ phép mẫu (3 đơn) ──
 -- ── Đơn nghỉ phép mẫu (3 đơn) ──
 INSERT INTO LEAVE_REQUESTS (
-    EMPLOYEE_ID,
-    LEAVE_TYPE,
-    START_DATE,
-    END_DATE,
-    TOTAL_DAYS,
-    REASON,
-    STATUS,
-    APPROVED_BY,
-    APPROVED_AT
-) (
     EMPLOYEE_ID,
     LEAVE_TYPE,
     START_DATE,
@@ -3460,44 +3279,6 @@ INSERT INTO LEAVE_REQUESTS (
     NULL
 );
 
-(3,
-'Annual',
-DATE('now',
-'+10 days'),
-DATE('now',
-'+11 days'),
-2,
-'Nghỉ phép về quê',
-'Pending',
-NULL,
-NULL),
-(2,
-'Sick',
-DATE('now',
-'-3 days'),
-DATE('now',
-'-3 days'),
-1,
-'Khám sức khỏe định kỳ',
-'Approved',
-5,
-DATETIME('now',
-'-2 days')),
-(9,
-'Other',
-DATE('now',
-'+5 days'),
-DATE('now',
-'+5 days'),
-1,
-'Có việc gia đình cần giải quyết',
-'Pending',
-NULL,
-NULL);
-
--- ============================================================
--- ============================================================
---  GHI CHÚ KỸ THUẬT
 -- ============================================================
 --  GHI CHÚ KỸ THUẬT
 -- ============================================================
@@ -3505,12 +3286,7 @@ NULL);
 -- Database   : SQLite 3.x (System.Data.SQLite.Core)
 -- Framework  : .NET Framework 4.6.1 / WinForms
 -- Password   : BCrypt.Net-Next (AuthPasswordHasher)
--- Face AI    : FaceRecognitionDotNet (dlib wrapper) — float[128] encoding
--- Mật khẩu mặc định tất cả tài khoản mẫu: admin123
--- Database   : SQLite 3.x (System.Data.SQLite.Core)
--- Framework  : .NET Framework 4.6.1 / WinForms
--- Password   : BCrypt.Net-Next (AuthPasswordHasher)
--- Face AI    : FaceRecognitionDotNet (dlib wrapper) — float[128] encoding
+-- Face AI    : FaceRecognitionDotNet (dlib wrapper) -- float[128] encoding
 -- Mật khẩu mặc định tất cả tài khoản mẫu: admin123
 --
 -- ============================================================
