@@ -1,1 +1,0 @@
-#include "resize_image.h"

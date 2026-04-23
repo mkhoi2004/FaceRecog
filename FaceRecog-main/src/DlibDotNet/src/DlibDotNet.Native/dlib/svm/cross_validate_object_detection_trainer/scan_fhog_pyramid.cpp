@@ -1,1 +1,0 @@
-#include "scan_fhog_pyramid.h"

@@ -1,1 +1,0 @@
-#include "equalize_histogram.h"

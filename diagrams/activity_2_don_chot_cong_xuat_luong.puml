@@ -1,0 +1,190 @@
+@startuml activity_2_don_chot_cong_xuat_luong
+
+' ============================================================
+' ACTIVITY 2 — TỪ ĐƠN GIẢI TRÌNH ĐẾN XUẤT LƯƠNG
+' Vòng lặp B (UC5 → UC7/UC8) + Vòng lặp C (UC14 → UC15)
+'
+' Swimlane 1 — Nhân viên             : tạo đơn, nhận kết quả duyệt
+' Swimlane 2 — Hệ thống quản lý công : xử lý tự động giữa các vai trò
+' Swimlane 3 — Quản lý trực tiếp     : xem xét và quyết định duyệt
+' Swimlane 4 — Admin HR              : chốt kỳ và xuất lương cuối tháng
+'
+' Vòng kín nghiệp vụ:
+'   Ngoại lệ từ Activity 1 → NV tạo Đơn → QL duyệt
+'   → Bản ghi được cập nhật → Admin tổng hợp → Xuất lương
+' ============================================================
+
+skinparam defaultFontName Arial
+skinparam defaultFontSize 12
+skinparam ActivityBackgroundColor     #FFFDE7
+skinparam ActivityBorderColor         #E65100
+skinparam ActivityFontSize            12
+skinparam ActivityDiamondBackgroundColor #E1F5FE
+skinparam ActivityDiamondBorderColor  #0277BD
+skinparam ActivityDiamondFontSize     11
+skinparam ArrowColor                  #37474F
+skinparam ArrowFontSize               11
+skinparam ArrowFontColor              #546E7A
+skinparam NoteBackgroundColor         #E8F5E9
+skinparam NoteBorderColor             #2E7D32
+skinparam NoteFontSize                11
+
+title **Activity 2 — Từ Đơn giải trình đến Xuất lương**\n//Vòng lặp B (UC5→UC8) + Vòng lặp C (UC14→UC15) · Vòng kín nghiệp vụ//
+
+' ════════════════════════════════════════════════════════════
+' PHẦN B — XỬ LÝ ĐƠN VÀ DUYỆT (Vòng lặp B)
+' Điểm vào: Nhân viên có Bản ghi ngoại lệ từ Activity 1
+'           hoặc cần xin nghỉ phép
+' ════════════════════════════════════════════════════════════
+
+|#DCEEFB|Nhân viên|
+start
+note right
+  Điểm vào từ Activity 1:
+  NV có Bản ghi ngoại lệ (đi muộn /
+  về sớm / cần xử lý) hoặc cần
+  xin nghỉ phép hợp lệ.
+end note
+:Tạo Đơn xin nghỉ / Giải trình\n(chọn loại · nhập lý do · ngày áp dụng);
+
+' ──────────────────────────────────────────────
+' QUYẾT ĐỊNH — Loại đơn ảnh hưởng bước xử lý
+' ──────────────────────────────────────────────
+|#FFF8E1|Hệ thống quản lý công|
+if (Loại đơn = giải trình?) then (Có — giải trình)
+
+  :Tìm Bản ghi chấm công\ncó ngoại lệ khớp với\nnhân viên và ngày đã chọn;
+  :Liên kết Đơn với Bản ghi chấm công\n(quan hệ R8 từ Class Diagram);
+
+else (Không — nghỉ phép)
+
+  note right
+    Đơn nghỉ phép không cần
+    liên kết Bản ghi cụ thể.
+    (cardinality 0..1 — R8)
+  end note
+
+endif
+
+:Lưu Đơn\n(trạng thái = chờ duyệt);
+:Thông báo Quản lý trực tiếp\ncó đơn mới cần xem xét;
+
+' ──────────────────────────────────────────────
+' QUẢN LÝ XEM XÉT VÀ QUYẾT ĐỊNH
+' ──────────────────────────────────────────────
+|#F3E5F5|Quản lý trực tiếp|
+:Xem xét Đơn\n(và Bản ghi chấm công liên quan\nnếu loại đơn = giải trình);
+
+if (Quyết định duyệt?) then (Duyệt)
+
+  ' --- Nhánh DUYỆT ---
+  |#FFF8E1|Hệ thống quản lý công|
+  :Cập nhật Đơn\n(trạng thái = đã duyệt);
+  :Cập nhật Bản ghi chấm công\n(trạng thái được điều chỉnh\nnếu loại đơn = giải trình);
+  |#DCEEFB|Nhân viên|
+  :Nhận thông báo Đơn được duyệt\n(Bản ghi đã cập nhật trạng thái);
+
+else (Từ chối)
+
+  ' --- Nhánh TỪ CHỐI ---
+  |#F3E5F5|Quản lý trực tiếp|
+  :Ghi lý do từ chối;
+  |#FFF8E1|Hệ thống quản lý công|
+  :Cập nhật Đơn\n(trạng thái = từ chối)\nBản ghi chấm công giữ nguyên trạng thái gốc;
+  |#DCEEFB|Nhân viên|
+  :Nhận thông báo Đơn bị từ chối\n(kèm lý do từ chối);
+
+endif
+
+' ════════════════════════════════════════════════════════════
+' ĐIỂM CHUYỂN GIAO — Vòng lặp B → Vòng lặp C
+' Tất cả Bản ghi trong tháng đã ở trạng thái cuối cùng
+' Cuối tháng: Admin HR chủ động khởi động Vòng lặp C
+' ════════════════════════════════════════════════════════════
+|#FFF8E1|Hệ thống quản lý công|
+note
+  ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  Vòng lặp B hoàn thành.
+  Bản ghi chấm công (kể cả bản đã điều chỉnh
+  qua giải trình được duyệt) sẵn sàng để
+  tổng hợp. Cuối tháng — Admin HR khởi động
+  Vòng lặp C để chốt kỳ và xuất lương.
+  ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+end note
+
+' ════════════════════════════════════════════════════════════
+' PHẦN C — CHỐT CÔNG VÀ XUẤT LƯƠNG (Vòng lặp C)
+' Điểm vào: Admin HR chủ động chọn Kỳ cần chốt cuối tháng
+' ════════════════════════════════════════════════════════════
+
+|#EDE7F6|Admin HR|
+:Chọn Kỳ tính lương cần chốt\n(chỉ hiển thị các kỳ đang ở trạng thái "đang mở");
+
+' ──────────────────────────────────────────────
+' QUYẾT ĐỊNH BẢO VỆ — Kỳ có hợp lệ không?
+' ──────────────────────────────────────────────
+|#FFF8E1|Hệ thống quản lý công|
+if (Kỳ tính lương KHÔNG ở\ntrạng thái "đang mở"?) then (Không hợp lệ)
+
+  |#EDE7F6|Admin HR|
+  :Nhận thông báo Kỳ không hợp lệ\n(đã chốt trước đó hoặc không tồn tại);
+  stop
+
+endif
+
+' ──────────────────────────────────────────────
+' UC14 — TỔNG HỢP CÔNG VÀ XEM XÉT (có thể lặp)
+' ──────────────────────────────────────────────
+|#FFF8E1|Hệ thống quản lý công|
+:Tổng hợp toàn bộ Bản ghi chấm công\nthuộc kỳ (bao gồm bản ghi đã điều chỉnh)\n→ UC14 bắt đầu;
+
+|#EDE7F6|Admin HR|
+:Xem xét kết quả tổng hợp\n(ngày công · ngoại lệ · vắng mặt);
+
+if (Kết quả cần\nđiều chỉnh?) then (Có — phát hiện sai sót)
+
+  :Điều chỉnh Bản ghi chấm công\ncụ thể trước khi chốt;
+
+  note right
+    Sau điều chỉnh, Admin khởi động
+    lại bước Tổng hợp và xem xét
+    (lặp đến khi kết quả chính xác).
+  end note
+
+  |#FFF8E1|Hệ thống quản lý công|
+  :Tổng hợp lại sau khi điều chỉnh;
+
+  |#EDE7F6|Admin HR|
+  :Xem xét kết quả lần cuối;
+
+else (Không — kết quả chính xác)
+endif
+
+' ──────────────────────────────────────────────
+' ADMIN XÁC NHẬN CHỐT KỲ — UC14 HOÀN THÀNH
+' ──────────────────────────────────────────────
+|#EDE7F6|Admin HR|
+:Xác nhận kết quả và yêu cầu chốt Kỳ;
+
+|#FFF8E1|Hệ thống quản lý công|
+:Chuyển Kỳ tính lương sang trạng thái "đã chốt"\n(khóa — không thể sửa Bản ghi trong kỳ này)\n→ UC14 hoàn thành;
+
+note right
+  **UC15 <<include>> UC14**
+  Chỉ được xuất khi Kỳ ở trạng
+  thái "đã chốt". Nếu UC14 chưa
+  hoàn thành → từ chối thực hiện.
+end note
+
+' ──────────────────────────────────────────────
+' UC15 — XUẤT DỮ LIỆU SANG HỆ THỐNG TÍNH LƯƠNG
+' ──────────────────────────────────────────────
+:Xuất dữ liệu công đã chốt\nsang Hệ thống tính lương ngoài\n→ UC15 thực hiện;
+
+:Ghi nhận kết quả truyền\n(timestamp · số bản ghi · trạng thái giao tiếp);
+
+|#EDE7F6|Admin HR|
+:Nhận xác nhận xuất dữ liệu thành công\n(số bản ghi · thời điểm · Kỳ đã hoàn tất);
+stop
+
+@enduml

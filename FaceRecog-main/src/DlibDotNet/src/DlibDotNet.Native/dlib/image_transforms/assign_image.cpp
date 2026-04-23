@@ -1,1 +1,0 @@
-#include "assign_image.h"
