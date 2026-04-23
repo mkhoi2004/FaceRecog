@@ -1,4 +1,4 @@
-﻿-- ============================================================
+-- ============================================================
 --  HỆ THỐNG CHẤM CÔNG NHẬN DIỆN KHUÔN MẶT
 --  Phiên bản : 3.0  —  Face-Attendance Focus
 --  Database  : SQLite 3.35+
@@ -1392,7 +1392,19 @@ INSERT INTO WORK_SHIFTS (
     1,
     '#9B59B6'
 ),
-
+(
+    'NIGHT',
+    'Ca đêm',
+    'Shift',
+    '22:00',
+    '06:00',
+    30,
+    8.0,
+    10,
+    10,
+    1,
+    '#9B59B6'
+),
 (
     'FLEX',
     'Ca linh hoạt',
@@ -1432,6 +1444,15 @@ INSERT INTO WORK_CALENDARS (
     1,
     0
 );
+
+('Vận hành T2-T7',
+1,
+0,
+0),
+('Sản xuất 7 ngày',
+1,
+1,
+0);
 
 -- Ngày lễ 2026
 INSERT INTO HOLIDAYS (

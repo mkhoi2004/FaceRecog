@@ -334,7 +334,15 @@ CREATE TABLE IF NOT EXISTS leave_requests (
                 {
                     await conn.OpenAsync();
                     
-                    var viewNames = new[] { "v_today_attendance", "v_monthly_summary", "v_face_status", "v_attendance_anomalies" };
+                    var viewNames = new[] { 
+                        "V_TODAY_ATTENDANCE", 
+                        "V_MONTHLY_SUMMARY", 
+                        "V_FACE_STATUS", 
+                        "V_ATTENDANCE_ANOMALIES",
+                        "V_PENDING_LEAVES",
+                        "V_LEAVE_BALANCE",
+                        "V_SUSPICIOUS_RECOGNITION"
+                    };
                     
                     foreach (var viewName in viewNames)
                     {
