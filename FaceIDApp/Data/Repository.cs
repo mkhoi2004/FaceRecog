@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using System.Data.SQLite;
@@ -687,7 +687,7 @@ WHERE employee_id = @emp_id AND attendance_date = CURRENT_DATE", conn))
                 using (var cmd = new SQLiteCommand(@"
 SELECT * FROM v_monthly_summary WHERE month = @month ORDER BY full_name", conn))
                 {
-                    cmd.Parameters.AddWithValue("month", firstOfMonth);
+                    cmd.Parameters.AddWithValue("month", firstOfMonth.ToString("yyyy-MM-dd"));
                     using (var r = await cmd.ExecuteReaderAsync())
                     {
                         while (await r.ReadAsync())
@@ -1515,7 +1515,7 @@ SELECT al.id, al.attendance_id, al.employee_id, al.device_id, al.log_time,
 FROM attendance_logs al
 LEFT JOIN employees e ON al.employee_id = e.id
 LEFT JOIN attendance_devices d ON al.device_id = d.id
-WHERE al.log_time::date = @date
+WHERE DATE(al.log_time) = @date
 ORDER BY al.log_time DESC", conn))
                 {
                     cmd.Parameters.AddWithValue("date", date.Date);
@@ -1565,7 +1565,7 @@ SELECT al.id, al.attendance_id, al.employee_id, al.device_id, al.log_time,
 FROM attendance_logs al
 LEFT JOIN employees e ON al.employee_id = e.id
 LEFT JOIN attendance_devices d ON al.device_id = d.id
-WHERE al.log_time::date BETWEEN @from AND @to
+WHERE DATE(al.log_time) BETWEEN @from AND @to
 ORDER BY al.log_time DESC
 LIMIT @limit", conn))
                 {
