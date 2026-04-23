@@ -140,7 +140,16 @@ namespace FaceIDApp.UserControls
             btnEditAttendance.FlatAppearance.BorderSize = 0;
             btnEditAttendance.Click += BtnEditAttendance_Click;
 
-            pnlManual.Controls.AddRange(new Control[] { lblManual, txtManualCode, cboManualAction, btnManualSubmit, btnEditAttendance });
+            var btnReload = new Button
+            {
+                Text = "🔄 Tải lại", Font = new Font("Segoe UI", 9F, FontStyle.Bold),
+                ForeColor = Color.White, BackColor = Color.FromArgb(16, 185, 129),
+                FlatStyle = FlatStyle.Flat, Size = new Size(100, 28), Location = new Point(610, 7), Cursor = Cursors.Hand
+            };
+            btnReload.FlatAppearance.BorderSize = 0;
+            btnReload.Click += (s, ev) => { LoadTodayAttendanceAsync(); };
+
+            pnlManual.Controls.AddRange(new Control[] { lblManual, txtManualCode, cboManualAction, btnManualSubmit, btnEditAttendance, btnReload });
             pnlTodayList.Controls.Add(pnlManual);
         }
 
