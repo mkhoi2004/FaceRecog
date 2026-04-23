@@ -1,0 +1,119 @@
+@startuml state_don_xin_nghi_giai_trinh
+
+' ============================================================
+' STATE DIAGRAM — ĐƠN XIN NGHỈ / GIẢI TRÌNH
+' Theo dõi MỘT đối tượng "Đơn" qua toàn bộ vòng đời
+' từ khi Nhân viên tạo (UC5) đến khi Quản lý quyết định (UC7/UC8).
+'
+' Nhất quán với:
+'   Class Diagram — attribute "trạng thái duyệt (chờ / đã duyệt / từ chối)"
+'                 — quan hệ R8: Đơn [0..1] liên kết Bản ghi chấm công
+'   Sequence 3    — Nhân viên tạo → QL xem xét → duyệt / từ chối
+'   Activity 2    — Phần B: luồng xử lý đơn và duyệt
+'
+' Ghi chú: Đơn có 2 loại, mỗi loại đi qua UC khác nhau:
+'   Nghỉ phép  → UC7 (Duyệt đơn xin nghỉ)
+'   Giải trình → UC8 (Xử lý giải trình ngoại lệ)
+'               → Khi duyệt: có action phụ cập nhật Bản ghi chấm công
+' ============================================================
+
+skinparam defaultFontName Arial
+skinparam defaultFontSize 12
+skinparam state {
+    BackgroundColor         #FFFDE7
+    BorderColor             #E65100
+    HeaderBackgroundColor   #FFE0B2
+    HeaderFontColor         #BF360C
+    FontSize                12
+    ArrowColor              #37474F
+    StartColor              #1565C0
+    EndColor                #C62828
+    AttributeFontColor      #546E7A
+    AttributeFontSize       11
+}
+skinparam NoteBackgroundColor #E8F5E9
+skinparam NoteBorderColor     #2E7D32
+skinparam NoteFontSize        11
+
+title **State Diagram — Đơn xin nghỉ / Giải trình**\n//Vòng đời: Tạo đơn (UC5) → Xem xét → Duyệt hoặc Từ chối//
+
+' ============================================================
+' KHỞI TẠO — Nhân viên tạo Đơn qua UC5
+' Action phụ: Hệ thống tự động thông báo Quản lý trực tiếp
+' ============================================================
+[*] --> ChoDuyet : Nhân viên tạo Đơn [UC5]\n/ Hệ thống thông báo Quản lý trực tiếp
+
+' ============================================================
+' TRẠNG THÁI DUY NHẤT CÓ THỂ CHUYỂN — "Chờ duyệt"
+' Đây là trạng thái trung gian, chờ action của Quản lý
+' ============================================================
+state "Chờ duyệt" as ChoDuyet : Đơn đã lưu · Quản lý đã được thông báo\nĐang chờ Quản lý xem xét và quyết định
+
+note right of ChoDuyet
+  **[Loại = giải trình]**
+  Hệ thống đã liên kết Đơn với
+  Bản ghi chấm công có ngoại lệ
+  (quan hệ R8 — Class Diagram).
+  Quản lý xem cả Đơn lẫn Bản ghi
+  khi xem xét.
+
+  **[Loại = nghỉ phép]**
+  Không liên kết Bản ghi cụ thể.
+  Quản lý chỉ xem nội dung Đơn.
+end note
+
+' ============================================================
+' HAI ĐƯỜNG CHUYỂN TỪ "CHỜ DUYỆT"
+' Mỗi đường có guard condition và UC xử lý khác nhau
+' ============================================================
+
+' --- Đường 1: DUYỆT ---
+ChoDuyet --> DaDuyet : Quản lý duyệt Đơn xin nghỉ [UC7]\n[loại = nghỉ phép · lý do hợp lệ]
+
+ChoDuyet --> DaDuyet : Quản lý duyệt Đơn giải trình [UC8]\n[loại = giải trình · lý do hợp lệ]\n/ Cập nhật Bản ghi chấm công → "Đã điều chỉnh"
+
+' --- Đường 2: TỪ CHỐI ---
+ChoDuyet --> TuChoi  : Quản lý từ chối [UC7 hoặc UC8]\n[lý do không đủ cơ sở]
+
+' ============================================================
+' TRẠNG THÁI CUỐI — "Đã duyệt" (kết thúc dương)
+' ============================================================
+state "Đã duyệt" as DaDuyet : Quản lý chấp nhận lý do\nVòng đời Đơn hoàn thành
+
+note right of DaDuyet
+  **[Loại = nghỉ phép]**
+  Số ngày nghỉ được ghi nhận.
+  Bản ghi chấm công không thay đổi.
+
+  **[Loại = giải trình]**
+  Bản ghi chấm công chuyển sang
+  trạng thái "Đã điều chỉnh".
+  → Xem State Diagram — Bản ghi
+    chấm công để theo dõi tiếp.
+end note
+
+' ============================================================
+' TRẠNG THÁI CUỐI — "Từ chối" (kết thúc âm)
+' ============================================================
+state "Từ chối" as TuChoi : Quản lý không chấp nhận\nVòng đời Đơn hoàn thành
+
+note right of TuChoi
+  Bản ghi chấm công giữ nguyên
+  trạng thái ngoại lệ gốc.
+  → Xem State Diagram — Bản ghi
+    chấm công: ở lại "Cần xử lý
+    thủ công" (không chuyển sang
+    "Đã điều chỉnh").
+
+  Nhân viên nhận thông báo
+  kèm lý do từ chối của Quản lý.
+end note
+
+' ============================================================
+' KẾT THÚC VÒNG ĐỜI
+' Cả hai trạng thái cuối đều không thể đảo ngược
+' ============================================================
+DaDuyet --> [*] : Vòng đời kết thúc\n(Đơn lưu trữ để kiểm toán)
+TuChoi  --> [*] : Vòng đời kết thúc\n(Đơn lưu trữ để kiểm toán)
+
+@enduml
