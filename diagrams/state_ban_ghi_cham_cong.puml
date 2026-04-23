@@ -1,0 +1,112 @@
+@startuml state_ban_ghi_cham_cong
+
+' ============================================================
+' STATE DIAGRAM — BẢN GHI CHẤM CÔNG
+' Theo dõi MỘT đối tượng "Bản ghi chấm công" qua toàn bộ vòng đời
+' từ lúc được tạo (UC1) đến khi xuất lương (UC15).
+'
+' Nhất quán với:
+'   Class Diagram — attribute "trạng thái (đúng giờ / đi muộn / về sớm / vắng)"
+'   Sequence 1,2 — tạo bản ghi (tự động / thủ công)
+'   Sequence 3    — Đơn giải trình cập nhật trạng thái bản ghi
+'   Sequence 4    — UC14 chốt kỳ, UC15 xuất lương
+'   Activity 1    — 3 nhánh tạo bản ghi
+'   Activity 2    — cập nhật sau duyệt + chốt kỳ
+' ============================================================
+
+skinparam defaultFontName Arial
+skinparam defaultFontSize 12
+skinparam state {
+    BackgroundColor         #FFFDE7
+    BorderColor             #E65100
+    HeaderBackgroundColor   #FFE0B2
+    HeaderFontColor         #BF360C
+    FontSize                12
+    ArrowColor              #37474F
+    StartColor              #1565C0
+    EndColor                #C62828
+    AttributeFontColor      #546E7A
+    AttributeFontSize       11
+}
+skinparam NoteBackgroundColor #FFF9C4
+skinparam NoteBorderColor     #F9A825
+skinparam NoteFontSize        11
+
+title **State Diagram — Bản ghi chấm công**\n//Vòng đời: Tạo bản ghi → Chốt kỳ → Xuất lương//
+
+' ============================================================
+' KHỞI TẠO — 5 trạng thái ban đầu tùy kết quả chấm công
+' Mỗi mũi tên từ [*] là một sự kiện tạo bản ghi khác nhau
+' ============================================================
+
+[*] --> DungGio  : Nhận diện thành công\n+ đúng giờ ca
+[*] --> DiMuon   : Nhận diện thành công\n[UC3 phát hiện đi muộn]
+[*] --> VeSom    : Nhận diện thành công\n[UC3 phát hiện về sớm]
+[*] --> CanXuLy  : Nhận diện thất bại\n(tạo thủ công — cần xử lý)
+[*] --> VangMat  : Kết thúc ca —\nkhông phát hiện lượt chấm
+
+' ============================================================
+' COMPOSITE STATE: "Trong tháng"
+' Tất cả trạng thái bên trong đều có thể chỉnh sửa
+' Một mũi tên duy nhất thoát ra → "Đã chốt" khi UC14 xác nhận
+' ============================================================
+state "Trong tháng — có thể chỉnh sửa" as TrongThang {
+
+  ' ──────────────────────────────────────────────────────────
+  ' Nhóm trạng thái BÌNH THƯỜNG (không cần can thiệp thêm)
+  ' ──────────────────────────────────────────────────────────
+  state "Đúng giờ" as DungGio : loại = tự động\nBình thường — không cần can thiệp
+
+  ' ──────────────────────────────────────────────────────────
+  ' Nhóm trạng thái NGOẠI LỆ (cần Nhân viên hoặc Quản lý xử lý)
+  ' ──────────────────────────────────────────────────────────
+  state "Đi muộn" as DiMuon   : loại = tự động · UC3 ghi nhận\nNgoại lệ — Nhân viên có thể giải trình
+  state "Về sớm" as VeSom     : loại = tự động · UC3 ghi nhận\nNgoại lệ — Nhân viên có thể giải trình
+  state "Vắng mặt" as VangMat : loại = tự động\nNgoại lệ — Nhân viên có thể giải trình
+  state "Cần xử lý\nthủ công" as CanXuLy : loại = thủ công\nNgoại lệ — cần Quản lý can thiệp
+
+  ' ──────────────────────────────────────────────────────────
+  ' Trạng thái ĐANG GIẢI TRÌNH (tạm thời, chờ Quản lý quyết định)
+  ' ──────────────────────────────────────────────────────────
+  state "Chờ giải trình" as ChoGT : Đơn UC5 đã liên kết\nĐang chờ Quản lý xem xét — UC8
+
+  ' ──────────────────────────────────────────────────────────
+  ' Trạng thái ĐÃ GIẢI QUYẾT (Đơn được duyệt)
+  ' ──────────────────────────────────────────────────────────
+  state "Đã điều chỉnh" as DaDC : Đơn UC8 được duyệt\nTrạng thái được cập nhật theo lý do giải trình
+
+  ' --- Chuyển sang "Chờ giải trình" khi Nhân viên tạo Đơn ---
+  DiMuon  --> ChoGT : Nhân viên tạo Đơn giải trình [UC5]
+  VeSom   --> ChoGT : Nhân viên tạo Đơn giải trình [UC5]
+  VangMat --> ChoGT : Nhân viên tạo Đơn giải trình [UC5]
+  CanXuLy --> ChoGT : Nhân viên tạo Đơn giải trình [UC5]
+
+  ' --- Kết quả quyết định của Quản lý trực tiếp ---
+  ChoGT --> DaDC    : Quản lý duyệt Đơn giải trình [UC8]\n→ Bản ghi cập nhật trạng thái
+  ChoGT --> CanXuLy : Quản lý từ chối Đơn [Lý do không hợp lệ]\n→ Bản ghi giữ nguyên trạng thái gốc
+}
+
+' ============================================================
+' CHỐT KỲ — Sự kiện UC14 khóa toàn bộ bản ghi trong kỳ
+' Một mũi tên từ composite state "TrongThang" → "Đã chốt"
+' thể hiện: bất kỳ trạng thái nào trong tháng đều bị chốt
+' ============================================================
+TrongThang --> DaChot : Admin HR xác nhận chốt Kỳ tính lương [UC14]\n[Kỳ đang ở trạng thái "đang mở"]
+
+note right of DaChot
+  Sau khi chốt:
+  · Bản ghi KHÔNG thể chỉnh sửa
+  · Kể cả bản ghi ngoại lệ chưa
+    giải quyết vẫn bị chốt
+  · Đây là điều kiện để UC15 chạy
+    (UC15 <<include>> UC14)
+end note
+
+state "Đã chốt" as DaChot : UC14 xác nhận · Không thể sửa\nChờ xuất sang Hệ thống tính lương
+
+' ============================================================
+' KẾT THÚC VÒNG ĐỜI — UC15 hoàn thành
+' ============================================================
+DaChot --> [*] : Xuất dữ liệu sang Hệ thống tính lương\n[UC15 — chỉ chạy sau khi UC14 hoàn thành]
+
+@enduml
